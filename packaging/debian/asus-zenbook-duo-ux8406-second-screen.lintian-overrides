@@ -1,0 +1,3 @@
+# This is the first packaging and it is not an upload to the Debian archive:
+# there is no ITP/RFP bug that a "Closes:" entry could name.
+asus-zenbook-duo-ux8406-second-screen: initial-upload-closes-no-bugs [usr/share/doc/asus-zenbook-duo-ux8406-second-screen/changelog.Debian.gz:1]

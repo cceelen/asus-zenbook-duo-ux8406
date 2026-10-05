@@ -1,0 +1,6 @@
+# markdownlint. A table row and a code line cannot be wrapped: the line
+# length is checked for text only. mdformat does the wrapping.
+config:
+  MD013:
+    tables: false
+    code_blocks: false

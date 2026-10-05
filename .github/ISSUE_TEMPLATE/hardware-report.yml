@@ -1,0 +1,50 @@
+name: Hardware report
+description: Tell us what operates and what does not on your Zenbook Duo.
+labels: [hardware-report]
+body:
+  - type: input
+    id: model
+    attributes:
+      label: Model and BIOS version
+      description: "`cat /sys/class/dmi/id/product_name /sys/class/dmi/id/bios_version`"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Distribution, kernel and desktop
+      description: "For example: Fedora 44, kernel 7.2.8 (`uname -r`), GNOME 50"
+    validations:
+      required: true
+  - type: input
+    id: packages
+    attributes:
+      label: Package versions
+    validations:
+      required: true
+  - type: checkboxes
+    id: works
+    attributes:
+      label: What operates
+      options:
+        - label: Guard (the laptop stays on with the lid closed and under load)
+        - label: Second screen off while the keyboard is on it
+        - label: Second screen follows the brightness
+        - label: Special function keys on the dock
+        - label: Special function keys on the cable
+        - label: Special function keys on Bluetooth
+        - label: The two display keys (GNOME extension)
+  - type: textarea
+    id: problem
+    attributes:
+      label: What does not operate
+      description: Describe what you did, what you expected and what occurred.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: >-
+        For a problem: `journalctl -b -k | grep -i -e hid -e bpf -e asus` and
+        `journalctl -b -u asus-ux8406-tcc-guard`. For another sub-model, also
+        `lsusb` with the keyboard docked.
+      render: text

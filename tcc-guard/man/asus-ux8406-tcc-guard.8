@@ -1,0 +1,74 @@
+.TH ASUS\-UX8406\-TCC\-GUARD 8 "2026" "asus\-zenbook\-duo\-ux8406" "System Administration"
+.SH NAME
+asus\-ux8406\-tcc\-guard \- CPU thermal\-offset guard for the ASUS Zenbook Duo UX8406
+.SH SYNOPSIS
+.B asus\-ux8406\-tcc\-guard
+.RI [ OPTIONS ]
+.RB [ run | restore ]
+.SH DESCRIPTION
+The embedded controller (EC) of the ASUS Zenbook Duo UX8406 raises a thermal
+warning when the lid is closed and the CPU is under load. If the CPU stays hot,
+the EC cuts the power.
+.PP
+.B asus\-ux8406\-tcc\-guard
+reads the kernel log for that warning. On a warning it raises the thermal
+offset of the CPU until the temperature is below the level at which the EC
+stops its alert. It then lowers the offset in steps while no new warning comes,
+until the offset has its original value.
+.PP
+On a machine whose product name does not contain the value of the setting
+.BR model ,
+the program logs one line and ends with status 0.
+.SH COMMANDS
+.TP
+.B run
+Watch for the warning and control the offset. This is the default.
+.TP
+.B restore
+Write back the original offset that a killed guard left raised. The systemd
+unit runs this after each stop.
+.SH OPTIONS
+.TP
+.BR \-c ", " \-\-config " " \fIFILE\fR
+Configuration file, in place of
+.IR /etc/asus\-ux8406\-tcc\-guard.toml .
+.TP
+.BR \-H ", " \-\-hold\-temp " " \fIDEGREES\fR
+The setting
+.BR hold_temp .
+.TP
+.BR \-P ", " \-\-probe\-interval " " \fISECONDS\fR
+The setting
+.BR probe_interval .
+.TP
+.BR \-t ", " \-\-time " " \fISECONDS\fR
+Stop after this time. 0, the default, runs until the program is stopped.
+.TP
+.BR \-\-root " " \fIDIR\fR
+Operate on the system below this directory. For tests.
+.TP
+.BR \-h ", " \-\-help
+Print the help.
+.TP
+.BR \-V ", " \-\-version
+Print the version.
+.SH FILES
+.TP
+.I /etc/asus\-ux8406\-tcc\-guard.toml
+Optional settings. Root must own the file, and no other user may write it. The
+example file in the documentation directory of the package gives each setting
+and its default.
+.TP
+.I /run/asus\-ux8406\-tcc\-guard
+The original offset of each processor package, while an offset is raised.
+.TP
+.I /sys/bus/pci/devices/0000:00:04.0/tcc_offset_degree_celsius
+The thermal offset that the program writes.
+.SH SIGNALS
+On SIGTERM, SIGINT and SIGHUP the program writes the original offset back and
+ends.
+.SH SEE ALSO
+.BR systemctl (1),
+.BR journalctl (1)
+.PP
+https://github.com/cceelen/asus\-zenbook\-duo\-ux8406

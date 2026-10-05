@@ -1,0 +1,39 @@
+# Once a week: are the dependencies free of new advisories, and which
+# distributions package udev-hid-bpf. It gates nothing: a red run is the
+# notice.
+name: watch
+
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: watch
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Advisories appear without a commit, so the check is repeated here.
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions-rust-lang/audit@72c09e02f132669d52284a3323acdb503cfc1a24 # v1.2.7
+        with:
+          createIssues: false
+
+  # Who packages udev-hid-bpf, which the keyboard package needs. Repology asks
+  # clients to say who they are.
+  repology:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: >-
+          curl -fsS -A "asus-zenbook-duo-ux8406-watch (+https://github.com/$GITHUB_REPOSITORY)"
+          https://repology.org/api/v1/project/udev-hid-bpf
+          | jq -r '.[] | "- \(.repo): \(.version) (\(.status // "-"))"'
+          >> "$GITHUB_STEP_SUMMARY"

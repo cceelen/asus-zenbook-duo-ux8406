@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.asus-zenbook-duo-ux8406-keys"
+          path="/org/gnome/shell/extensions/asus-zenbook-duo-ux8406-keys/">
+    <key name="toggle-lower-panel" type="as">
+      <default>['XF86Launch9']</default>
+      <summary>Switch the lower panel on or off</summary>
+      <description>The key right of F12; asus-zenbook-duo-ux8406-keyboard-bpf delivers it as F18, which the keyboard layout names XF86Launch9.</description>
+    </key>
+    <key name="swap-windows" type="as">
+      <default>['F19']</default>
+      <summary>Swap the windows of the two panels</summary>
+      <description>F8 in the special-key mode; asus-zenbook-duo-ux8406-keyboard-bpf delivers it as F19.</description>
+    </key>
+  </schema>
+</schemalist>

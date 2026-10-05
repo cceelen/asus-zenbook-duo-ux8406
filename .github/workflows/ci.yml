@@ -1,0 +1,116 @@
+# Checks every pull request and every push to main.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer push to the same branch or pull request makes the older run
+# pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          components: clippy, rustfmt, llvm-tools-preview
+      - run: cargo clippy --locked -p asus-ux8406-tcc-guard --all-targets --features failpoints -- -D warnings
+      - run: cargo install --locked cargo-llvm-cov
+      - run: cargo install --locked cargo-about --features cli
+      # Every region of the guard is run by a test.
+      - run: >-
+          cargo llvm-cov --locked -p asus-ux8406-tcc-guard --features failpoints
+          --ignore-filename-regex /tests/ --fail-under-regions 100
+      # The committed notices are those of Cargo.lock.
+      - run: cargo about generate --locked --offline -m second-screen/Cargo.toml about.hbs -o second-screen/THIRD-PARTY-NOTICES.txt
+      - run: cargo about generate --locked --offline -m tcc-guard/Cargo.toml about.hbs -o tcc-guard/THIRD-PARTY-NOTICES.txt
+      - run: git diff --exit-code
+
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions-rust-lang/audit@72c09e02f132669d52284a3323acdb503cfc1a24 # v1.2.7
+        with:
+          createIssues: false
+
+  # Every hook of .pre-commit-config.yaml: formats, lints, spelling,
+  # licences. Ubuntu 26.04 for the kernel headers that clang-tidy reads.
+  pre-commit:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          components: clippy, rustfmt
+      - run: >-
+          sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends
+          clang clang-tidy libbpf-dev linux-libc-dev pipx
+      - run: pipx run pre-commit run --all-files --show-diff-on-failure
+
+  workflows:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+        with:
+          advanced-security: false
+          annotations: true
+
+  # Ubuntu 26.04, not -latest: the HID-BPF program needs kernel headers of 6.10
+  # or later (24.04 has 6.8). The runner's user is not root, which the tests
+  # need. `meson test` runs the cargo tests, the BPF object checks and the
+  # extension's node tests.
+  meson:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Meson builds the crates into build/cargo.
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: . -> build/cargo
+      - run: >-
+          sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends
+          meson ninja-build pkgconf clang libbpf-dev linux-libc-dev
+          libglib2.0-bin systemd-dev udev
+      - run: meson setup build
+      - run: meson compile -C build
+      - run: meson test -C build --print-errorlogs
+
+  dependency-review:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+
+  # A called workflow may not ask for more permissions than its caller
+  # grants. These are for its attest job, which does not run here.
+  release-files:
+    uses: ./.github/workflows/release-files.yml
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write

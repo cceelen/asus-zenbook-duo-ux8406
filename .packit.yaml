@@ -1,0 +1,42 @@
+# Packit builds the rpm packages in Fedora Copr. Reference:
+# https://packit.dev/docs/configuration
+specfile_path: packaging/rpm/asus-zenbook-duo-ux8406.spec
+upstream_package_name: asus-zenbook-duo-ux8406
+downstream_package_name: asus-zenbook-duo-ux8406
+# Tags are v0.1.0; the version in the spec is 0.1.0.
+upstream_tag_template: v{version}
+
+# The machine is x86-64 only, which is Packit's default architecture. EPEL 10
+# has every build requirement; EPEL 9 does not (Meson 0.63, Node.js 16).
+targets:
+  - fedora-stable
+  - fedora-rawhide
+  - epel-10
+
+actions:
+  # meson dist puts the vendored crates into the archive. The last line
+  # printed is the path of the archive, which Packit reads.
+  create-archive:
+    - meson setup _dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false
+    - meson dist -C _dist --no-tests --formats gztar --allow-dirty
+    - sh -c 'ls _dist/meson-dist/*.tar.gz'
+
+srpm_build_deps:
+  - cargo
+  - git
+  - meson
+
+jobs:
+  - job: copr_build
+    trigger: pull_request
+
+  - job: copr_build
+    trigger: commit
+    branch: main
+
+  - job: copr_build
+    trigger: release
+    # The released NVR is the one in the spec, 0.1.0-1, not a snapshot.
+    update_release: false
+    # Copr deletes a project after 60 days unless told to keep it.
+    preserve_project: true

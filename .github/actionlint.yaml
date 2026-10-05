@@ -1,0 +1,5 @@
+# actionlint 1.7.12 does not know the label of the Ubuntu 26.04 runner yet,
+# which actions/runner-images lists as available.
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04

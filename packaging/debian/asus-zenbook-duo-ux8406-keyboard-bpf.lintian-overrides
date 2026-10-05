@@ -1,0 +1,8 @@
+# The object is BPF bytecode, loaded into the kernel by udev-hid-bpf; it is
+# not code for any CPU architecture of the machine. It is built for x86-64
+# keyboards only (the package is amd64).
+asus-zenbook-duo-ux8406-keyboard-bpf: binary-from-other-architecture [usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o]
+
+# As above: first packaging, not an upload to the Debian archive, so there is
+# no ITP/RFP bug that a "Closes:" entry could name.
+asus-zenbook-duo-ux8406-keyboard-bpf: initial-upload-closes-no-bugs [usr/share/doc/asus-zenbook-duo-ux8406-keyboard-bpf/changelog.Debian.gz:1]

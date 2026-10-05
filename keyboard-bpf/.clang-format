@@ -1,0 +1,5 @@
+# Google style (https://google.github.io/styleguide/cppguide.html), as clang-format defines it.
+Language: Cpp
+BasedOnStyle: Google
+InsertBraces: true
+InsertNewlineAtEOF: true

@@ -1,0 +1,26 @@
+# ASUS Zenbook Duo UX8406: the lower built-in panel counts as unplugged
+# while the detachable keyboard lies on it, and has the brightness of the
+# upper panel.
+#
+# asus-ux8406-second-screen looks at the keyboard's dock port and at the upper panel's
+# backlight itself and sets the lower panel to match; the rules only say when
+# to look, and only on this model.
+
+ATTR{[dmi/id]product_name}!="*UX8406*", GOTO="asus_ux8406_second_screen_end"
+
+# The keyboard (0b05:1bf2, or 0b05:1b2c of the UX8406MA) arrives on, or leaves, the dock port: port 6 of the
+# root hub of the USB controller 0000:00:14.0. On the cable it is on another
+# port, and this rule does not fire.
+ACTION=="add|remove", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ENV{PRODUCT}=="b05/1bf2/*|b05/1b2c/*", DEVPATH=="/devices/pci0000:00/0000:00:14.0/usb*/*-6", RUN+="@LIBEXECDIR@/asus-ux8406-second-screen dock"
+
+# The lower panel's connector appears (at boot), or udev replays its events
+# (as package managers do after installing rules): bring it in line with where
+# the keyboard is.
+ACTION=="add|change", SUBSYSTEM=="drm", KERNEL=="card*-eDP-2", RUN+="@LIBEXECDIR@/asus-ux8406-second-screen dock"
+
+# The brightness of the upper panel changed. Desktops set only that one; the
+# lower panel follows. Its own backlight hangs below the other connector, so
+# this rule does not fire for what asus-ux8406-second-screen writes.
+ACTION=="change", SUBSYSTEM=="backlight", KERNELS=="card*-eDP-1", RUN+="@LIBEXECDIR@/asus-ux8406-second-screen brightness"
+
+LABEL="asus_ux8406_second_screen_end"

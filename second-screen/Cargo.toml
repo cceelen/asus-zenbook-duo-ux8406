@@ -1,0 +1,21 @@
+[package]
+name = "asus-ux8406-second-screen"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Lower built-in panel of the ASUS Zenbook Duo UX8406 off while the keyboard lies on it"
+publish = false
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+thiserror = "2"
+
+[dev-dependencies]
+assert_cmd = "2"
+assert_fs = "1"
+predicates = "3"
+rstest = "0.26"
+
+[lints]
+workspace = true

@@ -1,0 +1,5 @@
+version=4
+# The release archives are the ones made by `meson dist` (they carry the
+# vendored crates), attached to each GitHub release.
+https://github.com/cceelen/asus-zenbook-duo-ux8406/releases \
+    (?:.*?/)?asus-zenbook-duo-ux8406-v?(\d[\d.]*)\.tar\.gz

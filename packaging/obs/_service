@@ -1,0 +1,29 @@
+<services>
+  <!-- Recipes of the latest tag (the tag a push has just made): the spec
+       and the dsc become files of the package. -->
+  <service name="obs_scm">
+    <param name="scm">git</param>
+    <param name="url">https://github.com/cceelen/asus-zenbook-duo-ux8406.git</param>
+    <param name="revision">@PARENT_TAG@</param>
+    <param name="versionformat">@PARENT_TAG@</param>
+    <param name="versionrewrite-pattern">v(.*)</param>
+    <param name="versionrewrite-replacement">\1</param>
+    <param name="extract">packaging/rpm/asus-zenbook-duo-ux8406.spec</param>
+    <param name="extract">packaging/obs/asus-zenbook-duo-ux8406.dsc</param>
+  </service>
+
+  <!-- The source archive: the attested release asset, with the vendored
+       crates. Its URL is the Source0 of the spec. -->
+  <service name="download_files"/>
+
+  <!-- packaging/debian/ as debian.tar, which the dsc build adds to the
+       archive (debtransform). -->
+  <service name="tar_scm">
+    <param name="scm">git</param>
+    <param name="url">https://github.com/cceelen/asus-zenbook-duo-ux8406.git</param>
+    <param name="revision">@PARENT_TAG@</param>
+    <param name="subdir">packaging/debian</param>
+    <param name="filename">debian</param>
+    <param name="version">_none_</param>
+  </service>
+</services>

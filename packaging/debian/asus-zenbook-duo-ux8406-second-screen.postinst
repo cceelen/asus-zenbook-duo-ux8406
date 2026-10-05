@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+	udevadm control --reload 2>/dev/null || true
+	# Bring the panel in line with where the keyboard is, and with the upper
+	# panel's brightness, right now.
+	/usr/libexec/asus-ux8406-second-screen dock >/dev/null 2>&1 || true
+	/usr/libexec/asus-ux8406-second-screen brightness >/dev/null 2>&1 || true
+fi
+
+#DEBHELPER#

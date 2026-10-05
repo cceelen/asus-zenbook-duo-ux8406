@@ -1,0 +1,30 @@
+# Who holds the copyright and which licence applies, said once for the whole
+# tree (https://reuse.software/). Files do not repeat it. The headers copied
+# from the Linux kernel carry their own notice and are taken at its word.
+version = 1
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Christian Ceelen"
+SPDX-License-Identifier = "MIT"
+
+# The HID-BPF program: GPL-2.0-only.
+[[annotations]]
+path = "keyboard-bpf/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Christian Ceelen"
+SPDX-License-Identifier = "GPL-2.0-only"
+
+# Copied from the Linux kernel (drivers/hid/bpf/progs): the copyright is
+# their author's, as each file says.
+[[annotations]]
+path = [
+  "keyboard-bpf/include/hid_bpf.h",
+  "keyboard-bpf/include/hid_bpf_async.h",
+  "keyboard-bpf/include/hid_bpf_helpers.h",
+  "keyboard-bpf/include/hid_report_descriptor_helpers.h",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "Benjamin Tissoires"
+SPDX-License-Identifier = "GPL-2.0-only"

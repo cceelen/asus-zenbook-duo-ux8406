@@ -1,0 +1,15 @@
+# Bring the panel in line with where the keyboard is, and with the upper
+# panel's brightness, right now.
+post_install() {
+  /usr/lib/asus-ux8406-second-screen dock >/dev/null 2>&1 || true
+  /usr/lib/asus-ux8406-second-screen brightness >/dev/null 2>&1 || true
+}
+
+post_upgrade() {
+  post_install
+}
+
+# A panel left forced off would stay off until the next boot.
+pre_remove() {
+  /usr/lib/asus-ux8406-second-screen release >/dev/null 2>&1 || true
+}

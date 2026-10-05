@@ -1,0 +1,61 @@
+#!/usr/bin/make -f
+# Meson builds, tests and installs everything into debian/tmp (the cargo
+# builds are run by Meson, into its build directory); the .install files
+# split that up into the packages. The crates come from vendor/ in the
+# source archive: the build needs no network. cargo must not write into the
+# builder's home directory.
+export CARGO_HOME = $(CURDIR)/debian/cargo_home
+
+%:
+	dh $@ --buildsystem=meson
+
+# The unit goes where dh_installsystemd looks for it, the helper into
+# /usr/libexec (the udev rule names it by that path), and the guard's example
+# configuration is moved into its package's documentation directory by
+# asus-zenbook-duo-ux8406-tcc-guard.install. -Dlicensedir has Meson install
+# the notices of the two Rust programs plus the licence texts and its own
+# depmf.json; Debian conveys licences in debian/copyright and common-licenses,
+# so only the notices are kept (see override_dh_auto_install).
+override_dh_auto_configure:
+	dh_auto_configure -- \
+	    --libexecdir=libexec \
+	    -Dlicensedir=share/licenses \
+	    -Dudevdir=/usr/lib/udev \
+	    -Dsystemdsystemunitdir=/usr/lib/systemd/system \
+	    -Dfirmwaredir=/usr/lib/firmware
+
+# Every test runs, as the unprivileged user that builds the package; the
+# Rust tests compile first, hence the generous timeout multiplier.
+override_dh_auto_test:
+	dh_auto_test -- -t 3
+
+override_dh_auto_install:
+	dh_auto_install
+	rm -f debian/tmp/usr/share/licenses/depmf.json
+	rm -f debian/tmp/usr/share/licenses/*/MIT.txt \
+	      debian/tmp/usr/share/licenses/*/GPL-2.0-only.txt
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf debian/cargo_home
+
+# The HID-BPF object is not a host binary.
+override_dh_strip:
+	dh_strip -X.bpf.o
+
+override_dh_dwz:
+	dh_dwz -X.bpf.o
+
+# vendor/ holds the crates as published, among them files that dh_clean takes
+# for editor leftovers (Cargo.toml.orig), and cargo wants them: cargo checks
+# every file of a crate against its checksum list. The build is out of tree,
+# but the clean target runs on the unpacked source.
+override_dh_clean:
+	dh_clean -Xvendor/
+
+# The notices are for people to read: keep them as plain text.
+override_dh_compress:
+	dh_compress -XTHIRD-PARTY-NOTICES.txt
+
+override_dh_missing:
+	dh_missing --fail-missing

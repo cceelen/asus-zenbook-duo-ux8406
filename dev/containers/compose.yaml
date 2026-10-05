@@ -1,0 +1,153 @@
+# Local development only. Each service builds the packages of one
+# distribution from this tree (dev/containers/<distro>.Dockerfile), installs
+# them on a clean system and checks the installation. A container has no
+# keyboard, no screens and no kernel log: this does not test the hardware.
+#
+# All distributions:
+#   docker compose -f dev/containers/compose.yaml up --build \
+#     --abort-on-container-failure
+# One distribution:
+#   docker compose -f dev/containers/compose.yaml up --build debian
+
+name: asus-zenbook-duo-ux8406-packages
+
+x-check: &check
+  command:
+    - sh
+    - -euc
+    - |
+      eval "$$VERIFY"
+      echo "installed files verified"
+      "$$HELPER" --version
+      asus-ux8406-tcc-guard --version
+      if [ "$${KEYBOARD:-no}" = yes ]; then
+        udev-hid-bpf --version
+        udev-hid-bpf inspect \
+          /usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
+          | grep -c '"pid"' | grep -qx 3
+        echo "udev-hid-bpf reads the keyboard program"
+      else
+        echo "keyboard package not installed: no udev-hid-bpf here"
+      fi
+      if [ "$${GNOME:-no}" = yes ]; then
+        test -f /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/extension.js
+        test -f /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/schemas/gschemas.compiled
+        gnome-shell --version
+        echo "extension files in place"
+      else
+        echo "extension package not installed here"
+      fi
+      # Removal: the package manager runs the removal scripts, and no file of
+      # the packages stays.
+      eval "$$REMOVE"
+      for f in "$$HELPER" /usr/bin/asus-ux8406-tcc-guard /usr/sbin/asus-ux8406-tcc-guard \
+          /usr/lib/systemd/system/asus-ux8406-tcc-guard.service /etc/init.d/asus-ux8406-tcc-guard \
+          /usr/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \
+          /usr/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
+          /usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
+          /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io; do
+        if [ -e "$$f" ]; then echo "left after removal: $$f"; exit 1; fi
+      done
+      echo "packages removed, nothing left"
+      echo "OK"
+
+services:
+  fedora:
+    <<: *check
+    build:
+      context: ../..
+      dockerfile: dev/containers/fedora.Dockerfile
+    environment:
+      VERIFY: rpm --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+      REMOVE: dnf remove -y asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+      HELPER: /usr/libexec/asus-ux8406-second-screen
+      KEYBOARD: "yes"
+      GNOME: "yes"
+
+  # No udev-hid-bpf in Tumbleweed: second-screen and guard packages only.
+  opensuse:
+    <<: *check
+    build:
+      context: ../..
+      dockerfile: dev/containers/opensuse.Dockerfile
+    environment:
+      VERIFY: rpm --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard
+      REMOVE: rpm --erase asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard
+      HELPER: /usr/libexec/asus-ux8406-second-screen
+
+  # No udev-hid-bpf in Debian 13: second-screen and guard packages only.
+  debian:
+    <<: *check
+    build:
+      context: ../..
+      dockerfile: dev/containers/debian.Dockerfile
+      args:
+        RELEASE: trixie
+        KEYBOARD: "no"
+    environment:
+      # dpkg --verify reports what differs and exits 0 all the same.
+      VERIFY: out=$$(dpkg --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard); echo "$$out"; test -z "$$out"
+      REMOVE: dpkg --purge asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard
+      HELPER: /usr/libexec/asus-ux8406-second-screen
+
+  debian-testing:
+    <<: *check
+    build:
+      context: ../..
+      dockerfile: dev/containers/debian.Dockerfile
+      args:
+        RELEASE: testing
+        KEYBOARD: "yes"
+    environment:
+      VERIFY: out=$$(dpkg --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf); echo "$$out"; test -z "$$out"
+      REMOVE: dpkg --purge asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf
+      HELPER: /usr/libexec/asus-ux8406-second-screen
+      KEYBOARD: "yes"
+
+  arch:
+    <<: *check
+    build:
+      context: ../..
+      dockerfile: dev/containers/arch.Dockerfile
+    environment:
+      VERIFY: pacman -Qkk asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+      REMOVE: pacman -Rns --noconfirm asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+      HELPER: /usr/lib/asus-ux8406-second-screen
+      KEYBOARD: "yes"
+      GNOME: "yes"
+
+  # No udev-hid-bpf in Alpine: second-screen and guard packages only.
+  alpine:
+    <<: *check
+    build:
+      context: ../..
+      dockerfile: dev/containers/alpine.Dockerfile
+    environment:
+      # apk has no verify for installed files: every file the packages list
+      # has to be there.
+      VERIFY: for f in $$(apk info -Lq asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-second-screen-udev asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-tcc-guard-openrc asus-zenbook-duo-ux8406-tcc-guard-doc); do test -e "/$$f"; done
+      REMOVE: apk del asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-second-screen-udev asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-tcc-guard-openrc asus-zenbook-duo-ux8406-tcc-guard-doc
+      HELPER: /usr/libexec/asus-ux8406-second-screen
+
+  # Nix has no install step here: the image holds the build results.
+  nix:
+    build:
+      context: ../..
+      dockerfile: dev/containers/nix.Dockerfile
+    command:
+      - sh
+      - -euc
+      - |
+        ls -l /second-screen/libexec/asus-ux8406-second-screen /second-screen/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \
+          /keyboard-bpf/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
+          /keyboard-bpf/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
+          /gnome-keys/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/extension.js
+        grep -c "RUN+=\"$$(readlink /second-screen)/libexec/asus-ux8406-second-screen " \
+          /second-screen/lib/udev/rules.d/90-asus-ux8406-second-screen.rules | grep -qx 3
+        /second-screen/libexec/asus-ux8406-second-screen --version
+        ls -l /tcc-guard/bin/asus-ux8406-tcc-guard /tcc-guard/lib/systemd/system/asus-ux8406-tcc-guard.service \
+          /tcc-guard/share/doc/asus-ux8406-tcc-guard/asus-ux8406-tcc-guard.toml.example
+        grep -q "ExecStart=$$(readlink /tcc-guard)/bin/asus-ux8406-tcc-guard$$" \
+          /tcc-guard/lib/systemd/system/asus-ux8406-tcc-guard.service
+        /tcc-guard/bin/asus-ux8406-tcc-guard --version
+        echo "OK"

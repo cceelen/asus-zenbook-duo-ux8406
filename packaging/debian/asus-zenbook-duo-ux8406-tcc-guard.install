@@ -1,0 +1,5 @@
+usr/sbin/asus-ux8406-tcc-guard
+usr/lib/systemd/system/asus-ux8406-tcc-guard.service
+usr/share/man/man8/asus-ux8406-tcc-guard.8
+usr/share/doc/asus-ux8406-tcc-guard/asus-ux8406-tcc-guard.toml.example usr/share/doc/asus-zenbook-duo-ux8406-tcc-guard
+usr/share/licenses/asus-zenbook-duo-ux8406-tcc-guard/THIRD-PARTY-NOTICES.txt usr/share/doc/asus-zenbook-duo-ux8406-tcc-guard

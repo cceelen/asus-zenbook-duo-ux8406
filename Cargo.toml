@@ -1,0 +1,26 @@
+# The two Rust programs of this tree, built together: one Cargo.lock, one
+# target directory, one set of vendored crates in the source archive.
+[workspace]
+resolver = "3"
+members = ["second-screen", "tcc-guard"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+# The oldest compiler of the distributions built for (Debian 13). Cargo
+# keeps the crates in Cargo.lock to versions that build with it.
+rust-version = "1.85"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+
+[profile.release]
+overflow-checks = true
+panic = "abort"
+strip = true

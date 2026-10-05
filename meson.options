@@ -1,0 +1,29 @@
+# Which parts are built and installed.
+option('screen', type: 'boolean', value: true,
+       description: 'second-screen: second screen off while the keyboard lies on it')
+option('guard', type: 'boolean', value: true,
+       description: 'tcc-guard: CPU thermal-offset guard for the EC thermal warning')
+option('keyboard', type: 'boolean', value: true,
+       description: 'keyboard-bpf: HID-BPF program for the keyboard')
+option('gnome', type: 'boolean', value: true,
+       description: 'gnome-keys: GNOME Shell extension for the two display keys')
+
+# How the guard is started.
+option('init', type: 'combo', choices: ['systemd', 'openrc'], value: 'systemd',
+       description: 'Install the guard with a systemd unit or with an OpenRC script')
+
+# Where things go, beyond what Meson knows (prefix, libexecdir, sbindir,
+# datadir, licensedir). Empty: asked from pkg-config where it knows, else below prefix.
+option('udevdir', type: 'string', value: '',
+       description: 'udev directory (rules.d, hwdb.d) [pkg-config udev, or PREFIX/lib/udev]')
+option('systemdsystemunitdir', type: 'string', value: '',
+       description: 'systemd system units [pkg-config systemd, or PREFIX/lib/systemd/system]')
+option('firmwaredir', type: 'string', value: '',
+       description: 'firmware directory, for hid/bpf [PREFIX/lib/firmware]')
+option('initddir', type: 'string', value: '/etc/init.d',
+       description: 'OpenRC scripts')
+
+# Cargo may not use the network. auto: not if the tree carries the crates in
+# vendor/, as a source archive from `meson dist` does.
+option('offline', type: 'feature', value: 'auto',
+       description: 'Build the Rust programs without network access')

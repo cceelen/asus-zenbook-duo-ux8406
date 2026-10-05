@@ -1,0 +1,79 @@
+# asus-ux8406-tcc-guard configuration (TOML). Copy to /etc/asus-ux8406-tcc-guard.toml, or pass with
+# --config. Every setting is optional; the ones below are the defaults, found
+# on an ASUS Zenbook Duo UX8406CA (BIOS 313). Other hardware may need other
+# values. Temperatures are the CPU package temperature in degrees C, as Linux
+# reads it.
+#
+# The guard keeps nothing from one event to the next, or across a restart:
+# what it learns holds only until the offset is back where it was.
+#
+# The program runs as root and is strict about this file: it must be a regular
+# file (no symbolic link), owned by root, writable by nobody else, and at most
+# 16 KiB. An unknown name, a value of the wrong kind or outside its range, or
+# a name given twice makes the program refuse to start.
+
+# The guard runs on machines whose product name (/sys/class/dmi/id/
+# product_name) contains this; on any other it ends at once. "any" lets it
+# run everywhere.
+model = "UX8406"
+
+# The kernel log message that marks the EC's thermal warning. A message counts
+# if it comes from the kernel itself and starts with this text.
+event_text = "asus_wmi: Unknown key code 0x6d"
+
+# After an event the offset is raised until the CPU is at or below this, so
+# that the EC's alert switches off. On the UX8406CA the alert switches off
+# below about 87-88 C.
+hold_temp = 87
+
+# Raising the offset after an event: step_up degrees every interval seconds,
+# never beyond max_offset. The CPU must stay at or below hold_temp for settle
+# seconds before the alert counts as cleared.
+step_up = 2
+interval = 4
+max_offset = 30
+settle = 20
+
+# Lowering the offset again: one degree down after probe_interval seconds
+# without an event, and so on down to the offset that was in force before the
+# first event. That original offset has to hold for probe_interval as well
+# before the guard lets go. probe_interval must be longer than the time the EC
+# waits before it raises the event (100-122 s on the UX8406CA), and the
+# reaction to an event must be faster than the time the EC waits before it
+# cuts power (142-180 s were seen on the UX8406CA).
+probe_interval = 180
+
+# An event while an offset is held means that one more degree is needed. The
+# wait before that value is challenged again is multiplied by probe_backoff
+# each time, up to probe_max seconds; it returns to probe_interval once a step
+# down has survived. Under a steady load that needs the offset, this is how
+# often the EC's event is provoked: at most once per probe_max.
+probe_backoff = 2
+probe_max = 3600
+
+# All of these waits count only the time the offset is in use, that is while
+# the CPU is within use_margin degrees of the limit the offset allows (tjmax
+# minus the offset). A pause in the load neither counts towards a step down
+# nor makes the guard let go. Only when the offset has been out of use for
+# idle_release seconds on end is it given up, and the original offset put
+# back; the next event then starts from scratch.
+# tjmax = 0 takes the value from the kernel (coretemp, temp1_crit), for each
+# processor package separately; any other value applies to all packages.
+tjmax = 0
+use_margin = 5
+idle_release = 900
+
+# Machines with more than one processor package. Every package that has a
+# coretemp package sensor ("Package id N") gets its own control state; the
+# EC's event, which does not say which package caused it, goes to all of them.
+# A machine with one package needs nothing here: its offset is
+# /sys/bus/pci/devices/0000:00:04.0/tcc_offset_degree_celsius. With more than
+# one, the program does not guess: name the file below /sys for each package,
+# or it refuses to start. Not tried on real multi-package hardware. These
+# tables have to come last in the file.
+#[[package]]
+#id = 0
+#offset = "/sys/bus/pci/devices/0000:00:04.0/tcc_offset_degree_celsius"
+#[[package]]
+#id = 1
+#offset = "/sys/bus/pci/devices/0000:80:04.0/tcc_offset_degree_celsius"

@@ -1,0 +1,104 @@
+# Maintainer: Christian Ceelen <christian.ceelen+ux8406@gmail.com>
+pkgbase=asus-zenbook-duo-ux8406
+pkgname=(asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf
+         gnome-shell-extension-asus-zenbook-duo-ux8406-keys)
+pkgver=0.1.0
+pkgrel=1
+arch=(x86_64)
+url="https://github.com/cceelen/asus-zenbook-duo-ux8406"
+license=('MIT AND GPL-2.0-only')
+makedepends=(meson cargo clang libbpf linux-api-headers python glib2 nodejs
+             systemd)
+options=(!debug)
+# The archive of the release, from `meson dist`: it carries the vendored
+# crates. makepkg uses the file of that name if it lies next to this one, and
+# fetches it otherwise.
+source=("$pkgbase-$pkgver.tar.gz::$url/releases/download/v$pkgver/$pkgbase-$pkgver.tar.gz")
+sha256sums=(SKIP)
+
+build() {
+  # Keep the build directory out of the binaries.
+  export RUSTFLAGS="${RUSTFLAGS:-} --remap-path-prefix=$srcdir=/usr/src"
+  # arch-meson: prefix /usr, sbindir bin, libexecdir lib. The second-screen helper
+  # is therefore /usr/lib/asus-ux8406-second-screen, and the udev rule, generated from the
+  # same directory, names it so.
+  arch-meson "$pkgbase-$pkgver" build -Dlicensedir=share/licenses
+  meson compile -C build
+  # One install; the package functions take their files from it.
+  meson install -C build --no-rebuild --destdir "$srcdir/stage"
+  # Meson's own record of the installation: not for a package.
+  rm "$srcdir/stage/usr/share/licenses/depmf.json"
+}
+
+check() {
+  # The tests build first, hence the long timeouts.
+  meson test -C build --no-rebuild --print-errorlogs -t 3
+}
+
+# _take PATH...: moves paths (relative to the stage) into the package.
+_take() {
+  local path
+  for path in "$@"; do
+    install -d "$pkgdir/$(dirname "$path")"
+    mv "$srcdir/stage/$path" "$pkgdir/$path"
+  done
+}
+
+package_asus-zenbook-duo-ux8406-second-screen() {
+  pkgdesc="Lower panel of the Zenbook Duo UX8406 off while the keyboard lies on it"
+  license=(MIT)
+  # systemd: udev runs the helper. namcap does not see that.
+  depends=(glibc libgcc_s.so systemd)
+  install=asus-zenbook-duo-ux8406-second-screen.install
+
+  _take usr/lib/asus-ux8406-second-screen usr/lib/udev/rules.d \
+        usr/share/licenses/asus-zenbook-duo-ux8406-second-screen
+}
+
+package_asus-zenbook-duo-ux8406-tcc-guard() {
+  pkgdesc="CPU thermal-offset guard for the ASUS Zenbook Duo UX8406"
+  license=(MIT)
+  # systemd: the unit. namcap does not see that.
+  depends=(glibc libgcc_s.so systemd)
+  install=asus-zenbook-duo-ux8406-tcc-guard.install
+
+  _take usr/bin/asus-ux8406-tcc-guard usr/lib/systemd/system \
+        usr/share/man/man8/asus-ux8406-tcc-guard.8 \
+        usr/share/licenses/asus-zenbook-duo-ux8406-tcc-guard
+  # Documentation under the package's name.
+  install -d "$pkgdir/usr/share/doc"
+  mv "$srcdir/stage/usr/share/doc/asus-ux8406-tcc-guard" \
+     "$pkgdir/usr/share/doc/asus-zenbook-duo-ux8406-tcc-guard"
+}
+
+package_asus-zenbook-duo-ux8406-keyboard-bpf() {
+  pkgdesc="HID-BPF program for the hotkeys of the Zenbook Duo UX8406 keyboard"
+  license=(GPL-2.0-only)
+  depends=(udev-hid-bpf)
+  # The HID-BPF object is not a host binary.
+  options=(!strip !debug)
+
+  _take usr/lib/firmware usr/lib/udev/hwdb.d \
+        usr/share/licenses/asus-zenbook-duo-ux8406-keyboard-bpf
+}
+
+package_gnome-shell-extension-asus-zenbook-duo-ux8406-keys() {
+  pkgdesc="GNOME Shell extension for the display keys of the Zenbook Duo UX8406"
+  arch=(any)
+  license=(MIT)
+  depends=(gnome-shell)
+  optdepends=('asus-zenbook-duo-ux8406-keyboard-bpf: makes the keyboard deliver the keys')
+
+  _take usr/share/gnome-shell \
+        usr/share/licenses/gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+
+  # The last package: whatever is left in the stage belongs to none, and a
+  # new file in the build must not be dropped silently.
+  local left
+  left=$(find "$srcdir/stage" ! -type d)
+  if [[ -n $left ]]; then
+    printf 'files in the build that no package takes:\n' >&2
+    printf '  %s\n' "$left" >&2
+    return 1
+  fi
+}

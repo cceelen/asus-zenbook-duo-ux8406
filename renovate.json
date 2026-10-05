@@ -1,0 +1,52 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "timezone": "Europe/Berlin",
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "prConcurrentLimit": 5,
+  "nix": {
+    "enabled": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": [
+      "before 6am on the first day of the month"
+    ]
+  },
+  "packageRules": [
+    {
+      "description": "Crates: minor and patch updates together. Cargo.lock is kept to versions that build with rust-version (resolver 3), which Renovate never changes.",
+      "matchManagers": [
+        "cargo"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "rust crates"
+    },
+    {
+      "description": "Actions: a new version is not taken before it has been out for three days.",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "The local containers follow the tags on their own; only the release in ARG RELEASE is a decision, so no digests here.",
+      "matchFileNames": [
+        "dev/containers/*.Dockerfile"
+      ],
+      "pinDigests": false,
+      "labels": [
+        "distribution-release"
+      ],
+      "automerge": false
+    }
+  ]
+}

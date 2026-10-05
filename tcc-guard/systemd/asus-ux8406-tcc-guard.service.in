@@ -1,0 +1,58 @@
+# CPU thermal-offset guard for the thermal warning of the ASUS embedded
+# controller (WMI event 0x6D). On a machine of another model the guard ends
+# at once, which is not a failure.
+[Unit]
+Description=CPU thermal-offset guard for the ASUS EC thermal warning
+Documentation=man:asus-ux8406-tcc-guard(8)
+Documentation=https://github.com/cceelen/asus-zenbook-duo-ux8406
+After=thermald.service
+
+[Service]
+Type=notify
+ExecStart=@SBINDIR@/asus-ux8406-tcc-guard
+# A guard that is stopped puts its offset back itself. One that was killed
+# could not: what it noted in /run/asus-ux8406-tcc-guard tells this what to put back.
+ExecStopPost=@SBINDIR@/asus-ux8406-tcc-guard restore
+Restart=on-failure
+RestartSec=30
+# The guard reads the kernel log, the temperature sensors and its
+# configuration, and writes one sysfs attribute and its notes in /run. It
+# stays root, because only root may write that attribute.
+# Not set: ProtectKernelTunables (makes /sys read-only), ProtectKernelLogs and
+# PrivateDevices (both hide /dev/kmsg).
+RuntimeDirectory=asus-ux8406-tcc-guard
+RuntimeDirectoryMode=0700
+# The notes must be there for ExecStopPost and for the next start.
+RuntimeDirectoryPreserve=yes
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+DevicePolicy=closed
+DeviceAllow=/dev/kmsg r
+# CAP_SYSLOG: /dev/kmsg where kernel.dmesg_restrict is set.
+CapabilityBoundingSet=CAP_SYSLOG
+AmbientCapabilities=
+PrivateNetwork=yes
+IPAddressDeny=any
+# AF_UNIX: the notification to systemd.
+RestrictAddressFamilies=AF_UNIX
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+ProcSubset=pid
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RemoveIPC=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+
+[Install]
+WantedBy=multi-user.target

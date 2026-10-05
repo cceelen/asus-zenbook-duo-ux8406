@@ -1,0 +1,13 @@
+/build/
+/dist/
+/target/
+/vendor/
+__pycache__/
+/result
+/result-*
+/debian/
+# Left by a local `packit srpm`.
+/_dist/
+/packaging/rpm/*.tar.gz
+/*.src.rpm
+.ruff_cache/

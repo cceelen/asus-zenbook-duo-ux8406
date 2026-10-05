@@ -1,0 +1,14 @@
+# Arch does not enable services on installation.
+post_install() {
+  echo "To start the guard now and at every boot:"
+  echo "  systemctl enable --now asus-ux8406-tcc-guard.service"
+  echo "It only acts on an ASUS Zenbook Duo UX8406; elsewhere it does nothing."
+}
+
+# Stopping the service restores the thermal offset. Skip this where systemd is
+# not running (container, chroot).
+pre_remove() {
+  if [ -d /run/systemd/system ]; then
+    systemctl disable --now asus-ux8406-tcc-guard.service >/dev/null 2>&1 || true
+  fi
+}

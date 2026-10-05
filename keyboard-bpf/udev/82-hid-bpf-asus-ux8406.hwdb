@@ -1,0 +1,20 @@
+# ASUS Zenbook Duo UX8406 detachable keyboard: HID-BPF program for the
+# hotkeys and the keyboard backlight. udev-hid-bpf's rule looks these entries
+# up when a HID device appears and loads the object named here from
+# firmware/hid/bpf.
+
+# USB (docked on the lower panel, or on the cable)
+hid-bpf:hid:b0003g0001v00000B05p00001BF2
+  HID_BPF_ZENBOOK_DUO_000=0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o
+  .HID_BPF=1
+
+# Bluetooth
+hid-bpf:hid:b0005g0001v00000B05p00001BF3
+  HID_BPF_ZENBOOK_DUO_000=0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o
+  .HID_BPF=1
+
+# USB, UX8406MA. Not tested on that model: the program attaches only if the
+# keyboard's report descriptor is that of the UX8406CA keyboard.
+hid-bpf:hid:b0003g0001v00000B05p00001B2C
+  HID_BPF_ZENBOOK_DUO_000=0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o
+  .HID_BPF=1

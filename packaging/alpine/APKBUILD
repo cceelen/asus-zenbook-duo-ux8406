@@ -1,0 +1,126 @@
+# Maintainer: Christian Ceelen <christian.ceelen+ux8406@gmail.com>
+pkgname=asus-zenbook-duo-ux8406-second-screen
+# The name of the thermal guard package; it is used in this one place.
+_guard=asus-zenbook-duo-ux8406-tcc-guard
+pkgver=0.1.0
+pkgrel=0
+pkgdesc="Lower panel of the Zenbook Duo UX8406 off while the keyboard lies on it"
+url="https://github.com/cceelen/asus-zenbook-duo-ux8406"
+arch="x86_64"
+license="MIT"
+makedepends="abuild-meson cargo clang glib-dev libbpf-dev linux-headers meson
+	nodejs python3 samurai"
+# The pre-deinstall script of the -openrc subpackage is named here as well:
+# abuild reads the install scripts of all subpackages from this list, by the
+# name of the package each belongs to. It stops the guard, which puts the CPU
+# thermal offset back.
+install="$pkgname.post-install $pkgname.post-upgrade $pkgname.pre-deinstall
+	$_guard-openrc.pre-deinstall"
+# Alpine keeps udev files in -udev subpackages, and OpenRC scripts in -openrc
+# ones, which are installed by themselves where udev or OpenRC is. What no
+# subpackage takes stays in the main package: the panel's helper and its
+# licence files.
+subpackages="
+	$pkgname-udev:panel_udev:noarch
+	asus-zenbook-duo-ux8406-keyboard-bpf:keyboard
+	asus-zenbook-duo-ux8406-keyboard-bpf-udev:keyboard_udev:noarch
+	gnome-shell-extension-asus-zenbook-duo-ux8406-keys:gnome_keys:noarch
+	$_guard:guard
+	$_guard-openrc:guard_openrc
+	$_guard-doc:guard_doc:noarch
+	"
+# No published source yet: the archive from `meson dist` lies next to this
+# file.
+source="asus-zenbook-duo-ux8406-$pkgver.tar.gz"
+builddir="$srcdir/asus-zenbook-duo-ux8406-$pkgver"
+# The HID-BPF object is not a host binary.
+options="!strip"
+
+# abuild-meson is Alpine's wrapper for `meson setup`: it sets the prefix, the
+# directories and the build type the way Alpine wants them. Alpine has no
+# systemd, so the guard is installed with its OpenRC script. udev.pc is in
+# eudev-dev, which is not needed for anything else here: the udev directory is
+# given. The licence texts go to /usr/share/licenses/<package>/.
+build() {
+	abuild-meson \
+		-Dinit=openrc \
+		-Dudevdir=/usr/lib/udev \
+		-Dlicensedir=share/licenses \
+		. output
+	meson compile -C output
+}
+
+# As the ordinary user abuild builds as. No test is skipped: the timeout is
+# raised because the Rust tests are built first.
+check() {
+	meson test -C output --no-rebuild --print-errorlogs -t 3
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install -C output --no-rebuild
+	# Meson's list of the licence files it installed; not a licence file.
+	rm -f "$pkgdir"/usr/share/licenses/depmf.json
+}
+
+panel_udev() {
+	pkgdesc="$pkgdesc (udev rule)"
+	license="MIT"
+	install_if="$pkgname=$pkgver-r$pkgrel udev"
+
+	amove usr/lib/udev/rules.d
+}
+
+keyboard() {
+	pkgdesc="HID-BPF program for the hotkeys of the Zenbook Duo UX8406 keyboard"
+	license="GPL-2.0-only"
+	# udev-hid-bpf loads the program. Alpine does not package it yet.
+	depends="udev-hid-bpf"
+
+	amove usr/lib/firmware
+	amove usr/share/licenses/asus-zenbook-duo-ux8406-keyboard-bpf
+}
+
+keyboard_udev() {
+	pkgdesc="HID-BPF program for the Zenbook Duo UX8406 keyboard (hwdb entry)"
+	license="GPL-2.0-only"
+	install_if="asus-zenbook-duo-ux8406-keyboard-bpf=$pkgver-r$pkgrel udev"
+
+	amove usr/lib/udev/hwdb.d
+}
+
+gnome_keys() {
+	pkgdesc="GNOME Shell extension for the display keys of the Zenbook Duo UX8406"
+	license="MIT"
+	depends="gnome-shell"
+
+	amove usr/share/gnome-shell
+	amove usr/share/licenses/gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+}
+
+guard() {
+	pkgdesc="CPU thermal-offset guard for the ASUS Zenbook Duo UX8406"
+	license="MIT"
+
+	amove usr/sbin/asus-ux8406-tcc-guard
+	# The licence and the notices of the crates in the binary stay with it,
+	# not in the -doc package: the MIT licence wants them to accompany it.
+	amove usr/share/licenses/$_guard
+}
+
+# Not default_doc: that would also take usr/share/licenses, which holds the
+# licence files of every package that has not been split off yet.
+guard_doc() {
+	pkgdesc="CPU thermal-offset guard for the ASUS Zenbook Duo UX8406 (documentation)"
+	license="MIT"
+	install_if="docs $_guard=$pkgver-r$pkgrel"
+
+	# The example configuration belongs to the guard, not to the panel.
+	amove usr/share/doc/asus-ux8406-tcc-guard
+	amove usr/share/man
+	# abuild refuses uncompressed man pages.
+	gzip -9n "$subpkgdir"/usr/share/man/man8/*.8
+}
+
+guard_openrc() {
+	default_openrc
+}

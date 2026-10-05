@@ -1,0 +1,4 @@
+#!/bin/sh
+# A panel left forced off would stay off until the next boot.
+/usr/libexec/asus-ux8406-second-screen release >/dev/null 2>&1
+exit 0

@@ -1,0 +1,52 @@
+# bump-my-version: the version is in these files. `bump-my-version bump minor`
+# sets it in all of them; it fails if one of them does not have the current
+# version. The changelog entries of the spec and of Debian are written by hand.
+[tool.bumpversion]
+current_version = "0.1.0"
+commit = false
+tag = false
+
+[[tool.bumpversion.files]]
+filename = "Cargo.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "Cargo.lock"
+search = "name = \"asus-ux8406-second-screen\"\nversion = \"{current_version}\""
+replace = "name = \"asus-ux8406-second-screen\"\nversion = \"{new_version}\""
+
+[[tool.bumpversion.files]]
+filename = "Cargo.lock"
+search = "name = \"asus-ux8406-tcc-guard\"\nversion = \"{current_version}\""
+replace = "name = \"asus-ux8406-tcc-guard\"\nversion = \"{new_version}\""
+
+[[tool.bumpversion.files]]
+filename = "meson.build"
+search = "version: '{current_version}'"
+replace = "version: '{new_version}'"
+
+[[tool.bumpversion.files]]
+filename = "packaging/rpm/asus-zenbook-duo-ux8406.spec"
+search = "Version:        {current_version}"
+replace = "Version:        {new_version}"
+
+[[tool.bumpversion.files]]
+filename = "packaging/debian/changelog"
+search = "asus-zenbook-duo-ux8406 ({current_version}-1)"
+replace = "asus-zenbook-duo-ux8406 ({new_version}-1)"
+
+[[tool.bumpversion.files]]
+filename = "packaging/obs/asus-zenbook-duo-ux8406.dsc"
+search = "Version: {current_version}-1"
+replace = "Version: {new_version}-1"
+
+[[tool.bumpversion.files]]
+filename = "packaging/arch/PKGBUILD"
+search = "pkgver={current_version}"
+replace = "pkgver={new_version}"
+
+[[tool.bumpversion.files]]
+filename = "packaging/alpine/APKBUILD"
+search = "pkgver={current_version}"
+replace = "pkgver={new_version}"

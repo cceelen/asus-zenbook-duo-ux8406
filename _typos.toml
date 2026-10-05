@@ -1,0 +1,6 @@
+# typos: words that are correct here.
+[default.extend-words]
+# rpmbuild -ba
+ba = "ba"
+# O_WRONLY
+WRONLY = "WRONLY"

@@ -1,0 +1,21 @@
+#!/sbin/openrc-run
+# CPU thermal-offset guard for the thermal warning of the ASUS embedded
+# controller. On a machine of another model the guard ends at once.
+
+description="CPU thermal-offset guard for the ASUS EC thermal warning"
+supervisor=supervise-daemon
+command="@SBINDIR@/asus-ux8406-tcc-guard"
+output_logger="logger -t asus-ux8406-tcc-guard -p daemon.info"
+error_logger="logger -t asus-ux8406-tcc-guard -p daemon.info"
+respawn_delay=30
+
+depend() {
+	need localmount
+	after modules
+}
+
+# A guard that is stopped puts its offset back itself. One that was killed
+# could not: what it noted in /run/asus-ux8406-tcc-guard tells this what to put back.
+stop_post() {
+	@SBINDIR@/asus-ux8406-tcc-guard restore
+}

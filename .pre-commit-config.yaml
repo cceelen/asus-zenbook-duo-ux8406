@@ -1,0 +1,101 @@
+# pre-commit (https://pre-commit.com): `pre-commit install` once, then the
+# hooks run at each commit. `pre-commit run --all-files` runs them on the tree.
+exclude: |
+  (?x)^(
+    LICENSES/|
+    keyboard-bpf/include/|
+    .*/tests/fixtures/|
+    .*/THIRD-PARTY-NOTICES\.txt$|
+    Cargo\.lock$|
+    flake\.lock$
+  )
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.50.3
+    hooks:
+      - id: typos
+        # Report only: its corrections are not always right.
+        args: [--force-exclude]
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 1.0.0
+    hooks:
+      - id: mdformat
+        args: [--wrap, "80"]
+        additional_dependencies: [mdformat-gfm]
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.23.3
+    hooks:
+      - id: markdownlint-cli2
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v22.1.8
+    hooks:
+      - id: clang-format
+        files: ^keyboard-bpf/src/
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.10
+    hooks:
+      - id: ruff-check
+      - id: ruff-format
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.5.15
+    hooks:
+      - id: biome-check
+        files: ^gnome-keys/.*\.js$
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+  - repo: https://github.com/fsfe/reuse-tool
+    rev: v6.2.0
+    hooks:
+      - id: reuse
+  - repo: local
+    hooks:
+      - id: versions
+        name: one version in all files
+        # Fails if a file of .bumpversion.toml does not have the version.
+        entry: bump-my-version bump patch --dry-run --allow-dirty
+        language: python
+        additional_dependencies: [bump-my-version==1.5.1]
+        pass_filenames: false
+        always_run: true
+      - id: clang-tidy
+        name: clang-tidy
+        # The flags of the build (keyboard-bpf/meson.build).
+        entry: >-
+          clang-tidy --quiet --config-file=keyboard-bpf/.clang-tidy
+          keyboard-bpf/src/ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.c --
+          --target=bpf -g -O2 -Wall -Ikeyboard-bpf/include -fms-extensions
+          -Wno-microsoft-anon-tag -D__TARGET_ARCH_x86
+        language: system
+        files: ^keyboard-bpf/(src|include)/|^keyboard-bpf/\.clang-tidy$
+        pass_filenames: false
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: cargo fmt --all --check
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: cargo-clippy
+        name: cargo clippy
+        entry: cargo clippy --locked --workspace --all-targets -- -D warnings
+        language: system
+        types: [rust]
+        pass_filenames: false

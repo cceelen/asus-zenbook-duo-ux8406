@@ -1,0 +1,68 @@
+Source: asus-zenbook-duo-ux8406
+Section: admin
+Priority: optional
+Homepage: https://github.com/cceelen/asus-zenbook-duo-ux8406
+Maintainer: Christian Ceelen <christian.ceelen+ux8406@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               meson (>= 1.1),
+               ninja-build,
+               pkgconf,
+               systemd-dev,
+               udev,
+               cargo,
+               rustc (>= 1.85),
+               clang,
+               libbpf-dev,
+               linux-libc-dev (>= 6.10),
+               python3,
+               libglib2.0-bin,
+               nodejs
+Standards-Version: 4.7.2
+
+Package: asus-zenbook-duo-ux8406-second-screen
+Architecture: amd64
+Depends: udev, ${shlibs:Depends}, ${misc:Depends}
+Description: lower panel of the Zenbook Duo UX8406 off while the keyboard lies on it
+ While the detachable keyboard lies on the lower built-in panel, the panel's
+ display connector is reported as disconnected, so that the desktop treats it
+ like an unplugged monitor and uses its saved layout for the upper panel
+ alone. Taking the keyboard off brings the panel back. The lower panel is
+ also kept at the brightness of the upper one, which is the only one desktops
+ set. udev rules run the helper when the keyboard arrives on or leaves its
+ dock port and when the upper panel's brightness changes.
+ .
+ Does nothing on any other model.
+
+Package: asus-zenbook-duo-ux8406-tcc-guard
+Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: CPU thermal-offset guard for the ASUS Zenbook Duo UX8406
+ A service that raises the CPU's thermal offset (the Intel TCC offset) when
+ the machine's embedded controller warns of heat, and takes it back once the
+ warning is over. Stopping the service restores the original offset. The
+ service is enabled and started on installation.
+ .
+ Logs one line and exits on any other model. An optional configuration file
+ is read from /etc/asus-ux8406-tcc-guard.toml; an example is in
+ /usr/share/doc/asus-zenbook-duo-ux8406-tcc-guard/.
+
+Package: asus-zenbook-duo-ux8406-keyboard-bpf
+Architecture: amd64
+Depends: udev-hid-bpf, ${misc:Depends}
+Description: HID-BPF program for the hotkeys of the Zenbook Duo UX8406 keyboard
+ Makes the function row of the detachable keyboard (USB 0b05:1bf2, Bluetooth
+ 0b05:1bf3) work with the kernel's generic HID driver: display brightness,
+ microphone mute, emoji, MyASUS, the two display keys, the keyboard backlight
+ and Fn+Esc. Loaded by udev-hid-bpf when the keyboard connects.
+
+Package: gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+Architecture: all
+Depends: gnome-shell (>= 45~), ${misc:Depends}
+Recommends: asus-zenbook-duo-ux8406-keyboard-bpf
+Description: GNOME Shell extension for the display keys of the Zenbook Duo UX8406
+ The key right of F12 switches the lower panel on and off, and F8 swaps the
+ windows of the two panels. The keyboard delivers these keys with
+ asus-zenbook-duo-ux8406-keyboard-bpf.
+ .
+ To be enabled per user:
+ gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io
