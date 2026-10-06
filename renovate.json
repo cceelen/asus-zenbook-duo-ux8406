@@ -31,6 +31,16 @@
       "groupName": "rust crates"
     },
     {
+      "description": "ignore 0.4.30 needs Rust 1.88 and does not declare it. Remove this rule together with the limit in the Cargo.toml files when rust-version is 1.88.",
+      "matchManagers": [
+        "cargo"
+      ],
+      "matchPackageNames": [
+        "ignore"
+      ],
+      "allowedVersions": "<0.4.30"
+    },
+    {
       "description": "Actions: a new version is not taken before it has been out for three days.",
       "matchManagers": [
         "github-actions"
