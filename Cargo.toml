@@ -5,7 +5,7 @@ resolver = "3"
 members = ["second-screen", "tcc-guard"]
 
 [workspace.package]
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 license = "MIT"
 # The oldest compiler of the distributions built for (Debian 13). Cargo

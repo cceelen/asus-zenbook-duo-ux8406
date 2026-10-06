@@ -23,7 +23,7 @@
 project(
   'asus-zenbook-duo-ux8406',
   # Also in Cargo.toml and in every recipe.
-  version: '0.1.2',
+  version: '0.1.3',
   license: 'MIT AND GPL-2.0-only',
   # No license_files: the parts install the text that applies to each
   # package, not every text for the project as a whole.
