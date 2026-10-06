@@ -49,11 +49,41 @@ camera.
 
 ## Compatibility
 
-No packages are published. The first table gives where the packages are expected
-to operate, from the code and from container builds. The second table gives what
-a person tested on the hardware. Only the second table is evidence.
+| Symbol | Meaning                                                  |
+| ------ | -------------------------------------------------------- |
+| ✅     | A published package. It installs in a clean container.   |
+| 🛠️     | No published package. The package builds from this tree. |
+| ❌     | Not available.                                           |
+| 🤖     | Tested on the hardware.                                  |
 
-Expected:
+| Distribution        | Guard | Second screen | Keyboard | Extension |
+| ------------------- | ----- | ------------- | -------- | --------- |
+| Fedora 44           | 🛠️ 🤖 | 🛠️ 🤖         | 🛠️ 🤖    | 🛠️ 🤖     |
+| EPEL 10             | 🛠️    | 🛠️            | 🛠️       | 🛠️        |
+| Arch                | 🛠️    | 🛠️            | 🛠️       | 🛠️        |
+| openSUSE Tumbleweed | ✅    | ✅            | ✅ ¹     | ✅        |
+| openSUSE Slowroll   | ✅ ²  | ✅ ²          | ✅ ¹ ²   | ✅ ²      |
+| openSUSE Leap 16.0  | ✅    | ✅            | ❌ ³     | ✅        |
+| Debian 13           | ✅    | ✅            | ❌ ³     | ✅        |
+| Debian testing      | ✅    | ✅            | ✅       | ✅        |
+| Debian unstable     | ✅    | ✅            | ✅       | ✅        |
+| Ubuntu 26.04        | ✅    | ✅            | ✅       | ✅        |
+| Alpine              | 🛠️    | 🛠️            | ❌ ³     | 🛠️        |
+| Nix                 | 🛠️    | 🛠️            | ❌ ³     | 🛠️        |
+
+1. The distribution has no [udev-hid-bpf], which the keyboard package needs. The
+   personal OBS project `home:xanders` builds it. With that repository added,
+   the keyboard package installs and the loader reads the program. This project
+   does not maintain that repository.
+1. Published, but not installed in a container: there is no container image.
+1. The distribution has no [udev-hid-bpf].
+
+🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
+keyboard ids and dock port can be different. Send your result in a GitHub issue
+to add a test mark. Refer to [CONTRIBUTING.md](CONTRIBUTING.md) for the data
+that helps.
+
+Requirements:
 
 | Part          | Requirement                                                      |
 | ------------- | ---------------------------------------------------------------- |
@@ -63,32 +93,37 @@ Expected:
 | Keyboard      | Linux 6.11 or later with HID-BPF and BTF, and [udev-hid-bpf]     |
 | Extension     | GNOME Shell 45 or later                                          |
 
-| Distribution                           | Packages that install in a container                               |
-| -------------------------------------- | ------------------------------------------------------------------ |
-| Fedora 44, Arch, Debian testing        | All                                                                |
-| Debian 13, openSUSE Tumbleweed, Alpine | Guard and second screen. These distributions have no udev-hid-bpf. |
-| Nix                                    | The flake builds all packages. nixpkgs has no udev-hid-bpf.        |
-| EPEL 10                                | Not built in a container. It has udev-hid-bpf and GNOME Shell 49.  |
-
 Ubuntu 24.04 is not supported: its Rust is too old.
-
-Tested on the hardware:
-
-| Model    | Distribution | Kernel | Desktop  | Guard | Second screen | Keyboard | Extension |
-| -------- | ------------ | ------ | -------- | ----- | ------------- | -------- | --------- |
-| UX8406CA | Fedora 44    | 7.2    | GNOME 50 | yes   | yes           | yes      | yes       |
-
-The UX8406MA is not tested. Its keyboard ids and dock port can be different.
-Send your result in a GitHub issue to add a line. Refer to
-[CONTRIBUTING.md](CONTRIBUTING.md) for the data that helps.
 
 ## Installation
 
 Remove other Zenbook Duo solutions before you install these packages. Refer to
 [Related projects](#related-projects).
 
-Until packages are published, build them from this tree. Refer to
-[CONTRIBUTING.md](CONTRIBUTING.md).
+openSUSE Tumbleweed (for Leap 16.0 replace `openSUSE_Tumbleweed` with `16.0`,
+for Slowroll with `openSUSE_Slowroll`):
+
+```sh
+sudo zypper addrepo --refresh https://download.opensuse.org/repositories/home:/cceelen:/asus-zenbook-duo-ux8406/openSUSE_Tumbleweed/home:cceelen:asus-zenbook-duo-ux8406.repo
+sudo zypper install asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+```
+
+Debian 13 (for Debian testing replace `Debian_13` with `Debian_Testing`, for
+Debian unstable with `Debian_Unstable`, for Ubuntu 26.04 with `xUbuntu_26.04`):
+
+```sh
+repo=https://download.opensuse.org/repositories/home:/cceelen:/asus-zenbook-duo-ux8406/Debian_13
+curl -fsSL $repo/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/asus-zenbook-duo-ux8406.gpg
+echo "deb [signed-by=/etc/apt/keyrings/asus-zenbook-duo-ux8406.gpg] $repo/ /" | sudo tee /etc/apt/sources.list.d/asus-zenbook-duo-ux8406.list
+sudo apt update
+sudo apt install asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+```
+
+Where the distribution has udev-hid-bpf, install
+`asus-zenbook-duo-ux8406-keyboard-bpf` also.
+
+Fedora, EPEL 10 and Arch: no published packages at this time. Build them from
+this tree. Refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 After the installation, start the guard. The package does not start it:
 
