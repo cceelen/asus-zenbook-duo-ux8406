@@ -25,6 +25,7 @@ subpackages="
 	asus-zenbook-duo-ux8406-keyboard-bpf:keyboard
 	asus-zenbook-duo-ux8406-keyboard-bpf-udev:keyboard_udev:noarch
 	gnome-shell-extension-asus-zenbook-duo-ux8406-keys:gnome_keys:noarch
+	gnome-shell-extension-builtin-screen-rotation:gnome_rotation:noarch
 	$_guard:guard
 	$_guard-openrc:guard_openrc
 	$_guard-doc:guard_doc:noarch
@@ -93,8 +94,17 @@ gnome_keys() {
 	license="MIT"
 	depends="gnome-shell"
 
-	amove usr/share/gnome-shell
+	amove usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io
 	amove usr/share/licenses/gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+}
+
+gnome_rotation() {
+	pkgdesc="GNOME Shell extension that turns the built-in screens with the laptop"
+	license="MIT"
+	depends="gnome-shell iio-sensor-proxy"
+
+	amove usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io
+	amove usr/share/licenses/gnome-shell-extension-builtin-screen-rotation
 }
 
 guard() {

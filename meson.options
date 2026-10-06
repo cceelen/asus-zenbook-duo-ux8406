@@ -7,6 +7,8 @@ option('keyboard', type: 'boolean', value: true,
        description: 'keyboard-bpf: HID-BPF program for the keyboard')
 option('gnome', type: 'boolean', value: true,
        description: 'gnome-keys: GNOME Shell extension for the two display keys')
+option('rotation', type: 'boolean', value: true,
+       description: 'gnome-rotation: GNOME Shell extension that turns the built-in panels')
 
 # How the guard is started.
 option('init', type: 'combo', choices: ['systemd', 'openrc'], value: 'systemd',

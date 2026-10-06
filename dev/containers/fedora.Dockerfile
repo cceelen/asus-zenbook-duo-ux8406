@@ -22,7 +22,7 @@ WORKDIR /build
 # checkout; it carries the crates in vendor/). This step needs the network.
 RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
-    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false \
+    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
 # The packages, from that archive, as a user without root and without network.
 RUN --network=none rpmbuild --define "_topdir /rpm" \
@@ -51,4 +51,5 @@ RUN --mount=type=bind,from=build,source=/out,target=/pkgs \
         /pkgs/asus-zenbook-duo-ux8406-tcc-guard-[0-9]*.x86_64.rpm \
         /pkgs/asus-zenbook-duo-ux8406-keyboard-bpf-*.noarch.rpm \
         /pkgs/gnome-shell-extension-asus-zenbook-duo-ux8406-keys-*.noarch.rpm \
+        /pkgs/gnome-shell-extension-builtin-screen-rotation-*.noarch.rpm \
     && dnf clean all

@@ -66,3 +66,17 @@ Description: GNOME Shell extension for the display keys of the Zenbook Duo UX840
  .
  To be enabled per user:
  gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io
+
+Package: gnome-shell-extension-builtin-screen-rotation
+Architecture: all
+Depends: gnome-shell (>= 45~), iio-sensor-proxy, ${misc:Depends}
+Description: GNOME Shell extension that turns the built-in screens with the laptop
+ With the laptop on its left or right side, the built-in panels are turned,
+ and two panels are put side by side. GNOME does this by itself only without
+ a pointer device and for one panel. Made for the two panels of the Zenbook
+ Duo UX8406; it does the same on other laptops. The switch "Auto-rotate" in
+ the quick settings turns this on and off. iio-sensor-proxy gives the
+ orientation.
+ .
+ To be enabled per user:
+ gnome-extensions enable builtin-screen-rotation@cceelen.github.io

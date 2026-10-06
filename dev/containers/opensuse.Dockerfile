@@ -23,7 +23,7 @@ WORKDIR /build
 # checkout; it carries the crates in vendor/). This step needs the network.
 RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
-    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false \
+    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
 # The packages, from that archive, as a user without root and without network.
 RUN --network=none rpmbuild --define "_topdir /rpm" \

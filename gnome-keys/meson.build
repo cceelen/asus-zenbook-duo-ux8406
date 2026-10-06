@@ -10,8 +10,8 @@ files = ['extension.js', 'layout.js', 'metadata.json']
 foreach f : files
   install_data('extension' / f, install_dir: extdir, install_mode: 'rw-r--r--')
 endforeach
-# The files in ../gnome-common. In extension/ these two are links, for the
-# tests and the manual tool; the files themselves are installed.
+# What the rotation extension uses too. In extension/ these two are links, for
+# the tests and the manual tools; the files themselves are installed.
 install_data(
   '..' / 'gnome-common' / 'display.js',
   '..' / 'gnome-common' / 'state.js',
