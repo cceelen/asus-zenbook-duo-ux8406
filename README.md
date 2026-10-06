@@ -56,27 +56,30 @@ camera.
 | ❌     | Not available.                                           |
 | 🤖     | Tested on the hardware.                                  |
 
-| Distribution        | Guard | Second screen | Keyboard | Extension |
-| ------------------- | ----- | ------------- | -------- | --------- |
-| Fedora 44           | 🛠️ 🤖 | 🛠️ 🤖         | 🛠️ 🤖    | 🛠️ 🤖     |
-| EPEL 10             | 🛠️    | 🛠️            | 🛠️       | 🛠️        |
-| Arch                | 🛠️    | 🛠️            | 🛠️       | 🛠️        |
-| openSUSE Tumbleweed | ✅    | ✅            | ✅ ¹     | ✅        |
-| openSUSE Slowroll   | ✅ ²  | ✅ ²          | ✅ ¹ ²   | ✅ ²      |
-| openSUSE Leap 16.0  | ✅    | ✅            | ❌ ³     | ✅        |
-| Debian 13           | ✅    | ✅            | ❌ ³     | ✅        |
-| Debian testing      | ✅    | ✅            | ✅       | ✅        |
-| Debian unstable     | ✅    | ✅            | ✅       | ✅        |
-| Ubuntu 26.04        | ✅    | ✅            | ✅       | ✅        |
-| Alpine              | 🛠️    | 🛠️            | ❌ ³     | 🛠️        |
-| Nix                 | 🛠️    | 🛠️            | ❌ ³     | 🛠️        |
+| Distribution         | Guard | Second screen | Keyboard | Extension |
+| -------------------- | ----- | ------------- | -------- | --------- |
+| Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖     |
+| Fedora 43            | ✅    | ✅            | ✅       | ✅        |
+| RHEL 10 and rebuilds | 🛠️ ¹  | 🛠️ ¹          | 🛠️ ¹     | 🛠️ ¹      |
+| Arch                 | ✅    | ✅            | ✅       | ✅        |
+| openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅        |
+| openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ³      |
+| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ✅        |
+| Debian 13            | ✅    | ✅            | ❌ ⁴     | ✅        |
+| Debian testing       | ✅    | ✅            | ✅       | ✅        |
+| Debian unstable      | ✅    | ✅            | ✅       | ✅        |
+| Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅        |
+| Alpine               | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️        |
+| Nix                  | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️        |
 
-1. The distribution has no [udev-hid-bpf], which the keyboard package needs. The
+1. Not published: release 0.1.2 did not build for this target. Needs EPEL 10 and
+   CRB. Built and installed in an AlmaLinux 10 container.
+2. The distribution has no [udev-hid-bpf], which the keyboard package needs. The
    personal OBS project `home:xanders` builds it. With that repository added,
    the keyboard package installs and the loader reads the program. This project
    does not maintain that repository.
-1. Published, but not installed in a container: there is no container image.
-1. The distribution has no [udev-hid-bpf].
+3. Published, but not installed in a container: there is no container image.
+4. The distribution has no [udev-hid-bpf].
 
 🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
 keyboard ids and dock port can be different. Send your result in a GitHub issue
@@ -100,38 +103,89 @@ Ubuntu 24.04 is not supported: its Rust is too old.
 Remove other Zenbook Duo solutions before you install these packages. Refer to
 [Related projects](#related-projects).
 
-openSUSE Tumbleweed (for Leap 16.0 replace `openSUSE_Tumbleweed` with `16.0`,
-for Slowroll with `openSUSE_Slowroll`):
+The packages are in two repositories:
+
+- [COPR project](https://copr.fedorainfracloud.org/coprs/packit/cceelen-asus-zenbook-duo-ux8406-releases/)
+  for Fedora.
+- [OBS project](https://build.opensuse.org/project/show/home:cceelen:asus-zenbook-duo-ux8406)
+  for openSUSE, Debian, Ubuntu and Arch. Its
+  [download directory](https://download.opensuse.org/repositories/home:/cceelen:/asus-zenbook-duo-ux8406/)
+  has one directory for each distribution.
+
+A package list for the commands below:
 
 ```sh
-sudo zypper addrepo --refresh https://download.opensuse.org/repositories/home:/cceelen:/asus-zenbook-duo-ux8406/openSUSE_Tumbleweed/home:cceelen:asus-zenbook-duo-ux8406.repo
-sudo zypper install asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys"
 ```
 
-Debian 13 (for Debian testing replace `Debian_13` with `Debian_Testing`, for
-Debian unstable with `Debian_Unstable`, for Ubuntu 26.04 with `xUbuntu_26.04`):
+Where the distribution has udev-hid-bpf (refer to
+[Compatibility](#compatibility)), add `asus-zenbook-duo-ux8406-keyboard-bpf` to
+the list.
+
+### Fedora
+
+Fedora 43, Fedora 44 and Rawhide:
 
 ```sh
-repo=https://download.opensuse.org/repositories/home:/cceelen:/asus-zenbook-duo-ux8406/Debian_13
+sudo dnf copr enable packit/cceelen-asus-zenbook-duo-ux8406-releases
+sudo dnf install $pkgs asus-zenbook-duo-ux8406-keyboard-bpf
+```
+
+RHEL 10 and its rebuilds (AlmaLinux, Rocky Linux) have no published packages at
+this time. Build them from this tree. Refer to
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+### openSUSE
+
+| Distribution | `dist`                |
+| ------------ | --------------------- |
+| Tumbleweed   | `openSUSE_Tumbleweed` |
+| Slowroll     | `openSUSE_Slowroll`   |
+| Leap 16.0    | `16.0`                |
+
+```sh
+dist=openSUSE_Tumbleweed
+sudo zypper addrepo --refresh https://download.opensuse.org/repositories/home:/cceelen:/asus-zenbook-duo-ux8406/$dist/home:cceelen:asus-zenbook-duo-ux8406.repo
+sudo zypper install $pkgs
+```
+
+### Debian and Ubuntu
+
+| Distribution    | `dist`            |
+| --------------- | ----------------- |
+| Debian 13       | `Debian_13`       |
+| Debian testing  | `Debian_Testing`  |
+| Debian unstable | `Debian_Unstable` |
+| Ubuntu 26.04    | `xUbuntu_26.04`   |
+
+```sh
+dist=Debian_13
+repo=https://download.opensuse.org/repositories/home:/cceelen:/asus-zenbook-duo-ux8406/$dist
 curl -fsSL $repo/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/asus-zenbook-duo-ux8406.gpg
 echo "deb [signed-by=/etc/apt/keyrings/asus-zenbook-duo-ux8406.gpg] $repo/ /" | sudo tee /etc/apt/sources.list.d/asus-zenbook-duo-ux8406.list
 sudo apt update
-sudo apt install asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+sudo apt install $pkgs
 ```
 
-Where the distribution has udev-hid-bpf, install
-`asus-zenbook-duo-ux8406-keyboard-bpf` also.
+Debian 13 has release 0.1.0. Release 0.1.2 did not build there.
 
-Fedora, EPEL 10 and Arch: no published packages at this time. Build them from
-this tree. Refer to [CONTRIBUTING.md](CONTRIBUTING.md).
-
-After the installation, start the guard. The package does not start it:
+### Arch
 
 ```sh
-sudo systemctl enable --now asus-ux8406-tcc-guard.service
+repo=https://download.opensuse.org/repositories/home:/cceelen:/asus-zenbook-duo-ux8406/Arch
+curl -fsSL $repo/x86_64/home_cceelen_asus-zenbook-duo-ux8406_Arch.key -o obs.key
+sudo pacman-key --add obs.key
+sudo pacman-key --lsign-key "$(gpg --show-keys --with-colons obs.key | awk -F: '$1 == "fpr" { print $10; exit }')"
+printf '[home_cceelen_asus-zenbook-duo-ux8406_Arch]\nServer = %s/$arch\n' "$repo" | sudo tee -a /etc/pacman.conf
+sudo pacman -Sy $pkgs asus-zenbook-duo-ux8406-keyboard-bpf
 ```
 
-Then log in again and enable the extension:
+### After the installation
+
+The guard package enables and starts its service. On NixOS, set
+`services.asus-zenbook-duo-ux8406-tcc-guard.enable = true`.
+
+Log in again and enable the extension:
 
 ```sh
 gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io

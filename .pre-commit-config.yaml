@@ -38,7 +38,8 @@ repos:
     rev: 1.0.0
     hooks:
       - id: mdformat
-        args: [--wrap, "80"]
+        # --number: 1. 2. 3. in the source, as the reader of the plain file sees it.
+        args: [--wrap, "80", --number]
         additional_dependencies: [mdformat-gfm]
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.23.3
