@@ -71,6 +71,9 @@ uses the committed files only.
 
 ## Rules for changes
 
+- The title of a pull request is a
+  [Conventional Commits](https://www.conventionalcommits.org) title, for example
+  `fix(guard): ...`. The changelog and the next version come from these titles.
 - `meson test` and `pre-commit run --all-files` pass.
 - A change to the build, the install paths or a recipe passes the container
   builds.

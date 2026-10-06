@@ -20,18 +20,22 @@ page carries a GitHub build attestation.
 
 ## Make a release
 
-1. Set the version in all files: `bump-my-version bump minor` (or `patch`,
-   `major`). The files are in `.bumpversion.toml`. Then add the changelog entry
-   in the spec and in `packaging/debian/changelog`. A pre-commit hook fails if
-   one file has another version.
-1. Merge to `main` with a green `ci.yml`.
-1. Push the tag `v<version>`. `release.yml` makes the source archive
-   (`meson dist`), attests it and creates a draft release.
-1. Publish the draft. OBS and COPR build from the archive of the published
-   release.
-1. If the OBS build started before the release was published, it fails.
-   Redeliver the webhook (GitHub: Settings, Webhooks, Recent deliveries).
-1. Check the builds on COPR and OBS.
+1. On the Actions tab, select the workflow "release" and "Run workflow".
+
+The other steps occur automatically:
+
+- [Release Please](https://github.com/googleapis/release-please) opens the
+  release pull request. It has the next version in the package files and the new
+  section of `CHANGELOG.md`, made from the commit titles since the last release:
+  `fix:` gives a patch release, `feat:` a minor release.
+- The pull request merges itself when the checks are green.
+- `release.yml` makes the source archive (`meson dist`), attests it, attaches it
+  to the release and publishes the release. The tag is made at that moment.
+- OBS and COPR start their builds.
+
+If no `fix:` or `feat:` was merged since the last release, the run fails and
+says so. Do not push a tag by hand, and do not change the version in the files
+by hand.
 
 ## Check a released file
 
@@ -56,6 +60,11 @@ The attestation does not cover the packages from COPR and OBS.
 
 ## Set up the repository
 
+- Settings, General, Pull Requests: enable "Allow auto-merge".
+- A personal access token for the release workflow: fine-grained, for this
+  repository only, with "Contents", "Pull requests" and "Issues" set to read and
+  write. Store it as the repository secret `RELEASE_TOKEN` (Settings, Secrets
+  and variables, Actions). Renew it before it expires.
 - Rulesets (Settings, Rules, Rulesets): one for `main` and one for the tags
   `v*`. For `main`: no deletion, no force push, linear history, pull requests,
   and the checks of `ci.yml` as required status checks. For the tags: no

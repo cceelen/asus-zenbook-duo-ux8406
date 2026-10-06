@@ -234,4 +234,4 @@ fi
 
 %changelog
 * Mon Oct 05 2026 Christian Ceelen - 0.1.0-1
-- First package.
+- Refer to CHANGELOG.md.
