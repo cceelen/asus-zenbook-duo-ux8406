@@ -1,0 +1,6 @@
+#!/bin/sh
+# Add the guard to the default runlevel and start it. Where OpenRC is not
+# running (a container, for one), the start does nothing.
+rc-update -q add asus-ux8406-tcc-guard default >/dev/null 2>&1
+rc-service -q asus-ux8406-tcc-guard start >/dev/null 2>&1
+exit 0

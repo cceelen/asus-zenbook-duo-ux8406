@@ -33,8 +33,10 @@ line and ends. The setting `model` changes that.
 
 ## Use
 
+The packages enable and start the service. After a build from the source, do
+that with `systemctl enable --now asus-ux8406-tcc-guard.service`. The log:
+
 ```sh
-sudo systemctl enable --now asus-ux8406-tcc-guard.service
 journalctl -u asus-ux8406-tcc-guard
 ```
 

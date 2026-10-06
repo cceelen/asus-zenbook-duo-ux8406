@@ -2,4 +2,5 @@
 # Stop the guard, which puts the CPU thermal offset back. Nothing to do where
 # OpenRC is not running (a container, for one).
 rc-service -q asus-ux8406-tcc-guard stop >/dev/null 2>&1
+rc-update -q del asus-ux8406-tcc-guard default >/dev/null 2>&1
 exit 0
