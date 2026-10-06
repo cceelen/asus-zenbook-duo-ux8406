@@ -8,7 +8,7 @@
 FROM docker.io/library/archlinux:latest AS build
 # The makedepends of the PKGBUILD, and git for the source archive.
 # udev-hid-bpf is needed at run time only.
-RUN pacman -Syu --noconfirm --needed base-devel git meson cargo clang libbpf \
+RUN pacman -Syu --noconfirm --needed base-devel git meson rust clang libbpf \
         linux-api-headers python glib2 nodejs systemd namcap \
     && pacman -Scc --noconfirm
 # makepkg refuses root, and the tests are about file permissions.
