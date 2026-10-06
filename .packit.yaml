@@ -6,12 +6,14 @@ downstream_package_name: asus-zenbook-duo-ux8406
 # Tags are v0.1.0; the version in the spec is 0.1.0.
 upstream_tag_template: v{version}
 
-# The machine is x86-64 only, which is Packit's default architecture. EPEL 10
-# has every build requirement; EPEL 9 does not (Meson 0.63, Node.js 16).
+# The machine is x86-64 only, which is Packit's default architecture. RHEL 10
+# with EPEL 10 has every build requirement; EPEL 9 does not (Meson 0.63,
+# Node.js 16). The target is RHEL itself, not epel-10: that one builds against
+# CentOS Stream 10, which is ahead of RHEL and its rebuilds.
 targets:
   - fedora-stable
   - fedora-rawhide
-  - epel-10
+  - rhel+epel-10-x86_64
 
 actions:
   # meson dist puts the vendored crates into the archive. The last line
