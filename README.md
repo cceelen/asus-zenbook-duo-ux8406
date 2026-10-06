@@ -60,7 +60,7 @@ camera.
 | -------------------- | ----- | ------------- | -------- | --------- |
 | Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖     |
 | Fedora 43            | ✅    | ✅            | ✅       | ✅        |
-| RHEL 10 and rebuilds | 🛠️ ¹  | 🛠️ ¹          | 🛠️ ¹     | 🛠️ ¹      |
+| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹      |
 | Arch                 | ✅    | ✅            | ✅       | ✅        |
 | openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅        |
 | openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ³      |
@@ -72,8 +72,8 @@ camera.
 | Alpine               | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️        |
 | Nix                  | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️        |
 
-1. Not published: release 0.1.2 did not build for this target. Needs EPEL 10 and
-   CRB. Built and installed in an AlmaLinux 10 container.
+1. Built for RHEL 10 with EPEL 10. Installed in AlmaLinux 10 and Rocky Linux 10
+   containers, not on RHEL.
 2. The distribution has no [udev-hid-bpf], which the keyboard package needs. The
    personal OBS project `home:xanders` builds it. With that repository added,
    the keyboard package installs and the loader reads the program. This project
@@ -122,7 +122,7 @@ Where the distribution has udev-hid-bpf (refer to
 [Compatibility](#compatibility)), add `asus-zenbook-duo-ux8406-keyboard-bpf` to
 the list.
 
-### Fedora
+### Fedora and RHEL 10
 
 Fedora 43, Fedora 44 and Rawhide:
 
@@ -131,9 +131,19 @@ sudo dnf copr enable packit/cceelen-asus-zenbook-duo-ux8406-releases
 sudo dnf install $pkgs asus-zenbook-duo-ux8406-keyboard-bpf
 ```
 
-RHEL 10 and its rebuilds (AlmaLinux, Rocky Linux) have no published packages at
-this time. Build them from this tree. Refer to
-[CONTRIBUTING.md](CONTRIBUTING.md).
+RHEL 10 and its rebuilds need EPEL 10, the CRB repository, and the name of the
+build target. On AlmaLinux 10 and Rocky Linux 10:
+
+```sh
+sudo dnf install epel-release dnf-plugins-core
+sudo crb enable
+sudo dnf copr enable packit/cceelen-asus-zenbook-duo-ux8406-releases rhel+epel-10-x86_64
+sudo dnf install $pkgs asus-zenbook-duo-ux8406-keyboard-bpf
+```
+
+On RHEL, enable EPEL and CodeReady Builder as the
+[EPEL documentation](https://docs.fedoraproject.org/en-US/epel/getting-started/)
+tells you, then use the last two commands.
 
 ### openSUSE
 
@@ -166,8 +176,6 @@ echo "deb [signed-by=/etc/apt/keyrings/asus-zenbook-duo-ux8406.gpg] $repo/ /" | 
 sudo apt update
 sudo apt install $pkgs
 ```
-
-Debian 13 has release 0.1.0. Release 0.1.2 did not build there.
 
 ### Arch
 
