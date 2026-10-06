@@ -26,14 +26,8 @@ srpm_build_deps:
   - git
   - meson
 
+# Packages are built for a release only, not for pull requests or commits.
 jobs:
-  - job: copr_build
-    trigger: pull_request
-
-  - job: copr_build
-    trigger: commit
-    branch: main
-
   - job: copr_build
     trigger: release
     # The released NVR is the one in the spec, 0.1.0-1, not a snapshot.
