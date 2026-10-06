@@ -2,7 +2,7 @@
 pkgname=asus-zenbook-duo-ux8406-second-screen
 # The name of the thermal guard package; it is used in this one place.
 _guard=asus-zenbook-duo-ux8406-tcc-guard
-pkgver=0.1.2
+pkgver=0.1.3
 pkgrel=0
 pkgdesc="Lower panel of the Zenbook Duo UX8406 off while the keyboard lies on it"
 url="https://github.com/cceelen/asus-zenbook-duo-ux8406"
