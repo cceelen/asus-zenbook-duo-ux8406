@@ -10,7 +10,7 @@ in the containers of `dev/containers/` only.
 
 | Distribution                         | Built by                     | Configuration                          |
 | ------------------------------------ | ---------------------------- | -------------------------------------- |
-| Fedora, EPEL 10                      | Fedora COPR, through Packit  | `.packit.yaml`                         |
+| Fedora, RHEL 10 with EPEL 10         | Fedora COPR, through Packit  | `.packit.yaml`                         |
 | openSUSE, Debian, Ubuntu 26.04, Arch | openSUSE Build Service       | `.obs/workflows.yml`, `packaging/obs/` |
 | Nix                                  | the user, from the flake     | `flake.nix`, `packaging/nix/`          |
 | Alpine                               | not distributed; recipe only | `packaging/alpine/`                    |
