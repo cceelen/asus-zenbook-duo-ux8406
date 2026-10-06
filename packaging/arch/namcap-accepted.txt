@@ -1,0 +1,20 @@
+# namcap warnings that are accepted, with the reason. The container build
+# fails on a warning that is not in this file. Lines are compared as text.
+#
+# The HID-BPF object is a program for the kernel's BPF machine, not a host
+# binary: it is not stripped (the loader needs its BTF data), and PIE and
+# RELRO do not apply.
+asus-zenbook-duo-ux8406-keyboard-bpf W: ELF file ('usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o') is unstripped.
+asus-zenbook-duo-ux8406-keyboard-bpf W: ELF file ('usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o') lacks FULL RELRO, check LDFLAGS.
+asus-zenbook-duo-ux8406-keyboard-bpf W: ELF file ('usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o') lacks PIE.
+# namcap finds dependencies from linked libraries only. These are used at run
+# time: udev-hid-bpf loads the program, systemd runs the unit and the udev
+# rule, GNOME Shell runs the extension.
+asus-zenbook-duo-ux8406-keyboard-bpf W: Dependency included, but may not be needed ('udev-hid-bpf')
+asus-zenbook-duo-ux8406-second-screen W: Dependency included, but may not be needed ('systemd')
+asus-zenbook-duo-ux8406-tcc-guard W: Dependency included, but may not be needed ('systemd')
+gnome-shell-extension-asus-zenbook-duo-ux8406-keys W: Dependency included, but may not be needed ('gnome-shell')
+# The dynamic loader is in the list of needed libraries of each Rust program,
+# as rustc links it. It is part of glibc, which the packages depend on.
+asus-zenbook-duo-ux8406-second-screen W: Unused shared library '/usr/lib64/ld-linux-x86-64.so.2' by file ('usr/lib/asus-ux8406-second-screen')
+asus-zenbook-duo-ux8406-tcc-guard W: Unused shared library '/usr/lib64/ld-linux-x86-64.so.2' by file ('usr/bin/asus-ux8406-tcc-guard')
