@@ -57,6 +57,15 @@ packages from COPR and OBS.
 - For a new distribution release, add it to `.packit.yaml` or to the OBS
   project, and to `dev/containers/`.
 
+## Set up the repository
+
+- Rulesets: import `.github/rulesets/main.json` and
+  `.github/rulesets/release-tags.json` (Settings, Rules, Rulesets, Import a
+  ruleset). The first makes pull requests and green checks necessary for `main`.
+  The second makes release tags permanent.
+- Settings, Code security: enable "Private vulnerability reporting".
+- Install the Renovate application on the repository.
+
 ## Set up the build services
 
 - Packit and COPR: install the Packit GitHub application on the repository. The

@@ -78,11 +78,13 @@ repos:
         always_run: true
       - id: clang-tidy
         name: clang-tidy
-        # The flags of the build (keyboard-bpf/meson.build).
+        # The flags of the build (keyboard-bpf/meson.build). -idirafter: where
+        # Debian and Ubuntu have asm/types.h.
         entry: >-
           clang-tidy --quiet --config-file=keyboard-bpf/.clang-tidy
           keyboard-bpf/src/ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.c --
-          --target=bpf -g -O2 -Wall -Ikeyboard-bpf/include -fms-extensions
+          --target=bpf -g -O2 -Wall -Ikeyboard-bpf/include
+          -idirafter /usr/include/x86_64-linux-gnu -fms-extensions
           -Wno-microsoft-anon-tag -D__TARGET_ARCH_x86
         language: system
         files: ^keyboard-bpf/(src|include)/|^keyboard-bpf/\.clang-tidy$
