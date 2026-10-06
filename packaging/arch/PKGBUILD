@@ -7,7 +7,9 @@ pkgrel=1
 arch=(x86_64)
 url="https://github.com/cceelen/asus-zenbook-duo-ux8406"
 license=('MIT AND GPL-2.0-only')
-makedepends=(meson cargo clang libbpf linux-api-headers python glib2 nodejs
+# rust, not cargo: two Arch packages provide cargo (rust, rustup), and a
+# builder without a person to ask cannot choose.
+makedepends=(meson rust clang libbpf linux-api-headers python glib2 nodejs
              systemd)
 options=(!debug)
 # The archive of the release, from `meson dist`: it carries the vendored
