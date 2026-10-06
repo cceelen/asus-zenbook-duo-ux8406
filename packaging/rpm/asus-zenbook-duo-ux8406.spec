@@ -40,9 +40,10 @@ BuildRequires:  kernel-headers
 %global __brp_strip_lto %{nil}
 
 %global udevdir %{_prefix}/lib/udev
-# The helper programs carry no debug information (Cargo strips them), so on
-# openSUSE the debugsource package would be empty.
-%if 0%{?suse_version}
+# Where the distribution does not turn Cargo's stripping off (openSUSE,
+# RHEL), the programs carry no debug information and the debugsource package
+# would be empty.
+%if 0%{?suse_version} || 0%{?rhel}
 %undefine _debugsource_packages
 %endif
 
