@@ -14,7 +14,8 @@ useful, also when all functions operate. Include:
 - Distribution, kernel version (`uname -r`) and desktop.
 - The package versions.
 - What operates and what does not: lower screen (off with the keyboard on it,
-  brightness), special function keys (dock, cable, Bluetooth), guard.
+  brightness), special function keys (dock, cable, Bluetooth), guard, screen
+  rotation.
 
 For a problem, add the output of:
 
@@ -22,6 +23,9 @@ For a problem, add the output of:
 journalctl -b -k | grep -i -e hid -e bpf -e asus
 journalctl -b -u asus-ux8406-tcc-guard
 ```
+
+The rotation extension is not specific to the UX8406: a report from another
+laptop, with one or two built-in screens, is useful too.
 
 The packages are developed on a UX8406CA. For a UX8406MA or another sub-model,
 also report the USB and Bluetooth ids of the keyboard (`udevadm info`), the USB
@@ -92,7 +96,9 @@ uses the committed files only.
 second-screen/   helper for the lower screen (Rust), udev rule
 tcc-guard/       thermal guard (Rust), systemd unit, OpenRC script
 keyboard-bpf/    HID-BPF program (C), hwdb entry
-gnome-keys/      GNOME Shell extension
+gnome-keys/      GNOME Shell extension for the display keys
+gnome-rotation/  GNOME Shell extension that turns the screens
+gnome-common/    files that the two extensions share
 packaging/       one directory of recipes for each packaging system
 dev/containers/  container builds for development
 docs/releases.md how to make a release
