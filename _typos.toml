@@ -4,3 +4,5 @@
 ba = "ba"
 # O_WRONLY
 WRONLY = "WRONLY"
+# gpg --with-colons: the fingerprint record
+fpr = "fpr"

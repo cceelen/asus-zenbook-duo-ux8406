@@ -6,7 +6,7 @@ private:
 1. Open the
    [Security tab](https://github.com/cceelen/asus-zenbook-duo-ux8406/security)
    of the repository.
-1. Select "Report a vulnerability".
+2. Select "Report a vulnerability".
 
 Do not open a public issue for a vulnerability.
 

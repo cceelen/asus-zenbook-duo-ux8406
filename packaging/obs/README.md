@@ -67,15 +67,15 @@ repository. The project definition (Repositories, or the page `/meta`):
 ## Setup
 
 1. Log in to build.opensuse.org with `osc`.
-1. Create the project and the package.
-1. After the first GitHub release is published, copy `_service` into the package
+2. Create the project and the package.
+3. After the first GitHub release is published, copy `_service` into the package
    and commit it (`osc add _service && osc commit`). The service needs a tag and
    its release archive.
-1. Create a workflow token:
+4. Create a workflow token:
    `osc token --create --operation workflow --scm-token GITHUB_TOKEN`. Keep the
    `id` and the token. The GitHub token is fine-grained, for this repository
    only, with Contents: read and Commit statuses: read and write.
-1. In the GitHub repository, add a webhook (Settings, Webhooks): payload URL
+5. In the GitHub repository, add a webhook (Settings, Webhooks): payload URL
    `https://build.opensuse.org/trigger/workflow?id=ID`, content type
    `application/json`, secret: the OBS token, events: Pull requests and Pushes.
 
