@@ -32,6 +32,9 @@ x-check: &check
       if [ "$${GNOME:-no}" = yes ]; then
         test -f /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/extension.js
         test -f /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/schemas/gschemas.compiled
+        test -f /usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/extension.js
+        test -f /usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/state.js
+        test ! -L /usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/state.js
         gnome-shell --version
         echo "extension files in place"
       else
@@ -45,7 +48,8 @@ x-check: &check
           /usr/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \
           /usr/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
           /usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
-          /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io; do
+          /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io \
+          /usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io; do
         if [ -e "$$f" ]; then echo "left after removal: $$f"; exit 1; fi
       done
       echo "packages removed, nothing left"
@@ -58,8 +62,8 @@ services:
       context: ../..
       dockerfile: dev/containers/fedora.Dockerfile
     environment:
-      VERIFY: rpm --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys
-      REMOVE: dnf remove -y asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+      VERIFY: rpm --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation
+      REMOVE: dnf remove -y asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation
       HELPER: /usr/libexec/asus-ux8406-second-screen
       KEYBOARD: "yes"
       GNOME: "yes"
@@ -110,8 +114,8 @@ services:
       context: ../..
       dockerfile: dev/containers/arch.Dockerfile
     environment:
-      VERIFY: pacman -Qkk asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys
-      REMOVE: pacman -Rns --noconfirm asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+      VERIFY: pacman -Qkk asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation
+      REMOVE: pacman -Rns --noconfirm asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation
       HELPER: /usr/lib/asus-ux8406-second-screen
       KEYBOARD: "yes"
       GNOME: "yes"
@@ -141,7 +145,8 @@ services:
         ls -l /second-screen/libexec/asus-ux8406-second-screen /second-screen/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \
           /keyboard-bpf/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
           /keyboard-bpf/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
-          /gnome-keys/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/extension.js
+          /gnome-keys/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/extension.js \
+          /gnome-rotation/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/extension.js
         grep -c "RUN+=\"$$(readlink /second-screen)/libexec/asus-ux8406-second-screen " \
           /second-screen/lib/udev/rules.d/90-asus-ux8406-second-screen.rules | grep -qx 3
         /second-screen/libexec/asus-ux8406-second-screen --version

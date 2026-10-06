@@ -1,5 +1,5 @@
-// The display layout of the compositor as plain data, and what more than one
-// extension does with it. No GNOME imports
+// The display layout of the compositor as plain data, and what the two
+// extensions for the Zenbook Duo UX8406 both do with it. No GNOME imports
 // here, so that it can be tested with plain data.
 //
 // The data is what org.gnome.Mutter.DisplayConfig.GetCurrentState returns,
@@ -22,9 +22,12 @@ function modeOf(modes) {
 /** The compositor's state in the form the functions below work on. */
 export function readState([serial, monitors, logicalMonitors, properties]) {
     const connected = new Map();
+    const builtin = [];
 
     for (const [[connector], modes, settings] of monitors) {
         const mode = modeOf(modes);
+
+        if (settings['is-builtin'] === true) builtin.push(connector);
 
         // What the monitor is set to besides its mode, to be kept.
         connected.set(
@@ -42,6 +45,8 @@ export function readState([serial, monitors, logicalMonitors, properties]) {
         logicalMode: (properties['layout-mode'] ?? LAYOUT_MODE_LOGICAL) === LAYOUT_MODE_LOGICAL,
         canSetMode: properties['supports-changing-layout-mode'] === true,
         connected,
+        // The connectors of the panels that are part of the machine.
+        builtin,
         logical: logicalMonitors.map(([x, y, scale, transform, primary, shown]) => ({
             x,
             y,
@@ -85,6 +90,22 @@ export function isRest(logical, saved, except = null) {
         .sort();
 
     return now.length === before.length && now.every((name, index) => name === before[index]);
+}
+
+/** Whether two layouts have each monitor at the same place, turned the same way. */
+export function isSame(one, other) {
+    return (
+        one.length === other.length &&
+        one.every((monitor) => {
+            const twin = find(other, monitor.connectors[0]);
+
+            return (
+                twin?.x === monitor.x &&
+                twin.y === monitor.y &&
+                twin.transform === monitor.transform
+            );
+        })
+    );
 }
 
 /**

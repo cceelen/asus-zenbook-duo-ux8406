@@ -1,0 +1,3 @@
+# This is the first packaging and it is not an upload to the Debian archive:
+# there is no ITP/RFP bug that a "Closes:" entry could name.
+gnome-shell-extension-builtin-screen-rotation: initial-upload-closes-no-bugs [usr/share/doc/gnome-shell-extension-builtin-screen-rotation/changelog.Debian.gz:1]

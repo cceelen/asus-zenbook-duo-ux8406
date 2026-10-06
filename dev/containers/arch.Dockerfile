@@ -20,7 +20,7 @@ WORKDIR /src
 # checkout; it carries the crates in vendor/). This step needs the network.
 RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
-    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false \
+    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
 # The packages, from that archive, without network. --nodeps: udev-hid-bpf,
 # a run-time dependency, is not in the official repositories. namcap checks the
@@ -57,4 +57,5 @@ RUN --mount=type=bind,from=build,source=/out,target=/pkgs \
         /pkgs/asus-zenbook-duo-ux8406-tcc-guard-*.pkg.tar.zst \
         /pkgs/asus-zenbook-duo-ux8406-keyboard-bpf-*.pkg.tar.zst \
         /pkgs/gnome-shell-extension-asus-zenbook-duo-ux8406-keys-*.pkg.tar.zst \
+        /pkgs/gnome-shell-extension-builtin-screen-rotation-*.pkg.tar.zst \
     && pacman -Scc --noconfirm

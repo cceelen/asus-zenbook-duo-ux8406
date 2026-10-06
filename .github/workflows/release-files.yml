@@ -19,7 +19,7 @@ jobs:
         with:
           persist-credentials: false
       - run: sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends meson
-      - run: meson setup build -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false
+      - run: meson setup build -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false
       - run: meson dist -C build --no-tests --formats gztar
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

@@ -1,7 +1,8 @@
 # rpmlint filters. Each one states why the finding cannot be satisfied.
 
 # The words are a file name extension (the tcc-guard configuration file
-# /etc/asus-ux8406-tcc-guard.toml) and a package name
-# (asus-zenbook-duo-ux8406-keyboard-bpf); neither can be spelled differently,
-# and the descriptions need both to tell the reader what to configure or install.
-addFilter(r"spelling-error .*'(toml|bpf)'")
+# /etc/asus-ux8406-tcc-guard.toml) and parts of package names
+# (asus-zenbook-duo-ux8406-keyboard-bpf, iio-sensor-proxy); none can be spelled
+# differently, and the descriptions need them to tell the reader what to
+# configure or install.
+addFilter(r"spelling-error .*'(toml|bpf|iio)'")
