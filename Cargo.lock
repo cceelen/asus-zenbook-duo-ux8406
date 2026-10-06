@@ -92,7 +92,7 @@ dependencies = [
 
 [[package]]
 name = "asus-ux8406-second-screen"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "assert_cmd",
  "assert_fs",
@@ -104,7 +104,7 @@ dependencies = [
 
 [[package]]
 name = "asus-ux8406-tcc-guard"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "assert_cmd",
  "assert_fs",
