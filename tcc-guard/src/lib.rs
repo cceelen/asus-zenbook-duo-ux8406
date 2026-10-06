@@ -96,7 +96,7 @@ pub fn stop_on_signals() -> Result<Arc<AtomicBool>, Error> {
 /// Tell the service manager, if there is one, how the guard is doing.
 fn tell_manager(state: &[NotifyState]) {
     // Without a manager there is nobody to tell, and nothing depends on it.
-    let _ = sd_notify::notify(false, state);
+    let _ = sd_notify::notify(state);
 }
 
 /// Do what a command line asks for, until it is done or `stop` is set;
