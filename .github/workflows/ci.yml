@@ -37,6 +37,20 @@ jobs:
       - run: cargo about generate --locked --offline -m tcc-guard/Cargo.toml about.hbs -o tcc-guard/THIRD-PARTY-NOTICES.txt
       - run: git diff --exit-code
 
+  # The oldest Rust that a target distribution has (Debian 13). The crates of
+  # Cargo.lock, those of the tests included, must compile with it.
+  rust-oldest:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          toolchain: "1.85"
+      - run: cargo test --locked --workspace --no-run
+      - run: cargo test --locked -p asus-ux8406-tcc-guard --features failpoints --no-run
+
   audit:
     runs-on: ubuntu-26.04
     steps:
