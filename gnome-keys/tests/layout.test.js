@@ -3,7 +3,8 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 
-import {find, readState, toConfig, toggle, withBelow, without} from '../extension/layout.js';
+import {toggle, withBelow, without} from '../extension/layout.js';
+import {find, readState, toConfig} from '../extension/state.js';
 
 const UPPER = 'eDP-1';
 const LOWER = 'eDP-2';
