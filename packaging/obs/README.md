@@ -1,50 +1,60 @@
 # openSUSE Build Service (OBS)
 
-One OBS package builds all packages for openSUSE, Debian and Ubuntu from a
+One OBS package builds all packages for openSUSE, Debian, Ubuntu and Arch from a
 tagged release. The OBS package holds only `_service`. The service fetches the
 other files:
 
-| File                                       | Source                                                    |
-| ------------------------------------------ | --------------------------------------------------------- |
-| spec, `asus-zenbook-duo-ux8406.dsc`        | the tag                                                   |
-| `debian.tar`                               | `packaging/debian/` of the tag                            |
-| `asus-zenbook-duo-ux8406-<version>.tar.gz` | the GitHub release, from the URL in `Source0` of the spec |
+| File                                            | Source                                                    |
+| ----------------------------------------------- | --------------------------------------------------------- |
+| spec, `asus-zenbook-duo-ux8406.dsc`, `PKGBUILD` | the tag                                                   |
+| `debian.tar`                                    | `packaging/debian/` of the tag                            |
+| `asus-zenbook-duo-ux8406-<version>.tar.gz`      | the GitHub release, from the URL in `Source0` of the spec |
 
 OBS builds without network access. Thus the archive must be the release archive,
 which contains the crates.
 
 ## Project
 
-Create the project `home:cceelen:asus-zenbook-duo-ux8406` with this meta
-(Project, Advanced, Meta) and the package `asus-zenbook-duo-ux8406` in it:
+The project is `home:cceelen:asus-zenbook-duo-ux8406`, a subproject of the home
+project, with the package `asus-zenbook-duo-ux8406`. Do not set an SCM sync URL
+on the project: OBS then makes one package from each directory of the
+repository. The project definition (Repositories, or the page `/meta`):
 
 ```xml
 <project name="home:cceelen:asus-zenbook-duo-ux8406">
   <title>asus-zenbook-duo-ux8406</title>
-  <description>Userland support for the ASUS Zenbook Duo UX8406</description>
+  <description>Community support packages for Asus Zenbook Duo UX8406</description>
   <person userid="cceelen" role="maintainer"/>
+  <repository name="xUbuntu_26.04">
+    <path project="Ubuntu:26.04" repository="universe"/>
+    <arch>x86_64</arch>
+  </repository>
   <repository name="openSUSE_Tumbleweed">
-    <path project="openSUSE:Tumbleweed" repository="standard"/>
+    <path project="openSUSE:Factory" repository="snapshot"/>
+    <arch>x86_64</arch>
+  </repository>
+  <repository name="openSUSE_Slowroll">
+    <path project="openSUSE:Slowroll" repository="standard"/>
     <arch>x86_64</arch>
   </repository>
   <repository name="16.0">
-    <path project="openSUSE:Backports:SLE-16.0" repository="standard"/>
+    <path project="openSUSE:Leap:16.0" repository="standard"/>
     <arch>x86_64</arch>
   </repository>
-  <repository name="16.1">
-    <path project="openSUSE:Backports:SLE-16.1" repository="standard"/>
+  <repository name="Debian_Unstable">
+    <path project="Debian:Next" repository="standard"/>
+    <arch>x86_64</arch>
+  </repository>
+  <repository name="Debian_Testing">
+    <path project="Debian:Testing" repository="update"/>
     <arch>x86_64</arch>
   </repository>
   <repository name="Debian_13">
     <path project="Debian:13" repository="standard"/>
     <arch>x86_64</arch>
   </repository>
-  <repository name="Debian_Testing">
-    <path project="Debian:Testing" repository="standard"/>
-    <arch>x86_64</arch>
-  </repository>
-  <repository name="xUbuntu_26.04">
-    <path project="Ubuntu:26.04" repository="universe"/>
+  <repository name="Arch">
+    <path project="Arch:Extra" repository="standard"/>
     <arch>x86_64</arch>
   </repository>
 </project>

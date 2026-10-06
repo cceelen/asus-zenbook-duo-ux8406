@@ -12,4 +12,4 @@ release:
   filters:
     event: tag_push
 
-# No workflow for pull requests: see "Pull requests" in packaging/obs/README.md.
+# No workflow for pull requests: a pull request has no release archive.

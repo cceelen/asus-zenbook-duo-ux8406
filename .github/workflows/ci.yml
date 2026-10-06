@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   rust:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -38,7 +38,7 @@ jobs:
       - run: git diff --exit-code
 
   audit:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -48,7 +48,7 @@ jobs:
           createIssues: false
 
   # Every hook of .pre-commit-config.yaml: formats, lints, spelling,
-  # licences. Ubuntu 26.04 for the kernel headers that clang-tidy reads.
+  # licences.
   pre-commit:
     runs-on: ubuntu-26.04
     steps:
@@ -64,7 +64,7 @@ jobs:
       - run: pipx run pre-commit run --all-files --show-diff-on-failure
 
   workflows:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -98,7 +98,7 @@ jobs:
 
   dependency-review:
     if: ${{ github.event_name == 'pull_request' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

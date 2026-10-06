@@ -1,5 +1,5 @@
-# Makes the files of a release: the source archive (the tree and the crates in
-# vendor/) and the Arch packages. With `release: true` it attests them.
+# Makes the file of a release: the source archive (the tree and the crates in
+# vendor/). With `release: true` it attests it.
 # Reusable, so that a caller cannot add steps to the build or signing jobs.
 name: release-files
 on:
@@ -13,7 +13,7 @@ permissions:
   contents: read
 jobs:
   archive:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -27,38 +27,11 @@ jobs:
           path: build/meson-dist/*.tar.gz
           if-no-files-found: error
           compression-level: 0
-  # makepkg and the tests refuse root. The crates are in the archive.
-  arch:
-    needs: archive
-    runs-on: ubuntu-24.04
-    container:
-      image: docker.io/library/archlinux:latest@sha256:b21322c663be387c0ed9cbc7bbbfe18e41633ad4e7b7c77cfad45f128be20040
-    steps:
-      - run: >-
-          pacman -Syu --noconfirm --needed base-devel meson cargo clang libbpf
-          linux-api-headers python glib2 nodejs systemd
-      - run: useradd -m builder
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: source
-          path: /home/builder/archive
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          sparse-checkout: packaging/arch
-      - run: cp packaging/arch/* /home/builder/archive/ && chown -R builder /home/builder/archive
-      - run: su builder -c 'cd ~/archive && makepkg --noconfirm --nodeps --nocolor && mkdir ~/out && cp *.pkg.tar.zst ~/out/'
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: arch
-          path: /home/builder/out/*.pkg.tar.zst
-          if-no-files-found: error
-          compression-level: 0
   # Alone with the right to sign, and it runs nothing that the builds made.
   attest:
     if: ${{ inputs.release }}
-    needs: [archive, arch]
-    runs-on: ubuntu-24.04
+    needs: archive
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       id-token: write

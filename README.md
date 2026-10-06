@@ -172,7 +172,9 @@ warranty; refer to the licence.
 
 ## Licence
 
-MIT. The directory `keyboard-bpf/` and its package are GPL-2.0-only, because
-they contain headers from the Linux kernel. The texts are in `LICENSES/`.
+MIT, with one exception: the directory `keyboard-bpf/` and its package are
+GPL-2.0-only, because they contain headers from the Linux kernel. `LICENSE` is
+the MIT text. `LICENSES/` has both texts, and `REUSE.toml` gives the licence of
+each file.
 
 [udev-hid-bpf]: https://gitlab.freedesktop.org/libevdev/udev-hid-bpf
