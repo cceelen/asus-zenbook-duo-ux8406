@@ -17,7 +17,8 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import {applyLayout, currentState} from './display.js';
-import {find, toggle} from './layout.js';
+import {toggle} from './layout.js';
+import {find} from './state.js';
 
 const MODEL = 'UX8406';
 const UPPER = 'eDP-1';

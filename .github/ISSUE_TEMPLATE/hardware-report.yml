@@ -34,6 +34,7 @@ body:
         - label: Special function keys on the cable
         - label: Special function keys on Bluetooth
         - label: The two display keys (GNOME extension)
+        - label: Screen rotation with the laptop on its side (GNOME extension)
   - type: textarea
     id: problem
     attributes:

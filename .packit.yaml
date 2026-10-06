@@ -19,7 +19,7 @@ actions:
   # meson dist puts the vendored crates into the archive. The last line
   # printed is the path of the archive, which Packit reads.
   create-archive:
-    - meson setup _dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false
+    - meson setup _dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false
     - meson dist -C _dist --no-tests --formats gztar --allow-dirty
     - sh -c 'ls _dist/meson-dist/*.tar.gz'
 

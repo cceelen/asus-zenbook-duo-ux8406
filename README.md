@@ -33,10 +33,15 @@ the keyboard lies on it.
 - [gnome-shell-extension-asus-zenbook-duo-ux8406-keys](gnome-keys/README.md):
   gives a function to the two display keys. GNOME only.
 
+**Screen rotation.** GNOME does not turn the screens when the laptop stands on
+its side (book mode).
+
+- [gnome-shell-extension-builtin-screen-rotation](gnome-rotation/README.md):
+  turns the two screens and puts them side by side. GNOME only. It is not
+  specific to this model.
+
 **No fix in this project:**
 
-- Screen orientation: the screen does not rotate in book mode. The sensor and
-  iio-sensor-proxy are available.
 - Microphone on the TRRS jack: no input. Possibly a hardware limit. Refer to the
   [SOF ticket](https://github.com/thesofproject/linux/issues/5703).
 - Battery charge limit: the limit of 80 % operates. The battery charged above it
@@ -55,21 +60,21 @@ camera.
 | ❌     | Not available.                                           |
 | 🤖     | Tested on the hardware.                                  |
 
-| Distribution         | Guard | Second screen | Keyboard | Extension |
-| -------------------- | ----- | ------------- | -------- | --------- |
-| Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖     |
-| Fedora 43            | ✅    | ✅            | ✅       | ✅        |
-| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹      |
-| Arch                 | ✅    | ✅            | ✅       | ✅        |
-| openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅        |
-| openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ³      |
-| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ✅        |
-| Debian 13            | ✅    | ✅            | ❌ ⁴     | ✅        |
-| Debian testing       | ✅    | ✅            | ✅       | ✅        |
-| Debian unstable      | ✅    | ✅            | ✅       | ✅        |
-| Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅        |
-| Alpine               | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️        |
-| Nix                  | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️        |
+| Distribution         | Guard | Second screen | Keyboard | Keys  | Rotation |
+| -------------------- | ----- | ------------- | -------- | ----- | -------- |
+| Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖 | 🛠️ ⁵     |
+| Fedora 43            | ✅    | ✅            | ✅       | ✅    | 🛠️ ⁵     |
+| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹  | 🛠️ ⁵     |
+| Arch                 | ✅    | ✅            | ✅       | ✅    | 🛠️ ⁵     |
+| openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅    | 🛠️ ⁵     |
+| openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ³  | 🛠️ ⁵     |
+| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ✅    | 🛠️ ⁵     |
+| Debian 13            | ✅    | ✅            | ❌ ⁴     | ✅    | 🛠️ ⁵     |
+| Debian testing       | ✅    | ✅            | ✅       | ✅    | 🛠️ ⁵     |
+| Debian unstable      | ✅    | ✅            | ✅       | ✅    | 🛠️ ⁵     |
+| Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅    | 🛠️ ⁵     |
+| Alpine               | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️    | 🛠️ ⁵     |
+| Nix                  | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️    | 🛠️ ⁵     |
 
 1. Built for RHEL 10 with EPEL 10. Installed in AlmaLinux 10 and Rocky Linux 10
    containers, not on RHEL.
@@ -79,6 +84,7 @@ camera.
    does not maintain that repository.
 3. Published, but not installed in a container: there is no container image.
 4. The distribution has no [udev-hid-bpf].
+5. New; published with the next release.
 
 🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
 keyboard ids and dock port can be different. Send your result in a GitHub issue
@@ -87,13 +93,14 @@ that helps.
 
 Requirements:
 
-| Part          | Requirement                                                      |
-| ------------- | ---------------------------------------------------------------- |
-| All           | A Zenbook Duo UX8406. On other machines the programs do nothing. |
-| Guard         | systemd or OpenRC                                                |
-| Second screen | udev                                                             |
-| Keyboard      | Linux 6.11 or later with HID-BPF and BTF, and [udev-hid-bpf]     |
-| Extension     | GNOME Shell 45 or later                                          |
+| Part             | Requirement                                                      |
+| ---------------- | ---------------------------------------------------------------- |
+| All but Rotation | A Zenbook Duo UX8406. On other machines the programs do nothing. |
+| Guard            | systemd or OpenRC                                                |
+| Second screen    | udev                                                             |
+| Keyboard         | Linux 6.11 or later with HID-BPF and BTF, and [udev-hid-bpf]     |
+| Keys             | GNOME Shell 45 or later                                          |
+| Rotation         | GNOME Shell 45 or later, iio-sensor-proxy; a laptop of any model |
 
 Ubuntu 24.04 is not supported: its Rust is too old.
 

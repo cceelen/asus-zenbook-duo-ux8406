@@ -1,7 +1,8 @@
 # Maintainer: Christian Ceelen <christian.ceelen+ux8406@gmail.com>
 pkgbase=asus-zenbook-duo-ux8406
 pkgname=(asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf
-         gnome-shell-extension-asus-zenbook-duo-ux8406-keys)
+         gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+         gnome-shell-extension-builtin-screen-rotation)
 pkgver=0.1.3
 pkgrel=1
 arch=(x86_64)
@@ -91,8 +92,19 @@ package_gnome-shell-extension-asus-zenbook-duo-ux8406-keys() {
   depends=(gnome-shell)
   optdepends=('asus-zenbook-duo-ux8406-keyboard-bpf: makes the keyboard deliver the keys')
 
-  _take usr/share/gnome-shell \
+  _take usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io \
         usr/share/licenses/gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+}
+
+package_gnome-shell-extension-builtin-screen-rotation() {
+  pkgdesc="GNOME Shell extension that turns the built-in screens with the laptop"
+  arch=(any)
+  license=(MIT)
+  # iio-sensor-proxy: the orientation. namcap does not see that.
+  depends=(gnome-shell iio-sensor-proxy)
+
+  _take usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io \
+        usr/share/licenses/gnome-shell-extension-builtin-screen-rotation
 
   # The last package: whatever is left in the stage belongs to none, and a
   # new file in the build must not be dropped silently.

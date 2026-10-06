@@ -6,10 +6,18 @@
 uuid = 'asus-zenbook-duo-ux8406-keys@cceelen.github.io'
 extdir = datadir / 'gnome-shell' / 'extensions' / uuid
 
-files = ['extension.js', 'display.js', 'layout.js', 'metadata.json']
+files = ['extension.js', 'layout.js', 'metadata.json']
 foreach f : files
   install_data('extension' / f, install_dir: extdir, install_mode: 'rw-r--r--')
 endforeach
+# What the rotation extension uses too. In extension/ these two are links, for
+# the tests and the manual tools; the files themselves are installed.
+install_data(
+  '..' / 'gnome-common' / 'display.js',
+  '..' / 'gnome-common' / 'state.js',
+  install_dir: extdir,
+  install_mode: 'rw-r--r--',
+)
 
 schema_xml = files('extension/schemas/org.gnome.shell.extensions.asus-zenbook-duo-ux8406-keys.gschema.xml')
 install_data(schema_xml, install_dir: extdir / 'schemas', install_mode: 'rw-r--r--')
