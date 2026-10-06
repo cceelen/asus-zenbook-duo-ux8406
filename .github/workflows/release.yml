@@ -1,17 +1,83 @@
-# A tag v* makes the source archive, attests it and creates a draft
-# release. COPR and OBS take the archive from the published release.
+# A release has one manual step: start this workflow ("Run workflow").
+#
+# That run opens the release pull request: the next version in the package
+# files and the new section of CHANGELOG.md, from the commit titles since the
+# last release. It sets the pull request to merge by itself when the checks
+# are green.
+#
+# The merge starts this workflow again. That run makes the source archive,
+# attests it, attaches it to the draft release and publishes the release. The
+# tag is made at publication, when the archive is there.
+#
+# RELEASE_TOKEN is a personal access token of the maintainer for this
+# repository. What the default token does starts no checks and no workflow.
 name: release
 on:
+  workflow_dispatch:
   push:
-    tags: ["v*"]
-# Two tags in quick succession are two releases; none is cancelled.
+    branches: [main]
+# One run at a time, in order: a release is not cancelled.
 concurrency:
-  group: release-${{ github.ref }}
+  group: release
   cancel-in-progress: false
 permissions:
   contents: read
 jobs:
+  pull-request:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-26.04
+    env:
+      GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          skip-github-release: true
+      - id: pr
+        run: |
+          branch=$(gh pr list --label 'autorelease: pending' --json headRefName --jq '.[0].headRefName // ""')
+          if [ -z "$branch" ]; then
+            echo "::error::No release pull request: no fix or feat was merged since the last release."
+            exit 1
+          fi
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.pr.outputs.branch }}
+          persist-credentials: false
+      # Release Please writes the version into its manifest only. This sets
+      # it in the files of .bumpversion.toml.
+      - env:
+          BRANCH: ${{ steps.pr.outputs.branch }}
+        run: |
+          new=$(jq -r '."."' .release-please-manifest.json)
+          old=$(sed -n 's/^current_version = "\(.*\)"$/\1/p' .bumpversion.toml)
+          if [ "$new" != "$old" ]; then
+            pipx run bump-my-version==1.5.1 bump --new-version "$new" patch --allow-dirty
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --all --message "chore: set version $new in the package files"
+            git push "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git" "HEAD:${BRANCH}"
+          fi
+          gh pr merge "$BRANCH" --auto --squash
+  # Makes the draft release if the push is the merge of a release pull
+  # request; does nothing for every other push.
+  release:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-26.04
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          skip-github-pull-request: true
   release-files:
+    needs: release
+    if: ${{ needs.release.outputs.release_created == 'true' }}
     uses: ./.github/workflows/release-files.yml
     permissions:
       contents: read
@@ -20,31 +86,24 @@ jobs:
       artifact-metadata: write
     with:
       release: true
-  # The only job that may write to the repository.
   publish:
-    needs: release-files
+    needs: [release, release-files]
     runs-on: ubuntu-26.04
-    permissions:
-      contents: write
     env:
-      GH_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.release.outputs.tag_name }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: release
           merge-multiple: true
-      # The tag is the version in Cargo.toml.
-      - run: test "$GITHUB_REF_NAME" = "v$(cargo metadata --locked --no-deps --format-version 1 | jq -r '.packages[0].version')"
       # The check a user makes.
       - run: >-
           gh attestation verify release/asus-zenbook-duo-ux8406-*.tar.gz --repo "$GH_REPO"
           --signer-workflow "$GH_REPO/.github/workflows/release-files.yml"
           --source-ref "$GITHUB_REF"
-      # gh is on the runner: no third-party code in the one job that writes.
-      - run: >-
-          gh release create "$GITHUB_REF_NAME" release/*
-          --draft --verify-tag --title "$GITHUB_REF_NAME" --generate-notes
+      # The archive must be attached before publication: a published release
+      # cannot be changed.
+      - run: gh release upload "$TAG" release/*
+      - run: gh release edit "$TAG" --draft=false

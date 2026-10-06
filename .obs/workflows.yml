@@ -1,14 +1,13 @@
 # The project and package names are those of packaging/obs/README.md.
 version: '1.0'
 
-# A pushed tag v* builds the packages of that tag in the :releases project,
-# one OBS package per tag (asus-zenbook-duo-ux8406-v0.1.0, ...).
+# A new tag v* makes the package fetch the recipes of that tag and the archive
+# of its release, and build. The tag is made when the release is published.
 release:
   steps:
-    - branch_package:
-        source_project: home:cceelen:asus-zenbook-duo-ux8406
-        source_package: asus-zenbook-duo-ux8406
-        target_project: home:cceelen:asus-zenbook-duo-ux8406:releases
+    - trigger_services:
+        project: home:cceelen:asus-zenbook-duo-ux8406
+        package: asus-zenbook-duo-ux8406
   filters:
     event: tag_push
 

@@ -1,6 +1,6 @@
-# bump-my-version: the version is in these files. `bump-my-version bump minor`
-# sets it in all of them; it fails if one of them does not have the current
-# version. The changelog entries of the spec and of Debian are written by hand.
+# bump-my-version: the version is in these files. The release workflow sets
+# it in all of them, on the release pull request. The command fails if one of
+# them does not have the current version; a pre-commit hook uses that.
 [tool.bumpversion]
 current_version = "0.1.0"
 commit = false
@@ -30,6 +30,11 @@ replace = "version: '{new_version}'"
 filename = "packaging/rpm/asus-zenbook-duo-ux8406.spec"
 search = "Version:        {current_version}"
 replace = "Version:        {new_version}"
+
+[[tool.bumpversion.files]]
+filename = "packaging/rpm/asus-zenbook-duo-ux8406.spec"
+search = "Christian Ceelen - {current_version}-1"
+replace = "Christian Ceelen - {new_version}-1"
 
 [[tool.bumpversion.files]]
 filename = "packaging/debian/changelog"
