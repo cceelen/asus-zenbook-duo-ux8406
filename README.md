@@ -48,6 +48,21 @@ its side (book mode).
   two times, to 87 % on 2026-09-30 and to 100 % on 2026-10-03. The cause is not
   known.
 
+**Login screen.** It has its own display settings and does not read those of
+your session. Without a saved layout it switches all screens on, the built-in
+screens also, at each logout. To give it the layouts of your session, copy the
+file. Do this again after you change the arrangement of your monitors.
+
+GDM 50 (Fedora 44):
+
+```sh
+dir=/var/lib/gdm/seat0/config
+sudo install -m 644 -o "$(sudo stat -c %u $dir)" -g "$(sudo stat -c %g $dir)" ~/.config/monitors.xml $dir/monitors.xml
+sudo restorecon $dir/monitors.xml
+```
+
+Older GDM versions use `~gdm/.config/monitors.xml`. Not tested.
+
 **Not examined:** fan profiles, touch and pen mapping, beam-forming microphones,
 camera.
 
