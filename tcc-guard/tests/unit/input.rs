@@ -184,7 +184,7 @@ fn offset_files_that_are_refused(#[case] path: &str) {
     let mut settings = Settings::default();
 
     assert!(settings.add_control(0, path).is_err());
-    assert!(settings.controls.is_empty());
+    assert_eq!(settings.controls, []);
 }
 
 #[test]
