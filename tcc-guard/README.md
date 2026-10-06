@@ -9,8 +9,8 @@ the change when the machine is cool again.
 With the lid closed and under load, the EC raises a thermal warning: ACPI WMI
 event 0x6D, which the kernel logs as `asus_wmi: Unknown key code 0x6d`. If the
 CPU stays hot, the EC cuts the power. On the UX8406CA (BIOS 313) the EC waited
-100 to 122 seconds before it raised the event and 142 to 180 seconds before it
-cut the power.
+100 to 122 seconds before it raised the event and 142 to 183 seconds before it
+cut the power. The PD firmware 0005 does not change this.
 
 ## What it does
 

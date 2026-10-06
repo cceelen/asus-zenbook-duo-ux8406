@@ -37,12 +37,11 @@ the keyboard lies on it.
 
 - Screen orientation: the screen does not rotate in book mode. The sensor and
   iio-sensor-proxy are available.
-- Automatic suspend: the laptop does not suspend when the lid is closed and no
-  dock or external display is connected.
 - Microphone on the TRRS jack: no input. Possibly a hardware limit. Refer to the
   [SOF ticket](https://github.com/thesofproject/linux/issues/5703).
-- Battery charge limit: the limit of 80 % operates. On 2026-10-03 the battery
-  charged to 100 % one time. The cause is not known.
+- Battery charge limit: the limit of 80 % operates. The battery charged above it
+  two times, to 87 % on 2026-09-30 and to 100 % on 2026-10-03. The cause is not
+  known.
 
 **Not examined:** fan profiles, touch and pen mapping, beam-forming microphones,
 camera.
@@ -226,8 +225,10 @@ State in October 2026:
 - Lower screen brightness:
   [backlight capability](https://ratatoskr.run/dri-devel/2026/09/17528280/t) for
   the Linux kernel. In review.
-- Thermal event: one kernel patch that only records the event. Not merged. An
-  ASUS technical support ticket is open for a fix in the BIOS or in `asus-wmi`.
+- Thermal event: one kernel patch that only records the event. Not merged. ASUS
+  support confirmed the protection: with the lid closed and under load, Windows
+  hibernates. Linux is not in their validation. Questions about the event and a
+  fix in the BIOS or in `asus-wmi` are with ASUS; no answer at this time.
 
 ## Related projects
 
