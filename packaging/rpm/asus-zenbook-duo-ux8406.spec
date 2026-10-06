@@ -77,7 +77,7 @@ License:        MIT
 %description -n asus-zenbook-duo-ux8406-tcc-guard
 A root service that raises the CPU thermal offset when the embedded controller
 of the Zenbook Duo UX8406 warns of heat, and takes it back when the warning
-is over. The service is enabled when the package is installed (preset). It
+is over. The service is enabled and started when the package is installed. It
 logs one line and exits on any other model. An optional configuration file,
 /etc/asus-ux8406-tcc-guard.toml, overrides the defaults; an example is in the
 documentation directory.
@@ -168,6 +168,12 @@ fi
 
 %post -n asus-zenbook-duo-ux8406-tcc-guard
 %service_add_post asus-ux8406-tcc-guard.service
+# The preset enables the service; this starts it on the first installation.
+# Not started where the administrator's presets keep it disabled.
+if [ "$1" -eq 1 ] && [ -d /run/systemd/system ] \
+    && systemctl is-enabled --quiet asus-ux8406-tcc-guard.service; then
+    systemctl start asus-ux8406-tcc-guard.service >/dev/null 2>&1 || :
+fi
 
 %preun -n asus-zenbook-duo-ux8406-tcc-guard
 %service_del_preun asus-ux8406-tcc-guard.service
@@ -177,6 +183,12 @@ fi
 %else
 %post -n asus-zenbook-duo-ux8406-tcc-guard
 %systemd_post asus-ux8406-tcc-guard.service
+# The preset enables the service; this starts it on the first installation.
+# Not started where the administrator's presets keep it disabled.
+if [ "$1" -eq 1 ] && [ -d /run/systemd/system ] \
+    && systemctl is-enabled --quiet asus-ux8406-tcc-guard.service; then
+    systemctl start asus-ux8406-tcc-guard.service >/dev/null 2>&1 || :
+fi
 
 %preun -n asus-zenbook-duo-ux8406-tcc-guard
 %systemd_preun asus-ux8406-tcc-guard.service

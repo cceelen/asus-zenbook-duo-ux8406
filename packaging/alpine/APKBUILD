@@ -10,12 +10,12 @@ arch="x86_64"
 license="MIT"
 makedepends="abuild-meson cargo clang glib-dev libbpf-dev linux-headers meson
 	nodejs python3 samurai"
-# The pre-deinstall script of the -openrc subpackage is named here as well:
-# abuild reads the install scripts of all subpackages from this list, by the
-# name of the package each belongs to. It stops the guard, which puts the CPU
-# thermal offset back.
+# The scripts of the -openrc subpackage are named here as well: abuild reads
+# the install scripts of all subpackages from this list, by the name of the
+# package each belongs to. They start the guard, and stop it, which puts the
+# CPU thermal offset back.
 install="$pkgname.post-install $pkgname.post-upgrade $pkgname.pre-deinstall
-	$_guard-openrc.pre-deinstall"
+	$_guard-openrc.post-install $_guard-openrc.pre-deinstall"
 # Alpine keeps udev files in -udev subpackages, and OpenRC scripts in -openrc
 # ones, which are installed by themselves where udev or OpenRC is. What no
 # subpackage takes stays in the main package: the panel's helper and its
