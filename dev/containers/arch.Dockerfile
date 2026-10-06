@@ -25,7 +25,8 @@ RUN git init -q . && git add -A \
 # The packages, from that archive, without network. --nodeps: udev-hid-bpf,
 # a run-time dependency, is not in the official repositories. namcap checks the
 # PKGBUILD and every package; it has no exit status for findings, so an error
-# line (tagged ' E: ') fails the build. The rule splitpkgmakedeps is left out:
+# line (tagged ' E: ') fails the build, and so does a warning (' W: ') that is
+# not in packaging/arch/namcap-accepted.txt. The rule splitpkgmakedeps is left out:
 # it wants every run-time dependency of the split packages as a makedepends,
 # and two of them cannot be: udev-hid-bpf is not in the official repositories
 # (makepkg -s would fail), and gnome-shell is a whole desktop that the build
@@ -38,7 +39,10 @@ RUN --network=none set -eu; \
     namcap -e splitpkgmakedeps PKGBUILD > /tmp/namcap.txt 2>&1; \
     for p in *.pkg.tar.zst; do namcap "$p" >> /tmp/namcap.txt 2>&1; done; \
     cat /tmp/namcap.txt; \
-    if grep -q ' E: ' /tmp/namcap.txt; then echo 'namcap reported errors' >&2; exit 1; fi
+    if grep -q ' E: ' /tmp/namcap.txt; then echo 'namcap reported errors' >&2; exit 1; fi; \
+    grep -v '^#' namcap-accepted.txt > /tmp/accepted.txt; \
+    if grep ' W: ' /tmp/namcap.txt | grep -v -x -F -f /tmp/accepted.txt; then \
+        echo 'namcap reported warnings that are not accepted' >&2; exit 1; fi
 
 FROM scratch AS packages
 COPY --from=build /out/ /
