@@ -18,7 +18,7 @@ permissions:
 jobs:
   # Advisories appear without a commit, so the check is repeated here.
   audit:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -30,7 +30,7 @@ jobs:
   # Who packages udev-hid-bpf, which the keyboard package needs. Repology asks
   # clients to say who they are.
   repology:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - run: >-
           curl -fsS -A "asus-zenbook-duo-ux8406-watch (+https://github.com/$GITHUB_REPOSITORY)"

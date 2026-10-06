@@ -1,4 +1,4 @@
-# A tag v* makes the release files, attests them and creates a draft
+# A tag v* makes the source archive, attests it and creates a draft
 # release. COPR and OBS take the archive from the published release.
 name: release
 on:
@@ -23,7 +23,7 @@ jobs:
   # The only job that may write to the repository.
   publish:
     needs: release-files
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
     env:

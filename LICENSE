@@ -1,14 +1,21 @@
-Licensing of asus-zenbook-duo-ux8406
+MIT License
 
-This file is a notice, not a licence text. The licence texts are in
-LICENSES/; REUSE.toml says, once for the whole tree, which applies where
-(https://reuse.software/).
+Copyright (c) 2026 Christian Ceelen
 
-  keyboard-bpf/   GPL-2.0-only   LICENSES/GPL-2.0-only.txt
-                  (the HID-BPF program; its helper headers are copied from
-                  the Linux kernel, drivers/hid/bpf/progs, and keep their own
-                  copyright lines)
-  everything else MIT            LICENSES/MIT.txt
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Copyright (c) 2026 Christian Ceelen, for the files that are not copied from
-the Linux kernel.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

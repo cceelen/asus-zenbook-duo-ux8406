@@ -1,6 +1,6 @@
 <services>
-  <!-- Recipes of the latest tag (the tag a push has just made): the spec
-       and the dsc become files of the package. -->
+  <!-- Recipes of the latest tag (the tag a push has just made): the spec,
+       the dsc and the PKGBUILD become files of the package. -->
   <service name="obs_scm">
     <param name="scm">git</param>
     <param name="url">https://github.com/cceelen/asus-zenbook-duo-ux8406.git</param>
@@ -10,6 +10,9 @@
     <param name="versionrewrite-replacement">\1</param>
     <param name="extract">packaging/rpm/asus-zenbook-duo-ux8406.spec</param>
     <param name="extract">packaging/obs/asus-zenbook-duo-ux8406.dsc</param>
+    <param name="extract">packaging/arch/PKGBUILD</param>
+    <param name="extract">packaging/arch/asus-zenbook-duo-ux8406-second-screen.install</param>
+    <param name="extract">packaging/arch/asus-zenbook-duo-ux8406-tcc-guard.install</param>
   </service>
 
   <!-- The source archive: the attested release asset, with the vendored

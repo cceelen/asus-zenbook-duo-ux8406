@@ -8,16 +8,15 @@ in the containers of `dev/containers/` only.
 
 ## Who builds what
 
-| Distribution                   | Built by                                           | Configuration                          |
-| ------------------------------ | -------------------------------------------------- | -------------------------------------- |
-| Fedora, EPEL 10                | Fedora COPR, through Packit                        | `.packit.yaml`                         |
-| openSUSE, Debian, Ubuntu 26.04 | openSUSE Build Service                             | `.obs/workflows.yml`, `packaging/obs/` |
-| Arch                           | GitHub release workflow; files on the release page | `.github/workflows/release-files.yml`  |
-| Nix                            | the user, from the flake                           | `flake.nix`, `packaging/nix/`          |
-| Alpine                         | not distributed; recipe only                       | `packaging/alpine/`                    |
+| Distribution                         | Built by                     | Configuration                          |
+| ------------------------------------ | ---------------------------- | -------------------------------------- |
+| Fedora, EPEL 10                      | Fedora COPR, through Packit  | `.packit.yaml`                         |
+| openSUSE, Debian, Ubuntu 26.04, Arch | openSUSE Build Service       | `.obs/workflows.yml`, `packaging/obs/` |
+| Nix                                  | the user, from the flake     | `flake.nix`, `packaging/nix/`          |
+| Alpine                               | not distributed; recipe only | `packaging/alpine/`                    |
 
-COPR and OBS sign their repositories. The source archive and the Arch packages
-on the GitHub release page carry a GitHub build attestation.
+COPR and OBS sign their repositories. The source archive on the GitHub release
+page carries a GitHub build attestation.
 
 ## Make a release
 
@@ -27,8 +26,7 @@ on the GitHub release page carry a GitHub build attestation.
    one file has another version.
 1. Merge to `main` with a green `ci.yml`.
 1. Push the tag `v<version>`. `release.yml` makes the source archive
-   (`meson dist`) and the Arch packages, attests them and creates a draft
-   release.
+   (`meson dist`), attests it and creates a draft release.
 1. Publish the draft. OBS and COPR build from the archive of the published
    release.
 1. If the OBS build started before the release was published, it fails.
@@ -43,8 +41,7 @@ gh attestation verify asus-zenbook-duo-ux8406-<version>.tar.gz \
     --signer-workflow cceelen/asus-zenbook-duo-ux8406/.github/workflows/release-files.yml
 ```
 
-Use the same command for an Arch package. The attestation does not cover the
-packages from COPR and OBS.
+The attestation does not cover the packages from COPR and OBS.
 
 ## Keep the tree current
 
@@ -59,10 +56,10 @@ packages from COPR and OBS.
 
 ## Set up the repository
 
-- Rulesets: import `.github/rulesets/main.json` and
-  `.github/rulesets/release-tags.json` (Settings, Rules, Rulesets, Import a
-  ruleset). The first makes pull requests and green checks necessary for `main`.
-  The second makes release tags permanent.
+- Rulesets (Settings, Rules, Rulesets): one for `main` and one for the tags
+  `v*`. For `main`: no deletion, no force push, linear history, pull requests,
+  and the checks of `ci.yml` as required status checks. For the tags: no
+  deletion, no update.
 - Settings, Code security: enable "Private vulnerability reporting".
 - Install the Renovate application on the repository.
 
