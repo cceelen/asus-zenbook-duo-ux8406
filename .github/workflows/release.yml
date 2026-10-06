@@ -36,7 +36,9 @@ jobs:
           skip-github-release: true
       - id: pr
         run: |
-          branch=$(gh pr list --label 'autorelease: pending' --json headRefName --jq '.[0].headRefName // ""')
+          # The list of open pull requests, not a search: a search does not
+          # find a pull request in the first seconds after it is opened.
+          branch=$(gh api "repos/${GH_REPO}/pulls?state=open&per_page=100" --jq '[.[] | select(.head.ref | startswith("release-please--"))][0].head.ref // ""')
           if [ -z "$branch" ]; then
             echo "::error::No release pull request: no fix or feat was merged since the last release."
             exit 1
