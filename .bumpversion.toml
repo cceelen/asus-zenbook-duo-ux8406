@@ -19,6 +19,14 @@ regex = true
 search = "(name = \"asus-ux8406-[a-z-]+\"\nversion = \"){current_version}\""
 replace = "\\g<1>{new_version}\""
 
+# The fuzz targets are a workspace of their own (fuzz/), with the guard as a
+# path dependency: its lock file has the guard's version too.
+[[tool.bumpversion.files]]
+filename = "fuzz/Cargo.lock"
+regex = true
+search = "(name = \"asus-ux8406-[a-z-]+\"\nversion = \"){current_version}\""
+replace = "\\g<1>{new_version}\""
+
 [[tool.bumpversion.files]]
 filename = "meson.build"
 search = "version: '{current_version}'"
