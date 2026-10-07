@@ -3,18 +3,26 @@
 // It prints each orientation and the layout it applies. The layouts are for
 // the session only. Manual tool, not part of `meson test`: it needs a running
 // GNOME session and iio-sensor-proxy. Disable the extension first, or the two
-// act at the same time. Run it from the gnome-rotation directory, with the number
-// of seconds to run (default 60):
+// act at the same time. It is not the extension in two points: it follows an
+// orientation at once, not after the time that the extension waits, and it
+// does not look at the setting orientation-lock. Run it from the
+// gnome-rotation directory, with the number of seconds to run (default 60):
 //   gjs -m tests/rotate.js 120
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
-import {applyLayout, currentState, Method} from '../extension/display.js';
-import {panelsOf, rotate} from '../extension/rotation.js';
+import {applyLayout, currentState} from '../extension/display.js';
+import {rotate, uprightAfter} from '../extension/rotation.js';
 import {OrientationSensor} from '../extension/sensor.js';
 
 const NAME = 'org.gnome.Mutter.DisplayConfig';
 const seconds = Number(ARGV[0] ?? 60);
+
+if (!Number.isInteger(seconds) || seconds < 1) {
+    printerr('usage: gjs -m tests/rotate.js [seconds]');
+    imports.system.exit(2);
+}
+
 const loop = new GLib.MainLoop(null, false);
 // The layout from before the panels were turned, as the extension keeps it.
 let upright = null;
@@ -33,10 +41,8 @@ async function follow(why) {
             print('  nothing to do');
             return;
         }
-        await applyLayout(state, layout, Method.VERIFY);
         await applyLayout(state, layout);
-        if (orientation === 'normal') upright = null;
-        else if (panelsOf(state).every((panel) => panel.transform === 0)) upright = state.logical;
+        upright = uprightAfter(state, orientation, upright);
         print(`  applied ${show(layout)}`);
     } catch (error) {
         printerr(`  failed: ${error.message}`);

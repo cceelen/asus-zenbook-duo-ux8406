@@ -30,11 +30,14 @@ x-check: &check
         echo "keyboard package not installed: no udev-hid-bpf here"
       fi
       if [ "$${GNOME:-no}" = yes ]; then
-        test -f /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/extension.js
         test -f /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/schemas/gschemas.compiled
-        test -f /usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/extension.js
-        test -f /usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/state.js
-        test ! -L /usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/state.js
+        # The files that the two extensions share are copies, not links.
+        for d in asus-zenbook-duo-ux8406-keys builtin-screen-rotation; do
+          for f in extension.js state.js display.js; do
+            test -f "/usr/share/gnome-shell/extensions/$$d@cceelen.github.io/$$f"
+            test ! -L "/usr/share/gnome-shell/extensions/$$d@cceelen.github.io/$$f"
+          done
+        done
         gnome-shell --version
         echo "extension files in place"
       else

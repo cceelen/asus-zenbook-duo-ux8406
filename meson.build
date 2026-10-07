@@ -82,6 +82,11 @@ paths = configuration_data({
 })
 
 python = find_program('python3')
+# The tests of the two GNOME Shell extensions run on node.
+node = find_program('node', required: get_option('gnome') or get_option('rotation'))
+# What the two extensions share. In each extension/ directory these are links,
+# for the tests and the manual tools; each part installs the files themselves.
+gnome_common = files('gnome-common/display.js', 'gnome-common/state.js')
 
 # Cargo. One target directory inside the build directory, so that nothing is
 # written into the source tree.

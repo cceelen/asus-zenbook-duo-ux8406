@@ -3,54 +3,17 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 
-import {isValid, rotate} from '../extension/rotation.js';
-import {find, readState} from '../extension/state.js';
-
-const UPPER = 'eDP-1';
-const LOWER = 'eDP-2';
-
-const mode = (current = true) => [
-    '2880x1800@120.000',
-    2880,
-    1800,
-    120,
-    1.5,
-    [1, 1.25],
-    current ? {'is-current': true} : {'is-preferred': true},
-];
-// The compositor marks the panels of the machine as built-in.
-const monitor = (connector, current = true) => [
-    [connector, 'SDC', '0x419d', '0x0'],
-    [mode(current)],
-    connector.startsWith('eDP') ? {'color-mode': 0, 'is-builtin': true} : {'color-mode': 0},
-];
-const logical = (connector, x, y, primary, scale = 1.25) => [
-    x,
-    y,
-    scale,
-    0,
-    primary,
-    [[connector, 'SDC', '0x419d', '0x0']],
-    {},
-];
-const properties = {'layout-mode': 1, 'supports-changing-layout-mode': true};
-
-// Both panels on: the lower one below the upper one, and the primary.
-const twoPanels = () =>
-    readState([
-        7,
-        [monitor(UPPER), monitor(LOWER)],
-        [logical(UPPER, 0, 0, false), logical(LOWER, 0, 1440, true)],
-        properties,
-    ]);
-// The lower panel switched off; it is still connected.
-const lowerOff = () =>
-    readState([
-        8,
-        [monitor(UPPER), monitor(LOWER, false)],
-        [logical(UPPER, 0, 0, true)],
-        properties,
-    ]);
+import {
+    LOWER,
+    logical,
+    lowerOff,
+    monitor,
+    properties,
+    twoPanels,
+    UPPER,
+} from '../../gnome-common/tests/fixtures.js';
+import {rotate, uprightAfter} from '../extension/rotation.js';
+import {find, isValid, readState} from '../extension/state.js';
 
 // The laptop on its side. A panel of 2880x1800 at scale 1.25 takes 2304x1440
 // in the layout, and 1440x2304 when it is turned.
@@ -116,6 +79,8 @@ test('nothing to do when the layout is that one already', () => {
 test('upside down and an unknown orientation change nothing', () => {
     assert.equal(rotate(twoPanels(), 'bottom-up'), null);
     assert.equal(rotate(twoPanels(), 'undefined'), null);
+    // Not an orientation, but the name of something that each object has.
+    assert.equal(rotate(twoPanels(), 'constructor'), null);
 });
 
 test('with the built-in panels off, nothing is turned', () => {
@@ -129,6 +94,43 @@ test('with the built-in panels off, nothing is turned', () => {
     assert.equal(rotate(state, 'left-up'), null);
 });
 
+test('a mirrored panel is left as it is', () => {
+    for (const transform of [4, 5, 6, 7]) {
+        const state = twoPanels();
+
+        for (const panel of state.logical) panel.transform = transform;
+        for (const orientation of ['normal', 'left-up', 'right-up'])
+            assert.equal(rotate(state, orientation), null);
+    }
+});
+
+test('a monitor without a mode: nothing is turned', () => {
+    const state = readState([
+        16,
+        [monitor(UPPER), [['DP-7', 'X', 'y', 'z'], [], {}]],
+        [logical(UPPER, 0, 0, true), logical('DP-7', 2304, 0, false, 1)],
+        properties,
+    ]);
+
+    assert.equal(rotate(state, 'left-up'), null);
+});
+
+test('the compositor turned the first panel back by itself: the other one tells the order', () => {
+    // Right side up with eDP-2 on the left, as the top panel. Then eDP-1 only
+    // is upright again, where it was.
+    const state = twoPanels();
+
+    state.logical = [
+        {...find(state.logical, UPPER), x: 1440, y: 0, transform: 0},
+        {...find(state.logical, LOWER), x: 0, y: 0, transform: 3},
+    ];
+
+    const layout = rotate(state, 'right-up');
+
+    assert.deepEqual(place(layout, LOWER), [0, 0, 3]);
+    assert.deepEqual(place(layout, UPPER), [1440, 0, 3]);
+});
+
 test('a monitor right of the panels stays right of them', () => {
     const state = readState([
         4,
@@ -136,15 +138,34 @@ test('a monitor right of the panels stays right of them', () => {
         [
             logical(UPPER, 0, 0, false),
             logical(LOWER, 0, 1440, true),
-            logical('DP-7', 2304, 0, false, 1),
+            logical('DP-7', 2304, 200, false, 1),
         ],
         properties,
     ]);
     const layout = rotate(state, 'left-up');
 
-    // The panels are 2880 wide side by side, 576 more than before.
-    assert.deepEqual(place(layout, 'DP-7'), [2880, 0, 0]);
+    // The panels are 2880 wide side by side, 576 more than before. The
+    // monitor keeps its height in the layout: it is not put in one row.
+    assert.deepEqual(place(layout, 'DP-7'), [2880, 200, 0]);
     assert.deepEqual(place(layout, UPPER), [1440, 0, 1]);
+});
+
+test('a monitor below the panels stays below them', () => {
+    const state = readState([
+        4,
+        [monitor(UPPER), monitor(LOWER), monitor('DP-7')],
+        [
+            logical(UPPER, 0, 0, false),
+            logical(LOWER, 0, 1440, true),
+            logical('DP-7', 300, 2880, false, 1),
+        ],
+        properties,
+    ]);
+    const layout = rotate(state, 'left-up');
+
+    // The turned panels are 2304 high, 576 less than the two before.
+    assert.deepEqual(place(layout, 'DP-7'), [300, 2304, 0]);
+    assert.deepEqual(place(layout, LOWER), [0, 0, 1]);
 });
 
 test('a monitor left of the panels stays where it is', () => {
@@ -192,17 +213,18 @@ test('a monitor that is not beside the panels stays where it is', () => {
 });
 
 test('upright again, the layout from before the turn is put back', () => {
+    // The lower panel is not exactly below the upper one: a new placement
+    // does not give this layout.
     const before = twoPanels();
-    const turned = twoPanels();
 
-    turned.logical = rotate(turned, 'left-up');
-    // Something moved the upper panel while the laptop lay on its side.
-    find(turned.logical, UPPER).y = 100;
+    find(before.logical, LOWER).x = 300;
 
+    const turned = {...before, logical: rotate(before, 'left-up')};
     const layout = rotate(turned, 'normal', before.logical);
 
     assert.deepEqual(layout, before.logical);
     assert.notEqual(layout[0], before.logical[0]);
+    assert.deepEqual(place(rotate(turned, 'normal'), LOWER), [0, 1440, 0]);
 });
 
 test('the layout from before the turn is not used with other monitors', () => {
@@ -330,28 +352,36 @@ test('the layout from before the turn is not used at another scale', () => {
 });
 
 test('when nothing else fits, the monitors are put in one row', () => {
-    // The panels are enclosed: a monitor right of them and one below them,
-    // and those two touch only through the panels.
+    // A monitor below the panel, and one that touches that monitor only. The
+    // turned panel is higher: the monitor below must go down, and the other
+    // one is then apart; left where it is, the monitor below is under the
+    // panel.
     const state = readState([
         14,
         [
             monitor(UPPER),
-            [['DP-1', 'A', 'a', '1'], [size(1000, 1440)], {}],
-            [['DP-2', 'B', 'b', '2'], [size(2304, 500)], {}],
-            [['DP-3', 'C', 'c', '3'], [size(1000, 500)], {}],
+            [['DP-1', 'A', 'a', '1'], [size(2304, 600)], {}],
+            [['DP-2', 'B', 'b', '2'], [size(1000, 500)], {}],
         ],
         [
+            logical('DP-2', 2304, 1440, false, 1),
             logical(UPPER, 0, 0, true),
-            logical('DP-1', 2304, 0, false, 1),
-            logical('DP-2', 0, 1440, false, 1),
-            logical('DP-3', 2304, 1440, false, 1),
+            logical('DP-1', 0, 1440, false, 1),
         ],
         properties,
     ]);
     const layout = rotate(state, 'left-up');
 
     assert.equal(isValid(state, layout), true);
-    assert.equal(find(layout, UPPER).transform, 1);
+    // From left to right as they were, each at the top.
+    assert.deepEqual(place(layout, UPPER), [0, 0, 1]);
+    assert.deepEqual(place(layout, 'DP-1'), [1440, 0, 0]);
+    assert.deepEqual(place(layout, 'DP-2'), [3744, 0, 0]);
+    // The compositor's order is kept.
+    assert.deepEqual(
+        layout.map((monitor) => monitor.connectors[0]),
+        ['DP-2', UPPER, 'DP-1'],
+    );
 });
 
 test('panels that are upright with the laptop upright are left where they are', () => {
@@ -378,4 +408,16 @@ test('panels that are turned as the laptop is are left where they are', () => {
     // The user swapped the two turned panels.
     [find(state.logical, UPPER).x, find(state.logical, LOWER).x] = [0, 1440];
     assert.equal(rotate(state, 'left-up'), null);
+});
+
+test('the layout to remember: the one from before the first turn', () => {
+    const upright = twoPanels();
+    const turned = {...upright, logical: rotate(upright, 'left-up')};
+
+    // Turned away from upright: this layout is the one to put back.
+    assert.equal(uprightAfter(upright, 'left-up', null), upright.logical);
+    // From one side to the other: still the one from before the first turn.
+    assert.equal(uprightAfter(turned, 'right-up', upright.logical), upright.logical);
+    // Upright again: nothing to put back.
+    assert.equal(uprightAfter(turned, 'normal', upright.logical), null);
 });

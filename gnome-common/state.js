@@ -11,6 +11,19 @@
 
 const LAYOUT_MODE_LOGICAL = 1;
 
+/**
+ * The direction in the layout that goes down the laptop, from its top to its
+ * bottom, for each transform of a panel, as [x, y]: down when it is upright,
+ * to the left with the left side up, up when it is upside down, to the right
+ * with the right side up.
+ */
+export const DOWN = [
+    [0, 1],
+    [-1, 0],
+    [0, -1],
+    [1, 0],
+];
+
 /** The mode a monitor is in, or else the one it prefers. */
 function modeOf(modes) {
     const current = modes.find((mode) => mode[6]['is-current']);
@@ -71,14 +84,43 @@ export function toOrigin(logical) {
     return logical.map((monitor) => ({...monitor, x: monitor.x - left, y: monitor.y - top}));
 }
 
-/** The size a logical monitor takes up in the layout with a transform. */
-export function sizeOf(monitor, mode, logicalMode, transform = monitor.transform) {
-    const turned = transform % 2 === 1;
+/** The size a logical monitor takes up in the layout. */
+export function sizeOf(monitor, mode, logicalMode) {
+    const turned = monitor.transform % 2 === 1;
     const [width, height] = turned ? [mode.height, mode.width] : [mode.width, mode.height];
 
     return logicalMode
         ? {width: Math.round(width / monitor.scale), height: Math.round(height / monitor.scale)}
         : {width, height};
+}
+
+/** The place a monitor of a layout takes up: {x, y, width, height}. */
+export function areaOf(state, monitor) {
+    const mode = state.connected.get(monitor.connectors[0]);
+
+    return {x: monitor.x, y: monitor.y, ...sizeOf(monitor, mode, state.logicalMode)};
+}
+
+/**
+ * Whether the compositor can take a layout: no monitor lies over another,
+ * and each one touches another along an edge, so that the pointer can go
+ * from any monitor to any other.
+ */
+export function isValid(state, layout) {
+    const areas = layout.map((monitor) => areaOf(state, monitor));
+    const span = (a, b, from, size) =>
+        Math.min(a[from] + a[size], b[from] + b[size]) - Math.max(a[from], b[from]);
+    const over = (a, b) => span(a, b, 'x', 'width') > 0 && span(a, b, 'y', 'height') > 0;
+    const touch = (a, b) =>
+        (span(a, b, 'x', 'width') === 0 && span(a, b, 'y', 'height') > 0) ||
+        (span(a, b, 'y', 'height') === 0 && span(a, b, 'x', 'width') > 0);
+    const reached = new Set([0]);
+
+    for (const [index, area] of areas.entries())
+        if (areas.some((other, at) => at < index && over(area, other))) return false;
+    for (const from of reached)
+        for (const [to, area] of areas.entries()) if (touch(areas[from], area)) reached.add(to);
+    return reached.size === areas.length;
 }
 
 /** Whether `logical` shows exactly the connectors of `saved`, without `except`. */
@@ -90,22 +132,6 @@ export function isRest(logical, saved, except = null) {
         .sort();
 
     return now.length === before.length && now.every((name, index) => name === before[index]);
-}
-
-/** Whether two layouts have each monitor at the same place, turned the same way. */
-export function isSame(one, other) {
-    return (
-        one.length === other.length &&
-        one.every((monitor) => {
-            const twin = find(other, monitor.connectors[0]);
-
-            return (
-                twin?.x === monitor.x &&
-                twin.y === monitor.y &&
-                twin.transform === monitor.transform
-            );
-        })
-    );
 }
 
 /**
