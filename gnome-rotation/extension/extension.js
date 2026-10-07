@@ -10,15 +10,14 @@
 // setting orientation-lock.
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import GObject from 'gi://GObject';
 
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {QuickToggle, SystemIndicator} from 'resource:///org/gnome/shell/ui/quickSettings.js';
 
 import {applyLayout, currentState} from './display.js';
-import {rotate, uprightAfter} from './rotation.js';
-import {OrientationSensor} from './sensor.js';
+import {rotate, showSwitch, uprightAfter} from './rotation.js';
+import {AccelerometerPresence, OrientationSensor} from './sensor.js';
 
 // GNOME's own setting for the rotation of the built-in panel.
 const TOUCHSCREEN = 'org.gnome.settings-daemon.peripherals.touchscreen';
@@ -27,9 +26,9 @@ const LOCK = 'orientation-lock';
 const SETTLE_MS = 700;
 
 /**
- * The quick settings switch for the rotation, on while it is not locked.
- * GNOME shows its own switch for the same setting while it turns the panel
- * itself (no pointer device); this one is then hidden.
+ * The quick settings switch for the rotation, on while it is not locked. It
+ * is hidden until the extension knows that it can turn a panel
+ * (_showSwitch).
  */
 function rotationIndicator(settings) {
     const indicator = new SystemIndicator();
@@ -37,18 +36,10 @@ function rotationIndicator(settings) {
         title: 'Auto-rotate',
         iconName: 'rotation-allowed-symbolic',
         toggleMode: true,
+        visible: false,
     });
 
     settings.bind(LOCK, toggle, 'checked', Gio.SettingsBindFlags.INVERT_BOOLEAN);
-    // The binding ends when the switch is destroyed.
-    global.backend
-        .get_monitor_manager()
-        .bind_property(
-            'panel-orientation-managed',
-            toggle,
-            'visible',
-            GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.INVERT_BOOLEAN,
-        );
     indicator.quickSettingsItems.push(toggle);
     return indicator;
 }
@@ -70,11 +61,22 @@ export default class BuiltinScreenRotation extends Extension {
         this._lockChanged = this._settings.connect(`changed::${LOCK}`, () => this._watch());
         this._indicator = rotationIndicator(this._settings);
         Main.panel.statusArea.quickSettings.addExternalIndicator(this._indicator);
+        // What decides whether the switch is shown. The accelerometer is
+        // followed without a claim, also while the rotation is locked.
+        this._builtin = false;
+        this._monitorManager = global.backend.get_monitor_manager();
+        this._managedChanged = this._monitorManager.connect(
+            'notify::panel-orientation-managed',
+            () => this._showSwitch(),
+        );
+        this._accelerometer = new AccelerometerPresence(() => this._showSwitch());
         // A monitor came or went, as when the keyboard is put on the lower
         // panel: the layout that the compositor then takes is upright.
-        this._monitorsChanged = Main.layoutManager.connect('monitors-changed', () =>
-            this._settle(),
-        );
+        this._monitorsChanged = Main.layoutManager.connect('monitors-changed', () => {
+            this._findBuiltin();
+            this._settle();
+        });
+        this._findBuiltin();
         this._watch();
     }
 
@@ -85,12 +87,41 @@ export default class BuiltinScreenRotation extends Extension {
         this._monitorsChanged = 0;
         this._sensor?.destroy();
         this._sensor = null;
+        this._accelerometer?.destroy();
+        this._accelerometer = null;
+        if (this._managedChanged) this._monitorManager.disconnect(this._managedChanged);
+        this._managedChanged = 0;
+        this._monitorManager = null;
         for (const item of this._indicator?.quickSettingsItems ?? []) item.destroy();
         this._indicator?.destroy();
         this._indicator = null;
         if (this._lockChanged) this._settings.disconnect(this._lockChanged);
         this._lockChanged = 0;
         this._settings = null;
+    }
+
+    /** Whether the compositor has a built-in panel, then the switch. */
+    _findBuiltin() {
+        const indicator = this._indicator;
+
+        currentState()
+            .then((state) => {
+                // Disabled while the compositor gave its answer.
+                if (indicator !== this._indicator) return;
+                this._builtin = state.builtin.length > 0;
+                this._showSwitch();
+            })
+            .catch((error) => console.error(`${this.uuid}: ${error.message}`));
+    }
+
+    _showSwitch() {
+        const visible = showSwitch({
+            managed: this._monitorManager.panel_orientation_managed,
+            accelerometer: this._accelerometer.present,
+            builtin: this._builtin,
+        });
+
+        for (const item of this._indicator.quickSettingsItems) item.visible = visible;
     }
 
     /**

@@ -12,7 +12,7 @@ import {
     twoPanels,
     UPPER,
 } from '../../gnome-common/tests/fixtures.js';
-import {rotate, uprightAfter} from '../extension/rotation.js';
+import {rotate, showSwitch, uprightAfter} from '../extension/rotation.js';
 import {find, isValid, readState} from '../extension/state.js';
 
 // The laptop on its side. A panel of 2880x1800 at scale 1.25 takes 2304x1440
@@ -420,4 +420,15 @@ test('the layout to remember: the one from before the first turn', () => {
     assert.equal(uprightAfter(turned, 'right-up', upright.logical), upright.logical);
     // Upright again: nothing to put back.
     assert.equal(uprightAfter(turned, 'normal', upright.logical), null);
+});
+
+test('the switch shows only where the extension can turn a panel', () => {
+    const can = {managed: false, accelerometer: true, builtin: true};
+
+    assert.equal(showSwitch(can), true);
+    // No accelerometer, or no built-in panel: nothing to turn.
+    assert.equal(showSwitch({...can, accelerometer: false}), false);
+    assert.equal(showSwitch({...can, builtin: false}), false);
+    // GNOME turns the panel itself and shows its own switch.
+    assert.equal(showSwitch({...can, managed: true}), false);
 });

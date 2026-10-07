@@ -46,6 +46,11 @@ The switch "Auto-rotate" in the quick settings turns the rotation on and off. It
 is GNOME's setting `orientation-lock`. While it is off, the extension does not
 use the sensor.
 
+The switch shows only when `iio-sensor-proxy` has an accelerometer and the
+machine has a built-in screen. When GNOME turns the screen itself (no pointer
+device connected), GNOME shows its own switch for the same setting, and this one
+is hidden.
+
 ## Test
 
 ```sh

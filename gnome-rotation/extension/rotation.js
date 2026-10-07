@@ -181,3 +181,13 @@ export function uprightAfter(state, orientation, upright) {
     if (orientation === 'normal') return null;
     return panelsOf(state).every((panel) => panel.transform === 0) ? state.logical : upright;
 }
+
+/**
+ * Whether the switch "Auto-rotate" of this extension is shown: only where it
+ * can do something. That is, iio-sensor-proxy has an accelerometer, the
+ * compositor has a built-in panel, and GNOME does not turn the panel itself
+ * (it then shows its own switch for the same setting).
+ */
+export function showSwitch({managed, accelerometer, builtin}) {
+    return !managed && accelerometer && builtin;
+}
