@@ -1,8 +1,8 @@
 # Each night on main: the fuzz targets of the guard's parsers (fuzz/), five
 # minutes each, from the corpus of the night before. Each input that makes a
 # target fail gets a private draft security advisory, with the input and the
-# steps to reproduce it. Pull requests and releases do not build or run the
-# fuzz targets: they are checked here only.
+# steps to reproduce it. Pull requests and releases do not run the fuzz
+# targets; ci.yml checks their format and lints.
 name: fuzz
 
 on:
@@ -38,7 +38,6 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
         with:
           toolchain: nightly
-          components: clippy, rustfmt
           cache-workspaces: fuzz
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -56,8 +55,6 @@ jobs:
       # cargo fuzz has no --locked: the runs below use fuzz/Cargo.lock as it
       # is.
       - run: cargo fetch --locked --manifest-path fuzz/Cargo.toml
-      - run: cargo fmt --manifest-path fuzz/Cargo.toml --check
-      - run: cargo clippy --locked --manifest-path fuzz/Cargo.toml --all-targets -- -D warnings
       # Every target runs, also after a failure of one. libFuzzer writes the
       # input of a failure to fuzz/artifacts/<target>/; the end of its output
       # goes next to it. The log of a public repository is public: the output
