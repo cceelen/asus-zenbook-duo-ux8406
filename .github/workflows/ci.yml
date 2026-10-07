@@ -23,52 +23,7 @@ permissions:
   contents: read
 
 jobs:
-  # Is the pull request a version bump and nothing else (the release pull
-  # request)? Its version is set back to that of main with bump-my-version,
-  # with the patterns of .bumpversion.toml; then the tree must be that of
-  # main, CHANGELOG.md and the manifest of Release Please aside. Only then do
-  # the jobs that need it skip: they skip on `only == 'true'` and run in every
-  # other case, also when this job fails. A skipped job counts as a passed
-  # required check.
-  version-bump:
-    if: ${{ github.event_name == 'pull_request' }}
-    runs-on: ubuntu-26.04
-    outputs:
-      only: ${{ steps.check.outputs.only }}
-    steps:
-      # The merge commit of the pull request and its first parent, main.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 2
-          persist-credentials: false
-      - id: check
-        run: |
-          current() { sed -n 's/^current_version = "\(.*\)"$/\1/p'; }
-          old=$(git show HEAD^1:.bumpversion.toml | current)
-          new=$(current < .bumpversion.toml)
-          if [ -z "$old" ] || [ "$old" = "$new" ]; then
-            echo "Not a version bump."
-            exit 0
-          fi
-          # The patterns of main, not those of the pull request: the patterns
-          # of the pull request could turn any change back into main.
-          if ! diff <(git show HEAD^1:.bumpversion.toml | grep -v '^current_version = ') \
-                    <(grep -v '^current_version = ' .bumpversion.toml) > /dev/null; then
-            echo ".bumpversion.toml changed beyond its version."
-            exit 0
-          fi
-          if ! pipx run bump-my-version==1.5.1 bump --new-version "$old" patch --allow-dirty; then
-            echo "The version could not be set back to $old."
-            exit 0
-          fi
-          if git diff --exit-code HEAD^1 -- . ':!CHANGELOG.md' ':!.release-please-manifest.json'; then
-            echo "Only the version changed: $old to $new."
-            echo "only=true" >> "$GITHUB_OUTPUT"
-          fi
-
   rust:
-    needs: version-bump
-    if: ${{ !cancelled() && needs.version-bump.outputs.only != 'true' }}
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -103,8 +58,6 @@ jobs:
   # Cargo.lock, those of the tests included, must compile with it. A check is
   # enough: the language and the library are those of the compiler front end.
   rust-oldest:
-    needs: version-bump
-    if: ${{ !cancelled() && needs.version-bump.outputs.only != 'true' }}
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -119,8 +72,6 @@ jobs:
   # The weekly run on main also catches the advisories that appear without a
   # commit.
   audit:
-    needs: version-bump
-    if: ${{ !cancelled() && needs.version-bump.outputs.only != 'true' }}
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -132,7 +83,7 @@ jobs:
 
   # Every hook of .pre-commit-config.yaml: formats, lints, spelling,
   # licences, one version in all files. cargo fmt and cargo clippy run in the
-  # rust job. It runs for a version bump too.
+  # rust job.
   pre-commit:
     runs-on: ubuntu-26.04
     steps:
@@ -151,20 +102,8 @@ jobs:
       - run: pipx run pre-commit run --all-files --show-diff-on-failure
         env:
           SKIP: cargo-fmt,cargo-clippy
-      # The release pull request has the new version in the manifest of
-      # Release Please before release.yml sets it in the package files. Until
-      # then it must not merge, its auto-merge being set already.
-      - run: |
-          manifest=$(jq -r '."."' .release-please-manifest.json)
-          files=$(sed -n 's/^current_version = "\(.*\)"$/\1/p' .bumpversion.toml)
-          if [ "$manifest" != "$files" ]; then
-            echo "::error::.release-please-manifest.json has $manifest, .bumpversion.toml has $files."
-            exit 1
-          fi
 
   workflows:
-    needs: version-bump
-    if: ${{ !cancelled() && needs.version-bump.outputs.only != 'true' }}
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -180,8 +119,6 @@ jobs:
   # need. `meson test` runs the cargo tests, the BPF object checks and the
   # extension's node tests.
   meson:
-    needs: version-bump
-    if: ${{ !cancelled() && needs.version-bump.outputs.only != 'true' }}
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -200,8 +137,7 @@ jobs:
       - run: meson test -C build --print-errorlogs
 
   dependency-review:
-    needs: version-bump
-    if: ${{ !cancelled() && github.event_name == 'pull_request' && needs.version-bump.outputs.only != 'true' }}
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -209,10 +145,8 @@ jobs:
           persist-credentials: false
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
 
-  # The source archive: meson dist vendors the crates with --locked, so it
-  # also checks Cargo.lock of a version bump. A called workflow may not ask
-  # for more permissions than its caller grants. These are for its attest
-  # job, which does not run here.
+  # A called workflow may not ask for more permissions than its caller
+  # grants. These are for its attest job, which does not run here.
   release-files:
     uses: ./.github/workflows/release-files.yml
     permissions:
