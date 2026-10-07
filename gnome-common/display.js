@@ -44,11 +44,12 @@ export async function currentState() {
 }
 
 /** The settings of one monitor that are kept, as ApplyMonitorsConfig takes them. */
-function monitorSettings({colorMode, rgbRange}) {
+function monitorSettings({colorMode, rgbRange, underscanning}) {
     const settings = {};
 
     if (colorMode !== undefined) settings['color-mode'] = new GLib.Variant('u', colorMode);
     if (rgbRange !== undefined) settings['rgb-range'] = new GLib.Variant('u', rgbRange);
+    if (underscanning !== undefined) settings.underscanning = new GLib.Variant('b', underscanning);
     return settings;
 }
 
@@ -77,6 +78,9 @@ export async function applyLayout(state, logical, method = Method.TEMPORARY) {
             state.logicalMode ? LAYOUT_MODE.logical : LAYOUT_MODE.physical,
         );
     }
+    // Without this the compositor takes them from the program that has them.
+    if (state.leased.length > 0)
+        properties['monitors-for-lease'] = new GLib.Variant('a(ssss)', state.leased);
     await call(
         'ApplyMonitorsConfig',
         new GLib.Variant('(uua(iiduba(ssa{sv}))a{sv})', [
