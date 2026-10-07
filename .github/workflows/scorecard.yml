@@ -1,14 +1,13 @@
 # OpenSSF Scorecard: how the repository fares against the OpenSSF's checks.
 # The result goes to code scanning and, in a public repository, to the
-# Scorecard API for the badge.
+# Scorecard API for the badge of the README. Most checks are about the
+# settings of the repository, not about a commit: once a week is enough.
 name: scorecard
 
 on:
   branch_protection_rule:
   schedule:
     - cron: "41 3 * * 2"
-  push:
-    branches: [main]
 
 permissions: read-all
 
