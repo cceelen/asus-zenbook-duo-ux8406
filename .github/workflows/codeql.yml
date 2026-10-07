@@ -13,11 +13,11 @@ on:
     - cron: "23 4 * * 3"
 
 # A newer push to a pull request makes the older run pointless. On main,
-# each commit is scanned to the end: a cancelled run is a commit without
-# scan.
+# each commit is scanned to the end, in a group of its own (a shared group
+# would still drop a waiting run): a cancelled run is a commit without scan.
 concurrency:
-  group: codeql-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: codeql-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
