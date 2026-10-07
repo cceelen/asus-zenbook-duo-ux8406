@@ -33,6 +33,12 @@ the keyboard lies on it.
 - [gnome-shell-extension-asus-zenbook-duo-ux8406-keys](gnome-keys/README.md):
   gives a function to the two display keys. GNOME only.
 
+**Touch.** A touch on the lower screen acts on the upper screen: GNOME cannot
+tell the two screens apart.
+
+- [gnome-shell-extension-asus-zenbook-duo-ux8406-keys](gnome-keys/README.md):
+  gives each touchscreen its screen. GNOME only.
+
 **Screen rotation.** GNOME does not turn the screens when the laptop stands on
 its side (book mode).
 
@@ -63,8 +69,7 @@ sudo restorecon $dir/monitors.xml
 
 Older GDM versions use `~gdm/.config/monitors.xml`. Not tested.
 
-**Not examined:** fan profiles, touch and pen mapping, beam-forming microphones,
-camera.
+**Not examined:** fan profiles, pens, beam-forming microphones, camera.
 
 ## Compatibility
 
@@ -266,8 +271,8 @@ their README files in October 2026.
 | [JowiAoun/linux-on-zenbook-duo](https://github.com/JowiAoun/linux-on-zenbook-duo)                       | UX8406MA | Bash and Python, user services, GNOME    |
 | [carlosh7/asus_UX8406MA](https://github.com/carlosh7/asus_UX8406MA)                                     | UX8406MA | Shell, services, GNOME                   |
 
-Some of them have functions that this project does not have: touch and pen
-mapping, battery charge limit, suspend.
+Some of them have functions that this project does not have: battery charge
+limit, suspend.
 
 ## Contact and contributions
 
