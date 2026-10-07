@@ -7,18 +7,19 @@
 // put back. GNOME does this by itself only without a pointer device, and for
 // one panel. The layouts are for the session only; monitors.xml is not
 // touched. The switch "Auto-rotate" in the quick settings is GNOME's own
-// setting orientation-lock.
+// setting orientation-lock. Where no sensor gives the orientation, two
+// buttons turn the panels by hand instead.
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import GObject from 'gi://GObject';
+import St from 'gi://St';
 
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {QuickToggle, SystemIndicator} from 'resource:///org/gnome/shell/ui/quickSettings.js';
 
 import {applyLayout, currentState} from './display.js';
-import {rotate, uprightAfter} from './rotation.js';
-import {OrientationSensor} from './sensor.js';
+import {control, orientationOf, rotate, turned, uprightAfter} from './rotation.js';
+import {OrientationPresence, OrientationSensor} from './sensor.js';
 
 // GNOME's own setting for the rotation of the built-in panel.
 const TOUCHSCREEN = 'org.gnome.settings-daemon.peripherals.touchscreen';
@@ -27,30 +28,48 @@ const LOCK = 'orientation-lock';
 const SETTLE_MS = 700;
 
 /**
- * The quick settings switch for the rotation, on while it is not locked.
- * GNOME shows its own switch for the same setting while it turns the panel
- * itself (no pointer device); this one is then hidden.
+ * The quick settings switch for the rotation, on while it is not locked. It
+ * is hidden until the extension knows that it can turn a panel
+ * (_showControl).
  */
-function rotationIndicator(settings) {
-    const indicator = new SystemIndicator();
+function rotationSwitch(settings) {
     const toggle = new QuickToggle({
         title: 'Auto-rotate',
         iconName: 'rotation-allowed-symbolic',
         toggleMode: true,
+        visible: false,
     });
 
     settings.bind(LOCK, toggle, 'checked', Gio.SettingsBindFlags.INVERT_BOOLEAN);
-    // The binding ends when the switch is destroyed.
-    global.backend
-        .get_monitor_manager()
-        .bind_property(
-            'panel-orientation-managed',
-            toggle,
-            'visible',
-            GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.INVERT_BOOLEAN,
-        );
-    indicator.quickSettingsItems.push(toggle);
-    return indicator;
+    return toggle;
+}
+
+/**
+ * Two buttons in the place of one switch: each turns the panels by 90
+ * degrees. `turn(direction)` is called with 'counterclockwise' or
+ * 'clockwise'. Hidden, as the switch.
+ */
+function rotationButtons(turn) {
+    const box = new St.BoxLayout({x_expand: true, style: 'spacing: 6px;', visible: false});
+    const buttons = {};
+
+    for (const [direction, icon, name] of [
+        ['counterclockwise', 'object-rotate-left-symbolic', 'Turn counterclockwise'],
+        ['clockwise', 'object-rotate-right-symbolic', 'Turn clockwise'],
+    ]) {
+        const button = new St.Button({
+            style_class: 'quick-toggle',
+            x_expand: true,
+            can_focus: true,
+            accessible_name: name,
+            child: new St.Icon({icon_name: icon, style_class: 'quick-toggle-icon'}),
+        });
+
+        button.connect('clicked', () => turn(direction));
+        box.add_child(button);
+        buttons[direction] = button;
+    }
+    return {box, buttons};
 }
 
 export default class BuiltinScreenRotation extends Extension {
@@ -68,13 +87,32 @@ export default class BuiltinScreenRotation extends Extension {
 
         this._settings = new Gio.Settings({settings_schema: schema});
         this._lockChanged = this._settings.connect(`changed::${LOCK}`, () => this._watch());
-        this._indicator = rotationIndicator(this._settings);
+        this._indicator = new SystemIndicator();
+        this._switch = rotationSwitch(this._settings);
+        ({box: this._box, buttons: this._buttons} = rotationButtons((direction) =>
+            this._turn(direction).catch((error) => console.error(`${this.uuid}: ${error.message}`)),
+        ));
+        this._indicator.quickSettingsItems.push(this._switch, this._box);
         Main.panel.statusArea.quickSettings.addExternalIndicator(this._indicator);
+        // What decides which control is shown. The sensor is followed without
+        // a claim, also while the rotation is locked.
+        this._builtin = false;
+        this._control = 'none';
+        // The orientation that the buttons turned the panels to.
+        this._manual = null;
+        this._monitorManager = global.backend.get_monitor_manager();
+        this._managedChanged = this._monitorManager.connect(
+            'notify::panel-orientation-managed',
+            () => this._showControl(),
+        );
+        this._presence = new OrientationPresence(() => this._showControl());
         // A monitor came or went, as when the keyboard is put on the lower
         // panel: the layout that the compositor then takes is upright.
-        this._monitorsChanged = Main.layoutManager.connect('monitors-changed', () =>
-            this._settle(),
-        );
+        this._monitorsChanged = Main.layoutManager.connect('monitors-changed', () => {
+            this._findBuiltin();
+            this._settle();
+        });
+        this._findBuiltin();
         this._watch();
     }
 
@@ -85,12 +123,62 @@ export default class BuiltinScreenRotation extends Extension {
         this._monitorsChanged = 0;
         this._sensor?.destroy();
         this._sensor = null;
+        this._presence?.destroy();
+        this._presence = null;
+        if (this._managedChanged) this._monitorManager.disconnect(this._managedChanged);
+        this._managedChanged = 0;
+        this._monitorManager = null;
         for (const item of this._indicator?.quickSettingsItems ?? []) item.destroy();
         this._indicator?.destroy();
         this._indicator = null;
+        this._switch = null;
+        this._box = null;
+        this._buttons = null;
         if (this._lockChanged) this._settings.disconnect(this._lockChanged);
         this._lockChanged = 0;
         this._settings = null;
+    }
+
+    /**
+     * Whether the compositor has a built-in panel, then the control. The
+     * buttons start from the orientation that the panels have.
+     */
+    _findBuiltin() {
+        const indicator = this._indicator;
+
+        currentState()
+            .then((state) => {
+                // Disabled while the compositor gave its answer.
+                if (indicator !== this._indicator) return;
+                this._builtin = state.builtin.length > 0;
+                this._manual ??= orientationOf(state);
+                this._showControl();
+            })
+            .catch((error) => console.error(`${this.uuid}: ${error.message}`));
+    }
+
+    _showControl() {
+        this._control = control({
+            managed: this._monitorManager.panel_orientation_managed,
+            sensor: this._presence.present,
+            builtin: this._builtin,
+        });
+        this._switch.visible = this._control === 'switch';
+        this._box.visible = this._control === 'buttons';
+        // A button that would turn past left side up or right side up does
+        // nothing.
+        for (const [direction, button] of Object.entries(this._buttons))
+            button.reactive = turned(this._manual ?? 'normal', direction) !== null;
+    }
+
+    /** Turn the panels by 90 degrees from the orientation of the buttons. */
+    async _turn(direction) {
+        const orientation = turned(this._manual ?? 'normal', direction);
+
+        if (!orientation) return;
+        this._manual = orientation;
+        this._showControl();
+        await this._rotate();
     }
 
     /**
@@ -117,18 +205,27 @@ export default class BuiltinScreenRotation extends Extension {
         });
     }
 
-    async _rotate() {
-        const sensor = this._sensor;
+    /**
+     * The orientation that the panels follow: the one of the buttons where
+     * they are shown, else the one of the sensor. Null for none: the
+     * rotation is locked, or the extension is disabled.
+     */
+    _orientation() {
+        if (this._control === 'buttons') return this._manual;
+        return this._sensor?.orientation ?? null;
+    }
 
-        // No sensor: the rotation is locked, or the extension is disabled.
-        if (!sensor) return;
+    async _rotate() {
+        const [indicator, sensor] = [this._indicator, this._sensor];
+
+        if (!this._orientation()) return;
 
         const state = await currentState();
 
         // Locked or disabled while the compositor gave its answer: do no more.
-        if (sensor !== this._sensor) return;
+        if (indicator !== this._indicator || sensor !== this._sensor) return;
 
-        const orientation = sensor.orientation;
+        const orientation = this._orientation();
         const layout = rotate(state, orientation, this._upright);
 
         if (!layout) return;
@@ -136,7 +233,7 @@ export default class BuiltinScreenRotation extends Extension {
         // does not accept is not applied: the call throws, and the panels
         // stay as they are.
         await applyLayout(state, layout);
-        if (sensor === this._sensor)
+        if (indicator === this._indicator && sensor === this._sensor)
             this._upright = uprightAfter(state, orientation, this._upright);
     }
 }

@@ -181,3 +181,46 @@ export function uprightAfter(state, orientation, upright) {
     if (orientation === 'normal') return null;
     return panelsOf(state).every((panel) => panel.transform === 0) ? state.logical : upright;
 }
+
+/**
+ * The control of this extension in the quick settings:
+ *
+ * - 'none': GNOME turns the panel itself and shows its own switch for the
+ *   same setting, or the compositor has no built-in panel.
+ * - 'switch': the switch "Auto-rotate", where iio-sensor-proxy gives the
+ *   orientation of the laptop.
+ * - 'buttons': two buttons that turn the panels, where no sensor gives it.
+ */
+export function control({managed, sensor, builtin}) {
+    if (managed || !builtin) return 'none';
+    return sensor ? 'switch' : 'buttons';
+}
+
+/** The orientations that the buttons go through, counterclockwise first. */
+const ORDER = ['left-up', 'normal', 'right-up'];
+
+/**
+ * The orientation after one turn of the picture by 90 degrees, 'clockwise'
+ * or 'counterclockwise'. Null where the turn goes past left side up or right
+ * side up, or for another orientation.
+ */
+export function turned(orientation, direction) {
+    const index = ORDER.indexOf(orientation);
+
+    if (index < 0) return null;
+    return ORDER[index + (direction === 'clockwise' ? 1 : -1)] ?? null;
+}
+
+/**
+ * The orientation that the built-in panels are turned to; null if no panel
+ * is shown by itself, or the panels are turned differently or another way.
+ */
+export function orientationOf(state) {
+    const transforms = new Set(panelsOf(state).map((panel) => panel.transform));
+
+    if (transforms.size !== 1) return null;
+
+    const [transform] = transforms;
+
+    return Object.keys(TRANSFORM).find((key) => TRANSFORM[key] === transform) ?? null;
+}

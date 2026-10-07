@@ -12,7 +12,7 @@ import {
     twoPanels,
     UPPER,
 } from '../../gnome-common/tests/fixtures.js';
-import {rotate, uprightAfter} from '../extension/rotation.js';
+import {control, orientationOf, rotate, turned, uprightAfter} from '../extension/rotation.js';
 import {find, isValid, readState} from '../extension/state.js';
 
 // The laptop on its side. A panel of 2880x1800 at scale 1.25 takes 2304x1440
@@ -420,4 +420,56 @@ test('the layout to remember: the one from before the first turn', () => {
     assert.equal(uprightAfter(turned, 'right-up', upright.logical), upright.logical);
     // Upright again: nothing to put back.
     assert.equal(uprightAfter(turned, 'normal', upright.logical), null);
+});
+
+test('the switch where a sensor gives the orientation, else the buttons', () => {
+    const can = {managed: false, sensor: true, builtin: true};
+
+    assert.equal(control(can), 'switch');
+    // No sensor gives the orientation: the panels are turned by hand.
+    assert.equal(control({...can, sensor: false}), 'buttons');
+    // No built-in panel: nothing to turn.
+    assert.equal(control({...can, builtin: false}), 'none');
+    assert.equal(control({...can, sensor: false, builtin: false}), 'none');
+    // GNOME turns the panel itself and shows its own switch.
+    assert.equal(control({...can, managed: true}), 'none');
+    assert.equal(control({...can, managed: true, sensor: false}), 'none');
+});
+
+test('the buttons turn by 90 degrees, from left side up to right side up', () => {
+    assert.equal(turned('normal', 'clockwise'), 'right-up');
+    assert.equal(turned('normal', 'counterclockwise'), 'left-up');
+    assert.equal(turned('left-up', 'clockwise'), 'normal');
+    assert.equal(turned('right-up', 'counterclockwise'), 'normal');
+    // Upside down is not a position.
+    assert.equal(turned('right-up', 'clockwise'), null);
+    assert.equal(turned('left-up', 'counterclockwise'), null);
+    assert.equal(turned('bottom-up', 'clockwise'), null);
+});
+
+test('the orientation comes from the turn of the built-in panels', () => {
+    const upright = twoPanels();
+
+    assert.equal(orientationOf(upright), 'normal');
+    assert.equal(orientationOf(lowerOff()), 'normal');
+    for (const orientation of ['left-up', 'right-up'])
+        assert.equal(
+            orientationOf({...upright, logical: rotate(upright, orientation)}),
+            orientation,
+        );
+    // The panels turned differently, or upside down: no position of the
+    // buttons.
+    const [upper, lower] = upright.logical;
+
+    assert.equal(orientationOf({...upright, logical: [{...upper, transform: 1}, lower]}), null);
+    assert.equal(
+        orientationOf({
+            ...upright,
+            logical: [
+                {...upper, transform: 2},
+                {...lower, transform: 2},
+            ],
+        }),
+        null,
+    );
 });
