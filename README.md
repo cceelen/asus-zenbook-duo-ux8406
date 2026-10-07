@@ -29,7 +29,8 @@ the keyboard lies on it.
 
 - [asus-zenbook-duo-ux8406-keyboard-bpf](keyboard-bpf/README.md): maps the
   special function keys, the keyboard light and Fn+Esc. It operates on the dock,
-  on the cable and with Bluetooth.
+  on the cable and with Bluetooth. The keyboard light and the mode of the
+  function row stay when the keyboard changes between them.
 - [gnome-shell-extension-asus-zenbook-duo-ux8406-keys](gnome-keys/README.md):
   gives a function to the two display keys. GNOME only.
 
@@ -229,7 +230,8 @@ gnome-extensions enable builtin-screen-rotation@cceelen.github.io
 
 Keyboard:
 
-- The function row starts in F1–F12 mode at each connection.
+- After a start of the laptop, the function row is in F1–F12 mode, and the
+  keyboard light is as the keyboard has it.
 - Bluetooth special function is triggering BT connect events of the keyboard and
   as far as the current testing showed does not generate a host visible event.
 - The package controls the keyboard light. The desktop cannot control it.

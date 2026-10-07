@@ -1,7 +1,8 @@
-# cargo-about: the third-party notices of the two programs.
+# cargo-about: the third-party notices of the three programs.
+#   cargo about generate --locked --offline -m keyboard-state/Cargo.toml about.hbs -o keyboard-state/THIRD-PARTY-NOTICES.txt
 #   cargo about generate --locked --offline -m second-screen/Cargo.toml about.hbs -o second-screen/THIRD-PARTY-NOTICES.txt
 #   cargo about generate --locked --offline -m tcc-guard/Cargo.toml about.hbs -o tcc-guard/THIRD-PARTY-NOTICES.txt
-accepted = ["MIT", "Apache-2.0", "Unicode-3.0"]
+accepted = ["MIT", "Apache-2.0", "Unicode-3.0", "Zlib"]
 targets = ["x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl"]
 ignore-build-dependencies = true
 ignore-dev-dependencies = true

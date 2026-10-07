@@ -48,12 +48,14 @@ Description: CPU thermal-offset guard for the ASUS Zenbook Duo UX8406
 
 Package: asus-zenbook-duo-ux8406-keyboard-bpf
 Architecture: amd64
-Depends: udev-hid-bpf, ${misc:Depends}
+Depends: udev, udev-hid-bpf, ${shlibs:Depends}, ${misc:Depends}
 Description: HID-BPF program for the hotkeys of the Zenbook Duo UX8406 keyboard
  Makes the function row of the detachable keyboard (USB 0b05:1bf2, Bluetooth
  0b05:1bf3) work with the kernel's generic HID driver: display brightness,
  microphone mute, emoji, MyASUS, the two display keys, the keyboard backlight
- and Fn+Esc. Loaded by udev-hid-bpf when the keyboard connects.
+ and Fn+Esc. Loaded by udev-hid-bpf when the keyboard connects. A helper, run
+ by udev, carries the backlight and the mode of the function row from the
+ dock to Bluetooth and back.
 
 Package: gnome-shell-extension-asus-zenbook-duo-ux8406-keys
 Architecture: all

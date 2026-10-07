@@ -13,7 +13,7 @@ export CARGO_HOME = $(CURDIR)/debian/cargo_home
 # /usr/libexec (the udev rule names it by that path), and the guard's example
 # configuration is moved into its package's documentation directory by
 # asus-zenbook-duo-ux8406-tcc-guard.install. -Dlicensedir has Meson install
-# the notices of the two Rust programs plus the licence texts and its own
+# the notices of the Rust programs plus the licence texts and its own
 # depmf.json; Debian conveys licences in debian/copyright and common-licenses,
 # so only the notices are kept (see override_dh_auto_install).
 override_dh_auto_configure:

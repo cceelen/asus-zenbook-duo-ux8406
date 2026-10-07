@@ -22,9 +22,10 @@ sha256sums=(SKIP)
 build() {
   # Keep the build directory out of the binaries.
   export RUSTFLAGS="${RUSTFLAGS:-} --remap-path-prefix=$srcdir=/usr/src"
-  # arch-meson: prefix /usr, sbindir bin, libexecdir lib. The second-screen helper
-  # is therefore /usr/lib/asus-ux8406-second-screen, and the udev rule, generated from the
-  # same directory, names it so.
+  # arch-meson: prefix /usr, sbindir bin, libexecdir lib. The helpers are
+  # therefore /usr/lib/asus-ux8406-second-screen and
+  # /usr/lib/asus-ux8406-keyboard-state, and the udev rules, generated from
+  # the same directory, name them so.
   arch-meson "$pkgbase-$pkgver" build -Dlicensedir=share/licenses
   meson compile -C build
   # One install; the package functions take their files from it.
@@ -54,7 +55,8 @@ package_asus-zenbook-duo-ux8406-second-screen() {
   depends=(glibc libgcc_s.so systemd)
   install=asus-zenbook-duo-ux8406-second-screen.install
 
-  _take usr/lib/asus-ux8406-second-screen usr/lib/udev/rules.d \
+  _take usr/lib/asus-ux8406-second-screen \
+        usr/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \
         usr/share/licenses/asus-zenbook-duo-ux8406-second-screen
 }
 
@@ -76,12 +78,15 @@ package_asus-zenbook-duo-ux8406-tcc-guard() {
 
 package_asus-zenbook-duo-ux8406-keyboard-bpf() {
   pkgdesc="HID-BPF program for the hotkeys of the Zenbook Duo UX8406 keyboard"
-  license=(GPL-2.0-only)
-  depends=(udev-hid-bpf)
-  # The HID-BPF object is not a host binary.
+  license=('GPL-2.0-only AND MIT')
+  # systemd: udev runs the helper. namcap does not see that.
+  depends=(glibc libgcc_s.so systemd udev-hid-bpf)
+  # The HID-BPF object is not a host binary. Cargo strips the helper.
   options=(!strip !debug)
 
   _take usr/lib/firmware usr/lib/udev/hwdb.d \
+        usr/lib/asus-ux8406-keyboard-state \
+        usr/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules \
         usr/share/licenses/asus-zenbook-duo-ux8406-keyboard-bpf
 }
 

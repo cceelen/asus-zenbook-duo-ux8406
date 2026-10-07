@@ -150,19 +150,17 @@ in
     };
   };
 
-  # The HID-BPF object and its hwdb entry, for udev-hid-bpf to load.
+  # The HID-BPF object and its hwdb entry, for udev-hid-bpf to load, and the
+  # helper that keeps the keyboard's state, with its udev rule. Add it to
+  # services.udev.packages.
   keyboard-bpf = mkPart {
     enable = [ "keyboard" ];
-    attrs = {
+    attrs = rustInputs // {
       pname = "asus-zenbook-duo-ux8406-keyboard-bpf";
-      nativeBuildInputs = [
-        meson
-        ninja
-        pkg-config
+      nativeBuildInputs = rustInputs.nativeBuildInputs ++ [
         # The wrapped clang adds host flags that do not apply to the BPF
         # target; Meson finds this one as `clang`.
         llvmPackages.clang-unwrapped
-        python3
       ];
       buildInputs = [
         libbpf
@@ -177,7 +175,10 @@ in
       dontFixup = true;
       meta = meta // {
         description = "HID-BPF program for the hotkeys of the Zenbook Duo UX8406 keyboard";
-        license = lib.licenses.gpl2Only;
+        license = with lib.licenses; [
+          gpl2Only
+          mit
+        ];
       };
     };
   };

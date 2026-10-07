@@ -2,7 +2,9 @@
 
 A HID-BPF program for the detachable keyboard of the ASUS Zenbook Duo UX8406,
 and the hwdb entry with which [udev-hid-bpf] loads it when the keyboard
-connects.
+connects. The package also has a [helper](../keyboard-state/README.md) that
+keeps the keyboard light and the mode of the function row from one connection to
+the next.
 
 | Keyboard | Bus       | Id          | State      |
 | -------- | --------- | ----------- | ---------- |
@@ -28,8 +30,19 @@ the UX8406CA keyboard.
 
 The volume keys and the display switch (F7) operate without this program.
 
-Each connection starts in F1–F12 mode. The dock and Bluetooth are two HID
-devices and do not share the mode.
+In F1–F12 mode, Fn and a key of the row give the hotkey of that key.
+
+The dock and Bluetooth are two HID devices, and the keyboard starts each
+connection with its light off. The program is loaded for each device and starts
+from two udev properties of the device:
+
+| Property                    | Value                        | Without it        |
+| --------------------------- | ---------------------------- | ----------------- |
+| `ASUS_UX8406_KBD_BACKLIGHT` | `0` (off) to `3` (brightest) | light not changed |
+| `ASUS_UX8406_KBD_FN_LOCK`   | `0` hotkeys, `1` F1–F12      | F1–F12            |
+
+The [helper](../keyboard-state/README.md) sets them to what the last connection
+had. The first connection after a start of the laptop has none.
 
 The comment at the top of the source gives the protocol of the keyboard.
 
@@ -78,6 +91,7 @@ For `drivers/hid/hid-asus.c` (refer to
 
 For udev-hid-bpf: it pins each map below the directory of the device, and a map
 that is pinned by name makes the load fail. Thus a program cannot pass state
-from the USB device of the keyboard to its Bluetooth device.
+from the USB device of the keyboard to its Bluetooth device by itself. The
+helper of this package does that through udev properties.
 
 [udev-hid-bpf]: https://gitlab.freedesktop.org/libevdev/udev-hid-bpf

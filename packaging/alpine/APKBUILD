@@ -68,25 +68,27 @@ panel_udev() {
 	license="MIT"
 	install_if="$pkgname=$pkgver-r$pkgrel udev"
 
-	amove usr/lib/udev/rules.d
+	amove usr/lib/udev/rules.d/90-asus-ux8406-second-screen.rules
 }
 
 keyboard() {
 	pkgdesc="HID-BPF program for the hotkeys of the Zenbook Duo UX8406 keyboard"
-	license="GPL-2.0-only"
+	license="GPL-2.0-only AND MIT"
 	# udev-hid-bpf loads the program. Alpine does not package it yet.
 	depends="udev-hid-bpf"
 
 	amove usr/lib/firmware
+	amove usr/libexec/asus-ux8406-keyboard-state
 	amove usr/share/licenses/asus-zenbook-duo-ux8406-keyboard-bpf
 }
 
 keyboard_udev() {
-	pkgdesc="HID-BPF program for the Zenbook Duo UX8406 keyboard (hwdb entry)"
-	license="GPL-2.0-only"
+	pkgdesc="HID-BPF program for the Zenbook Duo UX8406 keyboard (hwdb entry, udev rule)"
+	license="GPL-2.0-only AND MIT"
 	install_if="asus-zenbook-duo-ux8406-keyboard-bpf=$pkgver-r$pkgrel udev"
 
 	amove usr/lib/udev/hwdb.d
+	amove usr/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules
 }
 
 gnome_keys() {

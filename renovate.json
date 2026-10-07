@@ -41,6 +41,16 @@
       "allowedVersions": "<0.4.30"
     },
     {
+      "description": "aya 0.14 needs Rust 1.87, and Debian 13 has 1.85. Remove this rule together with the limit in keyboard-state/Cargo.toml when rust-version is 1.87.",
+      "matchManagers": [
+        "cargo"
+      ],
+      "matchPackageNames": [
+        "aya"
+      ],
+      "allowedVersions": "<0.14"
+    },
+    {
       "description": "Actions: a new version is not taken before it has been out for three days.",
       "matchManagers": [
         "github-actions"

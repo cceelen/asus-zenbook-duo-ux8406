@@ -23,7 +23,7 @@
       # NixOS: imports = [ asus-zenbook-duo-ux8406.nixosModules.default ];
       #
       # That is all the second-screen part needs. The keyboard part gets only
-      # its hwdb entry and is not loaded: nixpkgs has no udev-hid-bpf (October
+      # its hwdb entry and its udev rule, and the program is not loaded: nixpkgs has no udev-hid-bpf (October
       # 2026), whose udev rule and loader do that, and the loader looks for
       # the object in its own firmware directories, not in this store path.
       nixosModules.default =

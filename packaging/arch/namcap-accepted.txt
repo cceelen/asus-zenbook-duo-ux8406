@@ -11,6 +11,7 @@ asus-zenbook-duo-ux8406-keyboard-bpf W: ELF file ('usr/lib/firmware/hid/bpf/0010
 # time: udev-hid-bpf loads the program, systemd runs the unit and the udev
 # rule, GNOME Shell runs the extensions, iio-sensor-proxy gives the orientation.
 asus-zenbook-duo-ux8406-keyboard-bpf W: Dependency included, but may not be needed ('udev-hid-bpf')
+asus-zenbook-duo-ux8406-keyboard-bpf W: Dependency included, but may not be needed ('systemd')
 asus-zenbook-duo-ux8406-second-screen W: Dependency included, but may not be needed ('systemd')
 asus-zenbook-duo-ux8406-tcc-guard W: Dependency included, but may not be needed ('systemd')
 gnome-shell-extension-asus-zenbook-duo-ux8406-keys W: Dependency included, but may not be needed ('gnome-shell')
@@ -18,5 +19,6 @@ gnome-shell-extension-builtin-screen-rotation W: Dependency included, but may no
 gnome-shell-extension-builtin-screen-rotation W: Dependency included, but may not be needed ('iio-sensor-proxy')
 # The dynamic loader is in the list of needed libraries of each Rust program,
 # as rustc links it. It is part of glibc, which the packages depend on.
+asus-zenbook-duo-ux8406-keyboard-bpf W: Unused shared library '/usr/lib64/ld-linux-x86-64.so.2' by file ('usr/lib/asus-ux8406-keyboard-state')
 asus-zenbook-duo-ux8406-second-screen W: Unused shared library '/usr/lib64/ld-linux-x86-64.so.2' by file ('usr/lib/asus-ux8406-second-screen')
 asus-zenbook-duo-ux8406-tcc-guard W: Unused shared library '/usr/lib64/ld-linux-x86-64.so.2' by file ('usr/bin/asus-ux8406-tcc-guard')
