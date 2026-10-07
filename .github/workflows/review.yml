@@ -5,9 +5,10 @@
 # request for changes when something blocks, and a comment in all other
 # cases. Other contributors' pull requests get their approval from the owner.
 #
-# Set up: the secret ANTHROPIC_API_KEY, and in Settings, Actions, General,
-# "Allow GitHub Actions to create and approve pull requests". Without the
-# secret the review is skipped.
+# Set up: one of two secrets, CLAUDE_CODE_OAUTH_TOKEN (a Claude Pro or Max
+# subscription; make it with `claude setup-token`) or ANTHROPIC_API_KEY (the
+# API, paid by use). In Settings, Actions, General: "Allow GitHub Actions to
+# create and approve pull requests". Without a secret the review is skipped.
 name: review
 
 on:
@@ -30,12 +31,12 @@ jobs:
       contents: read
       pull-requests: read
     env:
-      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+      HAS_KEY: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
     outputs:
       result: ${{ steps.review.outputs.structured_output }}
     steps:
       - if: ${{ env.HAS_KEY != 'true' }}
-        run: echo "::notice::No ANTHROPIC_API_KEY, so the AI review is skipped."
+        run: echo "::notice::No CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY, so the AI review is skipped."
       - if: ${{ env.HAS_KEY == 'true' }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -45,6 +46,7 @@ jobs:
         id: review
         uses: anthropics/claude-code-action@6fed3ca145920b639991cb756090506e1bcaf515 # v1.0.245
         with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Read only: the tools of the action cannot write with it.
           github_token: ${{ github.token }}
