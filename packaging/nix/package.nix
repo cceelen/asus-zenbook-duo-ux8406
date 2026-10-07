@@ -17,6 +17,7 @@
   llvmPackages,
   libbpf,
   linuxHeaders,
+  removeReferencesTo,
   python3,
   glib,
   nodejs,
@@ -161,8 +162,24 @@ in
         # The wrapped clang adds host flags that do not apply to the BPF
         # target; Meson finds this one as `clang`.
         llvmPackages.clang-unwrapped
+        removeReferencesTo
       ];
       buildInputs = [
+        libbpf
+        linuxHeaders
+      ];
+      # The debug information of the object names the header files of clang,
+      # libbpf and the kernel by their store paths. Nix would take these as
+      # run-time dependencies (1.4 GiB, with LLVM) and an SBOM would list
+      # them. The kernel does not read these names.
+      postInstall = ''
+        rm -f $out/share/licenses/depmf.json
+        remove-references-to \
+          -t ${llvmPackages.clang-unwrapped.lib} -t ${libbpf} -t ${linuxHeaders} \
+          $out/lib/firmware/hid/bpf/*.bpf.o
+      '';
+      disallowedReferences = [
+        llvmPackages.clang-unwrapped.lib
         libbpf
         linuxHeaders
       ];
