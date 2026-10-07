@@ -119,10 +119,9 @@ uses the committed files only.
 
 An AI reviewer (`.github/workflows/review.yml`) reads each pull request. It
 approves a pull request of the owner when it finds nothing that must change, and
-requests changes when it finds something that must. A finding that is critical
-or high, or medium in safety, security or supply chain, always requests changes.
-For a pull request of Renovate or of another contributor it writes a comment;
-the owner reviews and approves it.
+requests changes when it finds something that must. A finding of medium or
+higher severity always requests changes. For a pull request of Renovate or of
+another contributor it writes a comment; the owner reviews and approves it.
 
 ## Layout
 
