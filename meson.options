@@ -29,3 +29,9 @@ option('initddir', type: 'string', value: '/etc/init.d',
 # vendor/, as a source archive from `meson dist` does.
 option('offline', type: 'feature', value: 'auto',
        description: 'Build the Rust programs without network access')
+
+# systemd-analyze on the unit of the guard: verify, and an exposure of at
+# most 1.3 (security). Off by default: the score differs between versions of
+# systemd, and the builders of the distributions run the tests too.
+option('unit_checks', type: 'feature', value: 'disabled',
+       description: 'Check the systemd unit of the guard with systemd-analyze')
