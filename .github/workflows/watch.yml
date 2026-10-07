@@ -1,4 +1,5 @@
-# Once a week: which distributions package udev-hid-bpf. It gates nothing.
+# Once a week: the long fuzz runs, and which distributions package
+# udev-hid-bpf. It gates nothing: a red run is the notice.
 # The weekly run of ci.yml checks the dependencies for new advisories.
 name: watch
 
@@ -15,6 +16,27 @@ permissions:
   contents: read
 
 jobs:
+  # The parsers of the guard's inputs (fuzz/), a quarter of an hour each. The
+  # corpus is not kept between runs.
+  fuzz:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          toolchain: nightly
+          cache-workspaces: fuzz
+      - run: cargo install --locked cargo-fuzz@0.13.2
+      # cargo fuzz has no --locked: the runs below use fuzz/Cargo.lock as it
+      # is.
+      - run: cargo fetch --locked --manifest-path fuzz/Cargo.toml
+      - run: |
+          for target in $(cargo fuzz list); do
+            cargo fuzz run "$target" -- -max_total_time=900
+          done
+
   # Who packages udev-hid-bpf, which the keyboard package needs. Repology asks
   # clients to say who they are.
   repology:

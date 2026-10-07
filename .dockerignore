@@ -7,3 +7,4 @@ build
 **/__pycache__
 # Left by a Debian build in the tree; the image copies packaging/debian anew.
 debian
+fuzz/target

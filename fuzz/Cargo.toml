@@ -1,0 +1,44 @@
+# Fuzz targets of the guard's parsers (cargo-fuzz, libFuzzer). Its own
+# workspace, outside the one of the programs: it needs a nightly compiler
+# and adds nothing to Cargo.lock, the archive's crates or the packages.
+#
+#   cargo +nightly fuzz run <target>
+[package]
+name = "asus-ux8406-tcc-guard-fuzz"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+asus-ux8406-tcc-guard = { path = "../tcc-guard" }
+libfuzzer-sys = "0.4"
+
+[workspace]
+
+# The kernel log: records from /dev/kmsg.
+[[bin]]
+name = "kmsg"
+path = "fuzz_targets/kmsg.rs"
+test = false
+doc = false
+bench = false
+
+# The numbers from sysfs and from the configuration.
+[[bin]]
+name = "numbers"
+path = "fuzz_targets/numbers.rs"
+test = false
+doc = false
+bench = false
+
+# The configuration file.
+[[bin]]
+name = "config"
+path = "fuzz_targets/config.rs"
+test = false
+doc = false
+bench = false

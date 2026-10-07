@@ -136,6 +136,30 @@ jobs:
       - run: meson compile -C build
       - run: meson test -C build --print-errorlogs
 
+  # The parsers of the guard's inputs (fuzz/), one minute each. A longer run
+  # is in watch.yml.
+  fuzz:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          toolchain: nightly
+          components: clippy, rustfmt
+          cache-workspaces: fuzz
+      - run: cargo install --locked cargo-fuzz@0.13.2
+      # cargo fuzz has no --locked: this fails if fuzz/Cargo.lock is not
+      # current, and the runs below use it as it is.
+      - run: cargo fetch --locked --manifest-path fuzz/Cargo.toml
+      - run: cargo fmt --manifest-path fuzz/Cargo.toml --check
+      - run: cargo clippy --locked --manifest-path fuzz/Cargo.toml --all-targets -- -D warnings
+      - run: |
+          for target in $(cargo fuzz list); do
+            cargo fuzz run "$target" -- -max_total_time=60
+          done
+
   dependency-review:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-26.04
