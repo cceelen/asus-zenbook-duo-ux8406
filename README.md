@@ -266,8 +266,8 @@ their README files in October 2026.
 | [JowiAoun/linux-on-zenbook-duo](https://github.com/JowiAoun/linux-on-zenbook-duo)                       | UX8406MA | Bash and Python, user services, GNOME    |
 | [carlosh7/asus_UX8406MA](https://github.com/carlosh7/asus_UX8406MA)                                     | UX8406MA | Shell, services, GNOME                   |
 
-Some of them have functions that this project does not have: screen rotation,
-touch and pen mapping, battery charge limit, suspend.
+Some of them have functions that this project does not have: touch and pen
+mapping, battery charge limit, suspend.
 
 ## Contact and contributions
 

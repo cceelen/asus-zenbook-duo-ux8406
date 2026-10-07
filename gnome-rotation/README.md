@@ -11,6 +11,11 @@ Nothing in it is specific to the UX8406: it uses the screens that the compositor
 marks as built-in, and takes their order from the layout. Only the UX8406CA is
 tested.
 
+The extension takes each built-in screen as mounted upright in the machine. Some
+small tablets and convertibles have a screen that is mounted turned (the kernel
+then reports a panel orientation). On such a machine the extension turns the
+picture wrongly: do not use it there.
+
 ## What it does
 
 - Laptop on its left or right side: the built-in screens that are on are turned.
@@ -38,7 +43,8 @@ gnome-extensions enable builtin-screen-rotation@cceelen.github.io
 ```
 
 The switch "Auto-rotate" in the quick settings turns the rotation on and off. It
-is GNOME's setting `orientation-lock`.
+is GNOME's setting `orientation-lock`. While it is off, the extension does not
+use the sensor.
 
 ## Test
 
@@ -49,7 +55,8 @@ meson test -C build --suite gnome-rotation
 The tests use node and need no GNOME session. `rotation.js` has the logic and no
 GNOME imports; `sensor.js` calls `net.hadess.SensorProxy`. `state.js` and
 `display.js` are links to `../gnome-common`: the two extensions of this project
-use the same files, and the build installs a copy in each.
+use the same files, and the build installs a copy in each. The tests of the two
+extensions also share their fixtures: `../gnome-common/tests`.
 
 `tests/rotate.js` follows the orientation with the code of the extension, from
 outside GNOME Shell, and applies the layouts. Use it to try the rotation without
