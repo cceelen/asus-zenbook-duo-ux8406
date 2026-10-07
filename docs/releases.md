@@ -122,12 +122,16 @@ The attestations do not cover the packages from COPR, OBS and Alpine.
 The jobs `cachix` and `aports` of `release.yml` run only when their variables
 are set:
 
-| Job      | Environment | Secret              | Variables                               |
-| -------- | ----------- | ------------------- | --------------------------------------- |
-| `cachix` | `cachix`    | `CACHIX_AUTH_TOKEN` | `CACHIX_CACHE`                          |
-| `aports` | `aports`    | `APORTS_TOKEN`      | `APORTS_FORK`; `APORTS_DIR` (`testing`) |
+| Job      | Environment | Secrets                          | Variables                                                     |
+| -------- | ----------- | -------------------------------- | ------------------------------------------------------------- |
+| `cachix` | `cachix`    | `CACHIX_AUTH_TOKEN`              | `CACHIX_CACHE`                                                |
+| `aports` | `aports`    | `APORTS_SSH_KEY`, `APORTS_TOKEN` | `APORTS_FORK`, `APORTS_KNOWN_HOSTS`; `APORTS_DIR` (`testing`) |
 
-The aports merge requests come from a service account; the commits keep the
-maintainer of the APKBUILD as their author. Make the changes that the aports
-reviewers ask for in `packaging/alpine/`, so that the next release has them.
-When Alpine moves the aport to `community/`, set `APORTS_DIR` to `community`.
+The aports merge requests come from a service account, over SSH; its token
+(scope `api`) opens the merge request with glab. Each run sets `master` of the
+fork to upstream's and replaces the branch `asus-zenbook-duo-ux8406`, so there
+is one merge request, with the latest release. The commits keep the maintainer
+of the APKBUILD as their author. Make the changes that the aports reviewers ask
+for in `packaging/alpine/`, so that the next release has them. To repeat the
+merge request of a release, run the workflow "aports" with its tag. When Alpine
+moves the aport to `community/`, set `APORTS_DIR` to `community`.

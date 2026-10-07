@@ -1,0 +1,121 @@
+# A merge request to Alpine's aports for a release, from the fork of a
+# service account. Alpine's CI builds it; an Alpine developer reviews and
+# merges it, and Alpine's builders then build and sign the packages. No
+# maintained template makes aports merge requests, so the steps are written
+# here.
+#
+# release.yml calls it after the publication. It can also be started by
+# hand for a published tag, for example when a run failed.
+#
+# Git goes over SSH: the bot protection of gitlab.alpinelinux.org refuses
+# anonymous HTTPS clones from CI runners. glab opens the merge request
+# through the API with the token.
+#
+# There is one merge request at a time, from one fixed branch. A new release
+# replaces the branch, and so updates an open merge request.
+name: aports
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: The release tag, for example v0.4.0.
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag, for example v0.4.0.
+        type: string
+        required: true
+permissions:
+  contents: read
+jobs:
+  aports:
+    if: ${{ vars.APORTS_FORK != '' }}
+    runs-on: ubuntu-26.04
+    environment: aports
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ inputs.tag }}
+      FORK: ${{ vars.APORTS_FORK }}
+      # testing/ until Alpine moves the aport to community/. The directory has
+      # the name of pkgname in the APKBUILD, as aports wants.
+      APORT: ${{ vars.APORTS_DIR || 'testing' }}/asus-zenbook-duo-ux8406-second-screen
+      BRANCH: asus-zenbook-duo-ux8406
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+          path: tree
+      # The archive that abuild checksum hashes is the attested one.
+      - run: |
+          gh release download "$TAG" --pattern 'asus-zenbook-duo-ux8406-*.tar.gz' --dir distfiles
+          gh attestation verify distfiles/*.tar.gz --repo "$GH_REPO" \
+            --signer-workflow "$GH_REPO/.github/workflows/release-files.yml"
+      # The key of the service account, and the pinned host key of
+      # gitlab.alpinelinux.org.
+      - env:
+          SSH_KEY: ${{ secrets.APORTS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ vars.APORTS_KNOWN_HOSTS }}
+        run: |
+          install -m 600 /dev/null "$RUNNER_TEMP/aports-key"
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/aports-key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/known_hosts"
+          echo "GIT_SSH_COMMAND=ssh -i $RUNNER_TEMP/aports-key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes" >> "$GITHUB_ENV"
+      # The master branch of the fork is set to upstream's, so that the fork
+      # follows upstream. Only the commits are fetched, and only the
+      # directory of the aport is checked out.
+      - run: |
+          git clone --filter=tree:0 --no-checkout "git@gitlab.alpinelinux.org:$FORK.git" aports
+          cd aports
+          git remote add upstream git@gitlab.alpinelinux.org:alpine/aports.git
+          git fetch --filter=tree:0 upstream master
+          git push --force origin upstream/master:refs/heads/master
+          git sparse-checkout set "$APORT"
+          git checkout -B "$BRANCH" upstream/master
+          mkdir -p "$APORT"
+          cp ../tree/packaging/alpine/* "$APORT/"
+      - uses: jirutka/setup-alpine@ae3b3ddba35054804fc4a3507b519fa7e8152050 # v1.4.1
+        with:
+          branch: edge
+          packages: abuild atools glab jq
+      - shell: alpine.sh {0}
+        run: |
+          cd "aports/$APORT"
+          SRCDEST="$GITHUB_WORKSPACE/distfiles" abuild checksum
+          apkbuild-lint APKBUILD
+          abuild validate
+      # The author is the maintainer of the APKBUILD. The title is the one
+      # that aports wants for a new or an upgraded aport.
+      - run: |
+          cd aports
+          version=${TAG#v}
+          if git cat-file -e "upstream/master:$APORT/APKBUILD" 2>/dev/null; then
+            title="$APORT: upgrade to $version"
+          else
+            title="$APORT: new aport"
+          fi
+          author=$(sed -n 's/^# Maintainer: //p' "$APORT/APKBUILD")
+          email=${author##*<}
+          git add "$APORT"
+          git -c user.name="${author% <*}" -c user.email="${email%>}" \
+            commit --quiet --message "$title"
+          git push --force origin "HEAD:refs/heads/$BRANCH"
+          echo "TITLE=$title" >> "$GITHUB_ENV"
+      # A new merge request, or a new title for the open one.
+      - shell: alpine.sh {0}
+        env:
+          GITLAB_HOST: gitlab.alpinelinux.org
+          GITLAB_TOKEN: ${{ secrets.APORTS_TOKEN }}
+        run: |
+          url="https://github.com/$GH_REPO/releases/tag/$TAG"
+          open=$(glab mr list --repo alpine/aports --source-branch "$BRANCH" --output json | jq -r '.[0].iid // empty')
+          if [ -n "$open" ]; then
+            glab mr update "$open" --repo alpine/aports --title "$TITLE" --description "$url"
+          else
+            glab mr create --repo alpine/aports --head "$FORK" --source-branch "$BRANCH" \
+              --target-branch master --title "$TITLE" --description "$url" \
+              --remove-source-branch --yes
+          fi
