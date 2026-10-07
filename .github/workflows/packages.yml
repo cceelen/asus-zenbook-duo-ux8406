@@ -4,30 +4,13 @@
 # installation on a clean system, a check of the installed files, and
 # removal. A linter error or a failed step fails the job.
 #
-# Only for pull requests that change what goes into a package, and once a
-# week for the rolling images. Because of the path filter it cannot be a
-# required check.
+# By hand ("Run workflow"), and in release.yml before the publication: a
+# failed build stops the release.
 name: packages
 
 on:
-  pull_request:
-    paths:
-      - .github/workflows/packages.yml
-      - packaging/**
-      - dev/containers/**
-      - "**/meson.build"
-      - meson.options
-      - "**/*.in"
-      - flake.nix
-      - flake.lock
-      - Cargo.lock
-  schedule:
-    - cron: "29 5 * * 1"
+  workflow_call:
   workflow_dispatch:
-
-concurrency:
-  group: packages-${{ github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
