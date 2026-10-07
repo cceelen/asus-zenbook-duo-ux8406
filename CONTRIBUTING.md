@@ -78,10 +78,11 @@ cargo llvm-cov -p asus-ux8406-tcc-guard --features failpoints \
 
 Fuzz targets of the guard's parsers are in `fuzz/`, with
 [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz) and a nightly compiler.
-`cargo fuzz list` names them:
+`cargo fuzz list` names them, and `fuzz/seeds/` has a start for each:
 
 ```sh
-cargo +nightly fuzz run kmsg -- -max_total_time=60
+mkdir -p fuzz/corpus/kmsg
+cargo +nightly fuzz run kmsg fuzz/corpus/kmsg fuzz/seeds/kmsg -- -max_total_time=60
 ```
 
 After a change of `Cargo.lock`, write the third-party notices again with

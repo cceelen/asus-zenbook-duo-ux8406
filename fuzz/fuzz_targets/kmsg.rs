@@ -1,4 +1,5 @@
-//! Records of the kernel log, as /dev/kmsg delivers them.
+//! Kernel log records. Any process that may write to /dev/kmsg puts text in
+//! front of the guard, which runs as root: no record may crash it.
 
 #![no_main]
 
@@ -9,20 +10,19 @@ use asus_ux8406_tcc_guard::kmsg;
 use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|data: &[u8]| {
-    // The log with the usual event text.
+    // As the guard reads the log: one read gives one record, which is_event
+    // sees through String::from_utf8_lossy.
     let event_text = Settings::default().event_text;
     kmsg::scan(&mut Cursor::new(data), &event_text).expect("a slice reads");
 
-    // One record with an event text of its own: the first byte says where
-    // the text ends.
-    let Some((&split, rest)) = data.split_first() else {
-        return;
-    };
-    let Ok(text) = std::str::from_utf8(rest) else {
-        return;
-    };
-    let split = usize::from(split).min(text.len());
-    if let (Some(event_text), Some(record)) = (text.get(..split), text.get(split..)) {
-        let _ = input::is_event(event_text, record);
+    // An event text of the configuration's, up to the first NUL byte, and a
+    // record after it.
+    if let Some(at) = data.iter().position(|&byte| byte == 0) {
+        let event_text = String::from_utf8_lossy(&data[..at]);
+        let record = String::from_utf8_lossy(&data[at + 1..]);
+
+        if input::is_event(&event_text, &record) {
+            assert!(!event_text.is_empty() && record.contains(&*event_text));
+        }
     }
 });

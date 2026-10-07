@@ -156,8 +156,11 @@ jobs:
       - run: cargo fmt --manifest-path fuzz/Cargo.toml --check
       - run: cargo clippy --locked --manifest-path fuzz/Cargo.toml --all-targets -- -D warnings
       - run: |
+          # fuzz/seeds: a start for each target, from the tests' cases.
           for target in $(cargo fuzz list); do
-            cargo fuzz run "$target" -- -max_total_time=60
+            mkdir -p "fuzz/corpus/$target"
+            cargo fuzz run "$target" "fuzz/corpus/$target" "fuzz/seeds/$target" \
+              -- -max_total_time=60
           done
 
   dependency-review:
