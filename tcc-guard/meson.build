@@ -23,6 +23,35 @@ if get_option('init') == 'systemd'
     install_dir: unitdir,
     install_mode: 'rw-r--r--',
   )
+
+  # The unit with the program of the build directory, for systemd-analyze
+  # (-Dunit_checks=enabled): verify finds the program it names.
+  systemd_analyze = find_program('systemd-analyze', required: get_option('unit_checks'))
+  if systemd_analyze.found()
+    check_unit = configure_file(
+      input: 'systemd' / 'asus-ux8406-tcc-guard.service.in',
+      output: 'asus-ux8406-tcc-guard-check.service',
+      configuration: configuration_data({
+        'LIBEXECDIR': libexecdir,
+        'SBINDIR': meson.current_build_dir(),
+      }),
+    )
+    test(
+      'unit verify',
+      systemd_analyze,
+      args: ['verify', '--man=no', check_unit],
+      depends: asus_ux8406_tcc_guard,
+      suite: 'asus-ux8406-tcc-guard',
+    )
+    # The exposure of the unit is 1.3 (times 10 for the threshold). A unit
+    # with weaker hardening fails.
+    test(
+      'unit hardening',
+      systemd_analyze,
+      args: ['security', '--offline=yes', '--threshold=13', check_unit],
+      suite: 'asus-ux8406-tcc-guard',
+    )
+  endif
 else
   # Not under the name it is installed as: in the build directory that name
   # is the program's.

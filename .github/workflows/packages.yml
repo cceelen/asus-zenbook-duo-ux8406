@@ -1,0 +1,34 @@
+# The packages of each distribution, built in a container from this tree
+# (dev/containers/compose.yaml): the linter of the distribution (rpmlint,
+# lintian, namcap, apkbuild-lint) on the recipe and on the packages,
+# installation on a clean system, a check of the installed files, and
+# removal. A linter error or a failed step fails the job.
+#
+# By hand ("Run workflow"), and in release.yml before the publication: a
+# failed build stops the release.
+name: packages
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [fedora, opensuse, debian, debian-testing, arch, alpine, nix]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - env:
+          DISTRO: ${{ matrix.distro }}
+        run: >-
+          docker compose -f dev/containers/compose.yaml up --build
+          --exit-code-from "$DISTRO" "$DISTRO"

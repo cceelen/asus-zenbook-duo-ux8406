@@ -1,0 +1,125 @@
+# Each night on main: the fuzz targets of the guard's parsers (fuzz/), five
+# minutes each, from the corpus of the night before. Each input that makes a
+# target fail gets an issue, with the input and the steps to reproduce it.
+name: fuzz
+
+on:
+  schedule:
+    - cron: "41 2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: fuzz
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          toolchain: nightly
+          cache-workspaces: fuzz
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/corpus
+          key: fuzz-corpus-${{ github.run_id }}
+          restore-keys: fuzz-corpus-
+      - run: cargo install --locked cargo-fuzz@0.13.2
+      # cargo fuzz has no --locked: the runs below use fuzz/Cargo.lock as it
+      # is.
+      - run: cargo fetch --locked --manifest-path fuzz/Cargo.toml
+      # Every target runs, also after a failure of one. libFuzzer writes the
+      # input of a failure to fuzz/artifacts/<target>/; the end of its output
+      # goes next to it.
+      - run: |
+          failed=""
+          for target in $(cargo fuzz list); do
+            mkdir -p "fuzz/corpus/$target" "fuzz/artifacts/$target"
+            if ! cargo fuzz run "$target" "fuzz/corpus/$target" "fuzz/seeds/$target" \
+              -- -max_total_time=300 > "$RUNNER_TEMP/$target.log" 2>&1; then
+              tail -n 60 "$RUNNER_TEMP/$target.log" | tee "fuzz/artifacts/$target/output.txt"
+              failed="$failed $target"
+            fi
+          done
+          if [ -n "$failed" ]; then
+            echo "::error::Targets that failed:$failed"
+            exit 1
+          fi
+      - if: ${{ failure() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-findings
+          path: fuzz/artifacts
+          if-no-files-found: ignore
+      # Only what adds coverage is kept. Saved also after a failure: what
+      # led there is worth keeping.
+      - if: ${{ !cancelled() }}
+        run: |
+          for target in $(cargo fuzz list); do
+            cargo fuzz cmin "$target" "fuzz/corpus/$target"
+          done
+      - if: ${{ !cancelled() }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/corpus
+          key: fuzz-corpus-${{ github.run_id }}
+
+  # One issue for each input that made a target fail, unless an open issue
+  # has the same title. libFuzzer names the input by the SHA-1 of its
+  # content, so the same input does not get a second issue.
+  issues:
+    needs: fuzz
+    if: ${{ failure() }}
+    runs-on: ubuntu-26.04
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: fuzz-findings
+          path: findings
+      - run: |
+          open=$(gh issue list --state open --limit 500 --json title --jq '.[].title')
+          for input in findings/*/*; do
+            name=${input##*/}
+            if [ ! -f "$input" ] || [ "$name" = output.txt ]; then continue; fi
+            target=$(basename "$(dirname "$input")")
+            title="fuzz: $target fails on $name"
+            if printf '%s\n' "$open" | grep -Fxq "$title"; then
+              echo "open already: $title"
+              continue
+            fi
+            {
+              echo "The nightly fuzz run of main found an input that makes the target \`$target\` fail: $RUN_URL"
+              echo
+              echo "To reproduce:"
+              echo
+              echo '```sh'
+              echo "base64 -d > $name <<'EOF'"
+              base64 -w 76 "$input"
+              echo "EOF"
+              echo "cargo +nightly fuzz run $target $name"
+              echo '```'
+              echo
+              echo "The end of the output:"
+              echo
+              echo '~~~text'
+              cat "findings/$target/output.txt"
+              echo '~~~'
+              echo
+              echo "Add the input to \`fuzz/seeds/$target/\` in the pull request that fixes the failure."
+            } > "$RUNNER_TEMP/body.md"
+            gh issue create --title "$title" --body-file "$RUNNER_TEMP/body.md"
+          done
