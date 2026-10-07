@@ -49,8 +49,9 @@ jobs:
       - id: pr
         run: |
           # The list of open pull requests, not a search: a search does not
-          # find a pull request in the first seconds after it is opened.
-          branch=$(gh api "repos/${GH_REPO}/pulls?state=open&per_page=100" --jq '[.[] | select(.head.ref | startswith("release-please--"))][0].head.ref // ""')
+          # find a pull request in the first seconds after it is opened. Only
+          # branches of this repository: a fork can name its branch alike.
+          branch=$(gh api "repos/${GH_REPO}/pulls?state=open&per_page=100" --jq '[.[] | select(.head.repo.full_name == $ENV.GH_REPO and (.head.ref | startswith("release-please--")))][0].head.ref // ""')
           if [ -z "$branch" ]; then
             echo "::error::No release pull request: no fix or feat was merged since the last release."
             exit 1
@@ -99,8 +100,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+        # Only branches of this repository: a pull request from a fork with a
+        # branch named release-please--* must not start a release.
         run: |
-          n=$(gh api "repos/${GH_REPO}/pulls?state=open&per_page=100" --jq '[.[] | select(.head.ref | startswith("release-please--"))] | length')
+          n=$(gh api "repos/${GH_REPO}/pulls?state=open&per_page=100" --jq '[.[] | select(.head.repo.full_name == $ENV.GH_REPO and (.head.ref | startswith("release-please--")))] | length')
           if [ "$n" -gt 0 ]; then
             echo "pull_request=true" >> "$GITHUB_OUTPUT"
           fi

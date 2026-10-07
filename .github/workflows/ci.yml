@@ -50,6 +50,13 @@ jobs:
             echo "Not a version bump."
             exit 0
           fi
+          # The patterns of main, not those of the pull request: the patterns
+          # of the pull request could turn any change back into main.
+          if ! diff <(git show HEAD^1:.bumpversion.toml | grep -v '^current_version = ') \
+                    <(grep -v '^current_version = ' .bumpversion.toml) > /dev/null; then
+            echo ".bumpversion.toml changed beyond its version."
+            exit 0
+          fi
           if ! pipx run bump-my-version==1.5.1 bump --new-version "$old" patch --allow-dirty; then
             echo "The version could not be set back to $old."
             exit 0
@@ -144,6 +151,16 @@ jobs:
       - run: pipx run pre-commit run --all-files --show-diff-on-failure
         env:
           SKIP: cargo-fmt,cargo-clippy
+      # The release pull request has the new version in the manifest of
+      # Release Please before release.yml sets it in the package files. Until
+      # then it must not merge, its auto-merge being set already.
+      - run: |
+          manifest=$(jq -r '."."' .release-please-manifest.json)
+          files=$(sed -n 's/^current_version = "\(.*\)"$/\1/p' .bumpversion.toml)
+          if [ "$manifest" != "$files" ]; then
+            echo "::error::.release-please-manifest.json has $manifest, .bumpversion.toml has $files."
+            exit 1
+          fi
 
   workflows:
     needs: version-bump
