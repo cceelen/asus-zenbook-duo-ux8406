@@ -149,6 +149,12 @@ jobs:
           toolchain: nightly
           components: clippy, rustfmt
           cache-workspaces: fuzz
+      # The corpus of the last weekly run (watch.yml), which saves it.
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/corpus
+          key: fuzz-corpus-${{ github.run_id }}
+          restore-keys: fuzz-corpus-
       - run: cargo install --locked cargo-fuzz@0.13.2
       # cargo fuzz has no --locked: this fails if fuzz/Cargo.lock is not
       # current, and the runs below use it as it is.

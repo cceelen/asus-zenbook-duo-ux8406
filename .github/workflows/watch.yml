@@ -28,6 +28,12 @@ jobs:
         with:
           toolchain: nightly
           cache-workspaces: fuzz
+      # The corpus of the last run, which the end of this job saves.
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/corpus
+          key: fuzz-corpus-${{ github.run_id }}
+          restore-keys: fuzz-corpus-
       - run: cargo install --locked cargo-fuzz@0.13.2
       # cargo fuzz has no --locked: the runs below use fuzz/Cargo.lock as it
       # is.
@@ -39,6 +45,19 @@ jobs:
             cargo fuzz run "$target" "fuzz/corpus/$target" "fuzz/seeds/$target" \
               -- -max_total_time=900
           done
+      # Only what adds coverage is kept. Saved also after a failure: what
+      # led there is worth keeping. Only main saves, on its weekly run, so a
+      # pull request never fills the cache that the others read.
+      - if: ${{ !cancelled() }}
+        run: |
+          for target in $(cargo fuzz list); do
+            cargo fuzz cmin "$target" "fuzz/corpus/$target"
+          done
+      - if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz/corpus
+          key: fuzz-corpus-${{ github.run_id }}
 
   # Who packages udev-hid-bpf, which the keyboard package needs. Repology asks
   # clients to say who they are.
