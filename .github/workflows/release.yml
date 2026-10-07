@@ -5,11 +5,6 @@
 # last release. It sets the pull request to merge by itself when the checks
 # are green.
 #
-# While the release pull request is open, each push to main updates it: the
-# commits that came after it are in its version and CHANGELOG.md, and the
-# branch is up to date with main again, which the ruleset requires for the
-# merge. Its checks run again.
-#
 # The merge starts this workflow again. That run makes the source archive
 # and the Nix packages with one SBOM for each, attests them, attaches the
 # archive and the SBOMs to the draft release and publishes the release. The
@@ -30,29 +25,14 @@ concurrency:
   cancel-in-progress: false
 permissions:
   contents: read
-# The open release pull requests, from the list of open pull requests (jq).
-# Only branches of this repository: a fork can name its branch alike.
-env:
-  RELEASE_PRS: '[.[] | select(.head.repo.full_name == $ENV.GH_REPO and (.head.ref | startswith("release-please--")))]'
 jobs:
   pull-request:
-    needs: release
-    # On a push, release is skipped for a start by hand; !cancelled() lets
-    # this job run then.
-    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || needs.release.outputs.pull_request == 'true') }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-26.04
     env:
       GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       GH_REPO: ${{ github.repository }}
     steps:
-      # Release Please rewrites the branch with the new version in its
-      # manifest only; the package files follow in the last step. In between
-      # an open release pull request must not merge: its auto-merge is off
-      # until the last step sets it again, and stays off if a step fails.
-      - run: |
-          for n in $(gh api "repos/${GH_REPO}/pulls?state=open&per_page=100" --jq "${RELEASE_PRS} | .[] | select(.auto_merge != null) | .number"); do
-            gh pr merge "$n" --disable-auto
-          done
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
@@ -61,7 +41,7 @@ jobs:
         run: |
           # The list of open pull requests, not a search: a search does not
           # find a pull request in the first seconds after it is opened.
-          branch=$(gh api "repos/${GH_REPO}/pulls?state=open&per_page=100" --jq "${RELEASE_PRS}[0].head.ref // \"\"")
+          branch=$(gh api "repos/${GH_REPO}/pulls?state=open&per_page=100" --jq '[.[] | select(.head.ref | startswith("release-please--"))][0].head.ref // ""')
           if [ -z "$branch" ]; then
             echo "::error::No release pull request: no fix or feat was merged since the last release."
             exit 1
@@ -87,34 +67,19 @@ jobs:
           fi
           gh pr merge "$BRANCH" --auto --squash
   # Makes the draft release if the push is the merge of a release pull
-  # request. For every other push: is a release pull request open, which the
-  # job pull-request then updates?
+  # request; does nothing for every other push.
   release:
     if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-26.04
-    permissions:
-      contents: read
-      pull-requests: read
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
-      pull_request: ${{ steps.open.outputs.pull_request }}
     steps:
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           skip-github-pull-request: true
-      - id: open
-        if: ${{ steps.release.outputs.release_created != 'true' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          n=$(gh api "repos/${GH_REPO}/pulls?state=open&per_page=100" --jq "${RELEASE_PRS} | length")
-          if [ "$n" -gt 0 ]; then
-            echo "pull_request=true" >> "$GITHUB_OUTPUT"
-          fi
   release-files:
     needs: release
     if: ${{ needs.release.outputs.release_created == 'true' }}
