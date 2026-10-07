@@ -69,6 +69,28 @@ repos:
     hooks:
       - id: biome-check
         files: ^gnome-(common|keys|rotation)/.*\.js$
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      # The scriptlets of the packages and the scripts of the build.
+      - id: shellcheck
+        exclude: ^(tcc-guard/openrc/.*\.initd\.in|packaging/alpine/APKBUILD|packaging/arch/PKGBUILD)$
+      # Files that a tool sources: the OpenRC script, APKBUILD (sh) and
+      # PKGBUILD (bash). openrc-run, abuild and makepkg read the variables
+      # that these files set and set the ones that they read, so SC2034
+      # (unused) and SC2154 (not assigned) do not apply.
+      - id: shellcheck
+        alias: shellcheck-sh
+        name: shellcheck (OpenRC script, APKBUILD)
+        files: ^(tcc-guard/openrc/.*\.initd\.in|packaging/alpine/APKBUILD)$
+        types: [file]
+        args: [--shell=sh, "--exclude=SC2034,SC2154"]
+      - id: shellcheck
+        alias: shellcheck-bash
+        name: shellcheck (PKGBUILD)
+        files: ^packaging/arch/PKGBUILD$
+        types: [file]
+        args: [--shell=bash, "--exclude=SC2034,SC2154"]
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
     hooks:
