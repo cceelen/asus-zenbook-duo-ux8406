@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.5.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.4.0...v0.5.0) (2026-10-07)
+
+
+### Features
+
+* **release:** put the provenance bundle of the source archive on the release ([5985663](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/59856638aeadb05264ddf2683a5683ba86ab7893))
+
+
+### Bug Fixes
+
+* **release:** clone aports from upstream and push to the fork ([8817951](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/8817951c11243328dc49fc333255d910a32e1f1e))
+* **release:** retry the aports pushes with back-off and print the merge request link when glab fails ([3a69b0b](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/3a69b0b39329659a54c3f9d50ebb6b0822000e91))
+* **release:** run the aports job in an Alpine container ([3bc10db](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/3bc10db11fe9d2c20714acf5f9d70786b8ff3924))
+* **release:** set the version in fuzz/Cargo.lock too ([096d45c](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/096d45cfdd56d3ae28979785d18074ea9c1aad4b))
+* **release:** use SSH for aports and open the merge request with glab ([3a4618c](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/3a4618cc707df33cbcdcaeab5df16e5747f92d27))
+* **rotation:** show Auto-rotate only where the extension can turn a panel ([f981325](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/f981325cb1bbce04665d2b2bb43d4d2f2c80b6b7)), closes [#25](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/25)
+* **rotation:** turn the screens by hand where no sensor is found ([9fb3d5e](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/9fb3d5e6f1ba78db5dc0ffca8d92f6a30bf94518))
+
 ## [0.4.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.3.0...v0.4.0) (2026-10-07)
 
 
