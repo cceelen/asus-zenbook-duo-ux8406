@@ -1,0 +1,51 @@
+# The packages of each distribution, built in a container from this tree
+# (dev/containers/compose.yaml): the linter of the distribution (rpmlint,
+# lintian, namcap, apkbuild-lint) on the recipe and on the packages,
+# installation on a clean system, a check of the installed files, and
+# removal. A linter error or a failed step fails the job.
+#
+# Only for pull requests that change what goes into a package, and once a
+# week for the rolling images. Because of the path filter it cannot be a
+# required check.
+name: packages
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/packages.yml
+      - packaging/**
+      - dev/containers/**
+      - "**/meson.build"
+      - meson.options
+      - "**/*.in"
+      - flake.nix
+      - flake.lock
+      - Cargo.lock
+  schedule:
+    - cron: "29 5 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: packages-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [fedora, opensuse, debian, debian-testing, arch, alpine, nix]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - env:
+          DISTRO: ${{ matrix.distro }}
+        run: >-
+          docker compose -f dev/containers/compose.yaml up --build
+          --exit-code-from "$DISTRO" "$DISTRO"
