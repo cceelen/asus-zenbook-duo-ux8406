@@ -82,19 +82,19 @@ Older GDM versions use `~gdm/.config/monitors.xml`. Not tested.
 
 | Distribution         | Guard | Second screen | Keyboard | Keys  | Rotation |
 | -------------------- | ----- | ------------- | -------- | ----- | -------- |
-| Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖 | 🛠️ ⁵     |
-| Fedora 43            | ✅    | ✅            | ✅       | ✅    | 🛠️ ⁵     |
-| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹  | 🛠️ ⁵     |
-| Arch                 | ✅    | ✅            | ✅       | ✅    | 🛠️ ⁵     |
-| openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅    | 🛠️ ⁵     |
-| openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ³  | 🛠️ ⁵     |
-| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ✅    | 🛠️ ⁵     |
-| Debian 13            | ✅    | ✅            | ❌ ⁴     | ✅    | 🛠️ ⁵     |
-| Debian testing       | ✅    | ✅            | ✅       | ✅    | 🛠️ ⁵     |
-| Debian unstable      | ✅    | ✅            | ✅       | ✅    | 🛠️ ⁵     |
-| Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅    | 🛠️ ⁵     |
-| Alpine               | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️    | 🛠️ ⁵     |
-| Nix                  | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️    | 🛠️ ⁵     |
+| Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖 | ✅ 🤖    |
+| Fedora 43            | ✅    | ✅            | ✅       | ✅    | ✅       |
+| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹  | ✅ ¹     |
+| Arch                 | ✅    | ✅            | ✅       | ✅    | ✅       |
+| openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅    | ✅       |
+| openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ³  | ✅ ³     |
+| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ✅    | ✅       |
+| Debian 13            | ✅    | ✅            | ❌ ⁴     | ✅    | ✅       |
+| Debian testing       | ✅    | ✅            | ✅       | ✅    | ✅       |
+| Debian unstable      | ✅    | ✅            | ✅       | ✅    | ✅       |
+| Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅    | ✅       |
+| Alpine               | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️    | 🛠️       |
+| Nix                  | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️    | 🛠️       |
 
 1. Built for RHEL 10 with EPEL 10. Installed in AlmaLinux 10 and Rocky Linux 10
    containers, not on RHEL.
@@ -104,7 +104,6 @@ Older GDM versions use `~gdm/.config/monitors.xml`. Not tested.
    does not maintain that repository.
 3. Published, but not installed in a container: there is no container image.
 4. The distribution has no [udev-hid-bpf].
-5. New; published with the next release.
 
 🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
 keyboard ids and dock port can be different. Send your result in a GitHub issue
@@ -141,7 +140,7 @@ The packages are in two repositories:
 A package list for the commands below:
 
 ```sh
-pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys"
+pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation"
 ```
 
 Where the distribution has udev-hid-bpf (refer to
@@ -219,10 +218,11 @@ sudo pacman -Sy $pkgs asus-zenbook-duo-ux8406-keyboard-bpf
 The guard package enables and starts its service. On NixOS, set
 `services.asus-zenbook-duo-ux8406-tcc-guard.enable = true`.
 
-Log in again and enable the extension:
+Log in again and enable the extensions:
 
 ```sh
 gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io
+gnome-extensions enable builtin-screen-rotation@cceelen.github.io
 ```
 
 ## Known limits
