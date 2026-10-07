@@ -104,7 +104,7 @@ checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
 
 [[package]]
 name = "asus-ux8406-keyboard-state"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "assert_cmd",
  "assert_fs",
@@ -119,7 +119,7 @@ dependencies = [
 
 [[package]]
 name = "asus-ux8406-second-screen"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "assert_cmd",
  "assert_fs",
@@ -132,7 +132,7 @@ dependencies = [
 
 [[package]]
 name = "asus-ux8406-tcc-guard"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "assert_cmd",
  "assert_fs",
