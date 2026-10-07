@@ -5,6 +5,12 @@
 # last release. It sets the pull request to merge by itself when the checks
 # are green.
 #
+# While the release pull request is open, each push to main updates it: the
+# commits that came after it are in its version and CHANGELOG.md, and the
+# branch is up to date with main again, which the ruleset requires for the
+# merge. Its checks run again; for a version bump only, ci.yml runs the short
+# set.
+#
 # The merge starts this workflow again. That run makes the source archive
 # and the Nix packages with one SBOM for each, attests them, attaches the
 # archive and the SBOMs to the draft release and publishes the release. The
@@ -27,7 +33,10 @@ permissions:
   contents: read
 jobs:
   pull-request:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs: release
+    # On a push, release is skipped for a start by hand; !cancelled() lets
+    # this job run then.
+    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || needs.release.outputs.pull_request == 'true') }}
     runs-on: ubuntu-26.04
     env:
       GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -67,19 +76,34 @@ jobs:
           fi
           gh pr merge "$BRANCH" --auto --squash
   # Makes the draft release if the push is the merge of a release pull
-  # request; does nothing for every other push.
+  # request. For every other push: is a release pull request open, which the
+  # job pull-request then updates?
   release:
     if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
+      pull_request: ${{ steps.open.outputs.pull_request }}
     steps:
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           skip-github-pull-request: true
+      - id: open
+        if: ${{ steps.release.outputs.release_created != 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          n=$(gh api "repos/${GH_REPO}/pulls?state=open&per_page=100" --jq '[.[] | select(.head.ref | startswith("release-please--"))] | length')
+          if [ "$n" -gt 0 ]; then
+            echo "pull_request=true" >> "$GITHUB_OUTPUT"
+          fi
   release-files:
     needs: release
     if: ${{ needs.release.outputs.release_created == 'true' }}

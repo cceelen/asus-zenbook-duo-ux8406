@@ -44,7 +44,10 @@ The other steps occur automatically:
   release pull request. It has the next version in the package files and the new
   section of `CHANGELOG.md`, made from the commit titles since the last release:
   `fix:` gives a patch release, `feat:` a minor release.
-- The pull request merges itself when the checks are green.
+- The pull request merges itself when the checks are green. Each push to `main`
+  while it is open updates it: the new commits go into its version and
+  `CHANGELOG.md`, and its branch is up to date again. For a pull request that
+  changes the version only, `ci.yml` runs pre-commit and the source archive.
 - `release.yml` makes the source archive (`meson dist`) and the Nix packages
   with their SBOMs, attests them, attaches the archive and the SBOMs to the
   draft release and publishes the release. The tag is made at that moment. The
@@ -91,9 +94,11 @@ The attestations do not cover the packages from COPR, OBS and Alpine.
 - Renovate (`renovate.json`) opens pull requests for GitHub Actions, crates, the
   Nix flake and the container base images. It does not change `rust-version`:
   1.85 is the Rust of Debian 13.
-- `watch.yml` runs the RustSec audit each week and lists the distributions that
-  package `udev-hid-bpf`. When a distribution starts to package it, the keyboard
-  package becomes installable there: update the README.
+- `ci.yml` runs each week on `main` too, for the RustSec advisories and the
+  lints of a new stable Rust that appear without a commit. `watch.yml` lists the
+  distributions that package `udev-hid-bpf` each week. When a distribution
+  starts to package it, the keyboard package becomes installable there: update
+  the README.
 - For a new distribution release, add it to `.packit.yaml` or to the OBS
   project, and to `dev/containers/`.
 
@@ -106,8 +111,12 @@ The attestations do not cover the packages from COPR, OBS and Alpine.
   and variables, Actions). Renew it before it expires.
 - Rulesets (Settings, Rules, Rulesets): one for `main` and one for the tags
   `v*`. For `main`: no deletion, no force push, linear history, pull requests,
-  and the checks of `ci.yml` as required status checks. For the tags: no
-  deletion, no update.
+  and the checks of `ci.yml` as required status checks, with "Require branches
+  to be up to date before merging". `ci.yml` does not run on a push to `main`:
+  the pull request has checked the same tree. Required checks: `rust`,
+  `rust-oldest`, `audit`, `pre-commit`, `workflows`, `meson`,
+  `dependency-review` and `release-files / archive`. For the tags: no deletion,
+  no update.
 - Settings, Code security: enable "Private vulnerability reporting".
 - Install the Renovate application on the repository.
 
