@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.3.0...v0.4.0) (2026-10-07)
+
+
+### Features
+
+* **release:** publish Alpine and Nix packages with attested SBOMs ([4ea5082](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/4ea5082e444d369b9a2a1dc5212ceae8be6653ac)), closes [#35](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/35)
+
+
+### Bug Fixes
+
+* **nix:** keep the build tools out of the keyboard package's closure ([8ddefb6](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/8ddefb662d0d251634bee58abe8e60b8bd53eb1d))
+
 ## [0.3.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.2.1...v0.3.0) (2026-10-07)
 
 
