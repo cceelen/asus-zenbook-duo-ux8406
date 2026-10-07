@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.2.1...v0.3.0) (2026-10-07)
+
+
+### Features
+
+* **keyboard-bpf:** keep the light and the row mode between connections ([3afaebb](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/3afaebb760f71730aed7471381d487fefe681238))
+
 ## [0.2.1](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.2.0...v0.2.1) (2026-10-07)
 
 
