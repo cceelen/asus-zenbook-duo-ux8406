@@ -1,5 +1,6 @@
 # Makes the file of a release: the source archive (the tree and the crates in
-# vendor/). With `release: true` it attests it.
+# vendor/). With `release: true` it attests it, and adds the Sigstore bundle of
+# the provenance (<archive>.intoto.jsonl) for the release.
 # Reusable, so that a caller cannot add steps to the build or signing jobs.
 name: release-files
 on:
