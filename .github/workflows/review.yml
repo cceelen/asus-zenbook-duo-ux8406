@@ -131,16 +131,23 @@ jobs:
       TRUSTED: ${{ github.event.pull_request.user.login == github.repository_owner }}
     steps:
       # The review text is made from the fields of the findings, most severe
-      # first. A blocking finding asks for changes.
+      # first. A finding blocks when the model says so, when it is critical
+      # or high, or when it is medium in safety, security or supply chain:
+      # the rule is here, not left to the model. A blocking finding asks for
+      # changes.
       - run: |
-          jq -r '
-            [.findings[] | select(.confidence >= 0.8)]
+          rules='
+            def blocks: .blocking
+              or (.severity == "critical" or .severity == "high")
+              or (.severity == "medium" and (.area == "safety" or .area == "security" or .area == "supply-chain"));
+            [.findings[] | select(.confidence >= 0.8)]'
+          jq -r "$rules"'
             | sort_by({critical: 0, high: 1, medium: 2, low: 3}[.severity])
             | if length == 0 then "No findings."
-              else map("- **\(.severity), \(.area)**" + (if .blocking then "" else " (not blocking)" end)
+              else map("- **\(.severity), \(.area)**" + (if blocks then "" else " (not blocking)" end)
                        + ": `\(.file):\(.line)`\n  \(.problem) Impact: \(.impact) Fix: \(.fix)")
                    | join("\n") end' <<< "$RESULT" > body.md
-          if jq -e 'any(.findings[]; .blocking and .confidence >= 0.8)' <<< "$RESULT" > /dev/null; then
+          if jq -e "$rules"' | any(.[]; blocks)' <<< "$RESULT" > /dev/null; then
             gh pr review "$PR" --request-changes --body-file body.md
           elif [ "$TRUSTED" = true ]; then
             gh pr review "$PR" --approve --body-file body.md
