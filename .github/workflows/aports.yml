@@ -75,8 +75,10 @@ jobs:
           printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/known_hosts"
           echo "GIT_SSH_COMMAND=ssh -i $RUNNER_TEMP/aports-key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes" >> "$GITHUB_ENV"
       # The master branch of the fork is set to upstream's, so that the fork
-      # follows upstream. Only the commits are fetched, and only the
-      # directory of the aport is checked out.
+      # follows upstream. The clone is of upstream: in a partial clone git
+      # gets missing objects from the cloned remote, and only upstream has
+      # all of them. Only the commits are fetched, and only the directory of
+      # the aport is checked out.
       - run: |
           # The push is retried with exponential back-off (10, 20, 40 s): the
           # bot protection of that GitLab has blocked CI pushes off and on.
@@ -91,11 +93,11 @@ jobs:
             done
             return 1
           }
-          git clone --filter=tree:0 --no-checkout "git@gitlab.alpinelinux.org:$FORK.git" aports
+          git clone --filter=tree:0 --no-checkout --single-branch --branch master \
+            --origin upstream git@gitlab.alpinelinux.org:alpine/aports.git aports
           cd aports
-          git remote add upstream git@gitlab.alpinelinux.org:alpine/aports.git
-          git fetch --filter=tree:0 upstream master
-          retry git push --force origin upstream/master:refs/heads/master
+          git remote add fork "git@gitlab.alpinelinux.org:$FORK.git"
+          retry git push --force fork upstream/master:refs/heads/master
           git sparse-checkout set "$APORT"
           git checkout -B "$BRANCH" upstream/master
           mkdir -p "$APORT"
@@ -133,7 +135,7 @@ jobs:
           git add "$APORT"
           git -c user.name="${author% <*}" -c user.email="${email%>}" \
             commit --quiet --message "$title"
-          retry git push --force origin "HEAD:refs/heads/$BRANCH"
+          retry git push --force fork "HEAD:refs/heads/$BRANCH"
           echo "TITLE=$title" >> "$GITHUB_ENV"
       # A new merge request, or a new title for the open one. If the API is
       # not reachable, the branch is on the fork: the log gives the link that
