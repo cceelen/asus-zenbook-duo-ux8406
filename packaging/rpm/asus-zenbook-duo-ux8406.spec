@@ -1,6 +1,6 @@
 # Builds on Fedora, RHEL and openSUSE.
 Name:           asus-zenbook-duo-ux8406
-Version:        0.2.1
+Version:        0.3.0
 Release:        1%{?dist}
 Summary:        User-space support for the ASUS Zenbook Duo UX8406
 License:        MIT AND GPL-2.0-only
@@ -279,5 +279,5 @@ fi
 %endif
 
 %changelog
-* Mon Oct 05 2026 Christian Ceelen - 0.2.1-1
+* Mon Oct 05 2026 Christian Ceelen - 0.3.0-1
 - Refer to CHANGELOG.md.
