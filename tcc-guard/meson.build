@@ -63,6 +63,7 @@ endif
 # switched on. The fail points (src/fault.rs, the fail crate) let
 # tests/scenarios/faults.rs cause system failures that no arrangement of
 # files can; a build without the feature has none.
+# The second run is also in the suite failpoints.
 foreach name, features : {
   'cargo test': [],
   'cargo test, fault injection': ['--features', 'failpoints'],
@@ -72,7 +73,7 @@ foreach name, features : {
     cargo,
     args: ['test', '--release'] + cargo_args + ['--package', 'asus-ux8406-tcc-guard'] + features,
     env: cargo_env,
-    suite: 'asus-ux8406-tcc-guard',
+    suite: features.length() > 0 ? ['asus-ux8406-tcc-guard', 'failpoints'] : 'asus-ux8406-tcc-guard',
     timeout: 1200,
     # One cargo at a time: they share a target directory.
     is_parallel: false,

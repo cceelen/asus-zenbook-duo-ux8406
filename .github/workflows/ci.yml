@@ -132,7 +132,8 @@ jobs:
   # Ubuntu 26.04, not -latest: the HID-BPF program needs kernel headers of 6.10
   # or later (24.04 has 6.8). The runner's user is not root, which the tests
   # need. `meson test` runs the cargo tests, the BPF object checks and the
-  # extension's node tests.
+  # extension's node tests. The suite failpoints is left out: the rust job
+  # runs the same tests with the fail points, for the coverage.
   meson:
     runs-on: ubuntu-26.04
     steps:
@@ -149,7 +150,7 @@ jobs:
           libglib2.0-bin systemd-dev udev
       - run: meson setup build
       - run: meson compile -C build
-      - run: meson test -C build --print-errorlogs
+      - run: meson test -C build --print-errorlogs --no-suite failpoints
 
   # The parsers of the guard's inputs (fuzz/), one minute each. A longer run
   # is in watch.yml.
