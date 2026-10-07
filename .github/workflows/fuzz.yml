@@ -40,7 +40,8 @@ jobs:
       # Every target runs, also after a failure of one. libFuzzer writes the
       # input of a failure to fuzz/artifacts/<target>/; the end of its output
       # goes next to it. The log of a public repository is public: the output
-      # does not go there, as it has the input.
+      # goes there only when the target saved no input (a failure to build or
+      # to start, not a finding), as it then has no input in it.
       - id: fuzz
         run: |
           failed=""
@@ -49,6 +50,9 @@ jobs:
             if ! cargo fuzz run "$target" "fuzz/corpus/$target" "fuzz/seeds/$target" \
               -- -max_total_time=300 > "$RUNNER_TEMP/$target.log" 2>&1; then
               tail -n 60 "$RUNNER_TEMP/$target.log" > "fuzz/artifacts/$target/output.txt"
+              if [ -z "$(find "fuzz/artifacts/$target" -type f ! -name output.txt)" ]; then
+                cat "fuzz/artifacts/$target/output.txt"
+              fi
               failed="$failed $target"
             fi
           done
