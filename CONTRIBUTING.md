@@ -25,7 +25,17 @@ journalctl -b -u asus-ux8406-tcc-guard
 ```
 
 The rotation extension is not specific to the UX8406: a report from another
-laptop, with one or two built-in screens, is useful too.
+laptop, with one or two built-in screens, is useful too. For a problem with the
+rotation, add the output of these commands. `gdctl` is part of GNOME 48 and
+later; its output has the serial numbers of the monitors. `monitor-sensor` is
+part of iio-sensor-proxy: turn the laptop while it runs, then stop it with
+Ctrl+C.
+
+```sh
+journalctl -b -g builtin-screen-rotation
+gdctl show
+monitor-sensor
+```
 
 The packages are developed on a UX8406CA. For a UX8406MA or another sub-model,
 also report the USB and Bluetooth ids of the keyboard (`udevadm info`), the USB
