@@ -151,8 +151,8 @@ jobs:
       - run: meson compile -C build
       - run: meson test -C build --print-errorlogs
 
-  # The parsers of the guard's inputs (fuzz/), one minute each. A longer run
-  # is in watch.yml.
+  # The fuzz targets of the guard's parsers (fuzz/): they build, and each
+  # saved input passes. The fuzzing itself is in fuzz.yml, each night on main.
   fuzz:
     runs-on: ubuntu-26.04
     steps:
@@ -164,7 +164,7 @@ jobs:
           toolchain: nightly
           components: clippy, rustfmt
           cache-workspaces: fuzz
-      # The corpus of the last weekly run (watch.yml), which saves it.
+      # The corpus of the last night (fuzz.yml), which saves it.
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: fuzz/corpus
@@ -176,12 +176,12 @@ jobs:
       - run: cargo fetch --locked --manifest-path fuzz/Cargo.toml
       - run: cargo fmt --manifest-path fuzz/Cargo.toml --check
       - run: cargo clippy --locked --manifest-path fuzz/Cargo.toml --all-targets -- -D warnings
+      # Each input once (-runs=0): fuzz/seeds, from the tests' cases and the
+      # inputs of fixed findings, and the corpus.
       - run: |
-          # fuzz/seeds: a start for each target, from the tests' cases.
           for target in $(cargo fuzz list); do
             mkdir -p "fuzz/corpus/$target"
-            cargo fuzz run "$target" "fuzz/corpus/$target" "fuzz/seeds/$target" \
-              -- -max_total_time=60
+            cargo fuzz run "$target" "fuzz/corpus/$target" "fuzz/seeds/$target" -- -runs=0
           done
 
   dependency-review:
