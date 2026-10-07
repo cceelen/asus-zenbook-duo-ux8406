@@ -17,13 +17,14 @@ the OIDC token of the workflow).
 
 ## Provenance and SBOMs
 
-| File                                  | Made by             | Attestations                             |
-| ------------------------------------- | ------------------- | ---------------------------------------- |
-| Source archive                        | `release-files.yml` | build provenance                         |
-| The five Nix packages (store paths)   | `release-nix.yml`   | build provenance; SBOM, one for each     |
-| SBOMs, `<package>-<version>.cdx.json` | `release-nix.yml`   | on the release page; GitHub release      |
-| The release and all its files         | GitHub              | release attestation (immutable releases) |
-| Alpine packages                       | Alpine's builders   | none from this project; signed by Alpine |
+| File                                        | Made by             | Attestations                             |
+| ------------------------------------------- | ------------------- | ---------------------------------------- |
+| Source archive                              | `release-files.yml` | build provenance                         |
+| Provenance bundle, `<archive>.intoto.jsonl` | `release-files.yml` | on the release page; GitHub release      |
+| The five Nix packages (store paths)         | `release-nix.yml`   | build provenance; SBOM, one for each     |
+| SBOMs, `<package>-<version>.cdx.json`       | `release-nix.yml`   | on the release page; GitHub release      |
+| The release and all its files               | GitHub              | release attestation (immutable releases) |
+| Alpine packages                             | Alpine's builders   | none from this project; signed by Alpine |
 
 The workflows that make and attest the files are reusable workflows, which gives
 SLSA Build L3 for the provenance. Each SBOM is a CycloneDX file that bombon
@@ -63,6 +64,16 @@ by hand.
 
 ```sh
 gh attestation verify asus-zenbook-duo-ux8406-<version>.tar.gz \
+    --repo cceelen/asus-zenbook-duo-ux8406 \
+    --signer-workflow cceelen/asus-zenbook-duo-ux8406/.github/workflows/release-files.yml
+```
+
+Without the attestation API, with the bundle of the provenance from the release
+page:
+
+```sh
+gh attestation verify asus-zenbook-duo-ux8406-<version>.tar.gz \
+    --bundle asus-zenbook-duo-ux8406-<version>.tar.gz.intoto.jsonl \
     --repo cceelen/asus-zenbook-duo-ux8406 \
     --signer-workflow cceelen/asus-zenbook-duo-ux8406/.github/workflows/release-files.yml
 ```

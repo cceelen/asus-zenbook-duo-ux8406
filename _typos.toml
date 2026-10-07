@@ -6,3 +6,5 @@ ba = "ba"
 WRONLY = "WRONLY"
 # gpg --with-colons: the fingerprint record
 fpr = "fpr"
+# <file>.intoto.jsonl: in-toto attestations
+intoto = "intoto"
