@@ -1,0 +1,6 @@
+# short times, for the tests
+interval = 1
+settle = 2
+probe_interval = 3
+idle_release = 2
+event_text = "test: thermal warning"

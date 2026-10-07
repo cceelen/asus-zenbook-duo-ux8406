@@ -1,30 +1,47 @@
-//! The numbers from sysfs and from the configuration.
+//! The numbers from sysfs: temperatures, limits, offsets and the labels of
+//! the package sensors. A driver, or a file system laid over /sys, decides
+//! what they hold; a number the guard takes is one it can trust.
 
 #![no_main]
 
 use asus_ux8406_tcc_guard::input;
 use libfuzzer_sys::fuzz_target;
 
-fuzz_target!(|data: &[u8]| {
-    // The first eight bytes give the range, the rest is the text.
-    let Some((range, text)) = data.split_first_chunk::<8>() else {
-        return;
-    };
-    let Ok(text) = std::str::from_utf8(text) else {
-        return;
-    };
-    let a = i32::from_le_bytes([range[0], range[1], range[2], range[3]]);
-    let b = i32::from_le_bytes([range[4], range[5], range[6], range[7]]);
-    let (min, max) = (a.min(b), a.max(b));
+/// Ranges as the parsers check them, and some around their edges.
+const RANGES: [(i32, i32); 6] = [
+    (-40_000, 150_000),
+    (70_000, 130_000),
+    (0, 63),
+    (0, 1023),
+    (-5, 5),
+    (i32::MIN, 0),
+];
 
-    // A number that is taken is in the range and is what Rust reads.
-    if let Some(value) = input::parse_int(text, min, max) {
-        assert!((min..=max).contains(&value));
-        assert_eq!(text.parse::<i32>().ok(), Some(value));
+fuzz_target!(|text: &str| {
+    // The rule of parse_int: an optional minus sign and one to nine digits,
+    // and nothing else. Such a text means what Rust reads in it.
+    let digits = text.strip_prefix('-').unwrap_or(text);
+    let plain = (1..=9).contains(&digits.len()) && digits.bytes().all(|b| b.is_ascii_digit());
+    let any = input::parse_int(text, i32::MIN, i32::MAX);
+    assert_eq!(
+        any,
+        plain.then(|| text.parse::<i32>().expect("a plain number"))
+    );
+
+    // A range takes exactly the numbers within it.
+    for (min, max) in RANGES {
+        let within = any.filter(|value| (min..=max).contains(value));
+        assert_eq!(input::parse_int(text, min, max), within);
     }
 
-    let _ = input::parse_temp(text);
-    let _ = input::parse_tjmax(text);
-    let _ = input::parse_offset(text);
-    let _ = input::parse_package_label(text);
+    // What the sysfs parsers give is within their ranges (degrees).
+    let checks = [
+        (input::parse_temp(text), -40, 150),
+        (input::parse_tjmax(text), 70, 130),
+        (input::parse_offset(text), 0, input::OFFSET_MAX),
+        (input::parse_package_label(text), 0, 1023),
+    ];
+    for (value, min, max) in checks {
+        assert!(value.is_none_or(|value| (min..=max).contains(&value)));
+    }
 });

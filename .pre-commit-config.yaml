@@ -5,6 +5,7 @@ exclude: |
     LICENSES/|
     keyboard-bpf/include/|
     .*/tests/fixtures/|
+    fuzz/seeds/|
     .*/THIRD-PARTY-NOTICES\.txt$|
     Cargo\.lock$|
     flake\.lock$|

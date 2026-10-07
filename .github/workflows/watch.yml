@@ -33,8 +33,11 @@ jobs:
       # is.
       - run: cargo fetch --locked --manifest-path fuzz/Cargo.toml
       - run: |
+          # fuzz/seeds: a start for each target, from the tests' cases.
           for target in $(cargo fuzz list); do
-            cargo fuzz run "$target" -- -max_total_time=900
+            mkdir -p "fuzz/corpus/$target"
+            cargo fuzz run "$target" "fuzz/corpus/$target" "fuzz/seeds/$target" \
+              -- -max_total_time=900
           done
 
   # Who packages udev-hid-bpf, which the keyboard package needs. Repology asks

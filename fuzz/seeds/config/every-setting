@@ -1,0 +1,17 @@
+hold_temp = 85
+	step_up=3  # three
+max_offset = 20
+interval = 2
+settle = 10
+probe_interval = 60
+probe_backoff = 3
+probe_max = 600
+tjmax = 100
+use_margin = 4
+idle_release = 300
+event_text = "acme: too = hot "
+model = 'any'
+
+[[package]]
+id = 1
+offset = "/sys/devices/a-b/c_d:0.1/offset"

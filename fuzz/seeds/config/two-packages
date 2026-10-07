@@ -1,0 +1,6 @@
+[[package]]
+id = 0
+offset = "/sys/bus/pci/devices/0000:00:04.0/tcc_offset_degree_celsius"
+[[package]]
+id = 1
+offset = "/sys/bus/pci/devices/0000:80:04.0/tcc_offset_degree_celsius"
