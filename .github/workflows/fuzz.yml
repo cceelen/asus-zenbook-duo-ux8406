@@ -1,6 +1,7 @@
 # Each night on main: the fuzz targets of the guard's parsers (fuzz/), five
 # minutes each, from the corpus of the night before. Each input that makes a
-# target fail gets an issue, with the input and the steps to reproduce it.
+# target fail gets a private draft security advisory, with the input and the
+# steps to reproduce it.
 name: fuzz
 
 on:
@@ -72,33 +73,42 @@ jobs:
           path: fuzz/corpus
           key: fuzz-corpus-${{ github.run_id }}
 
-  # One issue for each input that made a target fail, unless an open issue
-  # has the same title. libFuzzer names the input by the SHA-1 of its
-  # content, so the same input does not get a second issue.
-  issues:
+  # One private draft security advisory for each input that made a target
+  # fail, unless a draft or triaged advisory has the same summary. libFuzzer
+  # names the input by the SHA-1 of its content, so the same input does not
+  # get a second advisory. The default token cannot write advisories:
+  # FUZZ_ADVISORY_TOKEN is a fine-grained token with "Repository security
+  # advisories" set to read and write (docs/releases.md).
+  advisories:
     needs: fuzz
     if: ${{ failure() }}
     runs-on: ubuntu-26.04
-    permissions:
-      issues: write
+    permissions: {}
     env:
-      GH_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ secrets.FUZZ_ADVISORY_TOKEN }}
       GH_REPO: ${{ github.repository }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
+      - run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::No FUZZ_ADVISORY_TOKEN: the findings are only in the artifact fuzz-findings."
+            exit 1
+          fi
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: fuzz-findings
           path: findings
       - run: |
-          open=$(gh issue list --state open --limit 500 --json title --jq '.[].title')
+          known=$(for state in draft triage; do
+            gh api --paginate "repos/$GH_REPO/security-advisories?state=$state" --jq '.[].summary'
+          done)
           for input in findings/*/*; do
             name=${input##*/}
             if [ ! -f "$input" ] || [ "$name" = output.txt ]; then continue; fi
             target=$(basename "$(dirname "$input")")
-            title="fuzz: $target fails on $name"
-            if printf '%s\n' "$open" | grep -Fxq "$title"; then
-              echo "open already: $title"
+            summary="fuzz: $target fails on $name"
+            if printf '%s\n' "$known" | grep -Fxq "$summary"; then
+              echo "known already: $summary"
               continue
             fi
             {
@@ -120,6 +130,15 @@ jobs:
               echo '~~~'
               echo
               echo "Add the input to \`fuzz/seeds/$target/\` in the pull request that fixes the failure."
-            } > "$RUNNER_TEMP/body.md"
-            gh issue create --title "$title" --body-file "$RUNNER_TEMP/body.md"
+            } > "$RUNNER_TEMP/description.md"
+            jq -n --arg summary "$summary" --rawfile description "$RUNNER_TEMP/description.md" '{
+              summary: $summary,
+              description: $description,
+              vulnerabilities: [{
+                package: {ecosystem: "rust", name: "asus-ux8406-tcc-guard"},
+                vulnerable_version_range: null,
+                patched_versions: null,
+                vulnerable_functions: []
+              }]
+            }' | gh api -X POST "repos/$GH_REPO/security-advisories" --input - --jq .html_url
           done
