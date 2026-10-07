@@ -147,7 +147,7 @@ jobs:
           sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends
           meson ninja-build pkgconf clang libbpf-dev linux-libc-dev
           libglib2.0-bin systemd-dev udev
-      - run: meson setup build
+      - run: meson setup build -Dunit_checks=enabled
       - run: meson compile -C build
       - run: meson test -C build --print-errorlogs
 
