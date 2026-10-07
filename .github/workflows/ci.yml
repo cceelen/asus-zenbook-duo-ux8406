@@ -58,7 +58,11 @@ jobs:
       # The fuzz targets are a workspace of their own (fuzz/). They are run
       # only in fuzz.yml, each night; here they are checked as code.
       - run: cargo fmt --manifest-path fuzz/Cargo.toml --check
-      - run: cargo clippy --locked --manifest-path fuzz/Cargo.toml --all-targets -- -D warnings
+      # fuzz/ has no lock file of its own: it starts from the one of the
+      # tree, so the guard's crates have the versions that ship, and cargo
+      # adds the crates of the fuzz targets.
+      - run: cp Cargo.lock fuzz/Cargo.lock
+      - run: cargo clippy --manifest-path fuzz/Cargo.toml --all-targets -- -D warnings
       # Every region of the guard is run by a test.
       - run: >-
           cargo llvm-cov --locked -p asus-ux8406-tcc-guard --features failpoints

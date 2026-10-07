@@ -12,6 +12,7 @@ __pycache__/
 /*.src.rpm
 .ruff_cache/
 /fuzz/target/
+/fuzz/Cargo.lock
 /fuzz/corpus/
 /fuzz/artifacts/
 /fuzz/coverage/

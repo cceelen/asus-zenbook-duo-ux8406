@@ -83,6 +83,7 @@ Fuzz targets of the guard's parsers are in `fuzz/`, with
 `cargo fuzz list` names them, and `fuzz/seeds/` has a start for each:
 
 ```sh
+cp Cargo.lock fuzz/Cargo.lock  # fuzz/ keeps no lock file of its own
 mkdir -p fuzz/corpus/kmsg
 cargo +nightly fuzz run kmsg fuzz/corpus/kmsg fuzz/seeds/kmsg -- -max_total_time=60
 ```
