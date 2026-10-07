@@ -155,5 +155,8 @@ fork to upstream's and replaces the branch `asus-zenbook-duo-ux8406`, so there
 is one merge request, with the latest release. The commits keep the maintainer
 of the APKBUILD as their author. Make the changes that the aports reviewers ask
 for in `packaging/alpine/`, so that the next release has them. To repeat the
-merge request of a release, run the workflow "aports" with its tag. When Alpine
-moves the aport to `community/`, set `APORTS_DIR` to `community`.
+merge request of a release, run the workflow "aports" with its tag.
+`release.yml` passes the two secrets to `aports.yml` by name: a called workflow
+gets no other secrets. A secret or variable that is missing stops the job at its
+first step, with its name. When Alpine moves the aport to `community/`, set
+`APORTS_DIR` to `community`.

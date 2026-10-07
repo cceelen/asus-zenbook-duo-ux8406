@@ -24,6 +24,12 @@ on:
         description: The release tag, for example v0.4.0.
         type: string
         required: true
+    # A called workflow gets only the secrets that its caller passes.
+    secrets:
+      APORTS_SSH_KEY:
+        required: false
+      APORTS_TOKEN:
+        required: false
   workflow_dispatch:
     inputs:
       tag:
@@ -52,6 +58,18 @@ jobs:
       APORT: ${{ vars.APORTS_DIR || 'testing' }}/asus-zenbook-duo-ux8406-second-screen
       BRANCH: asus-zenbook-duo-ux8406
     steps:
+      # The secrets and the host key. Without one of them, the job stops here
+      # and names it.
+      - env:
+          SSH_KEY: ${{ secrets.APORTS_SSH_KEY }}
+          TOKEN: ${{ secrets.APORTS_TOKEN }}
+          KNOWN_HOSTS: ${{ vars.APORTS_KNOWN_HOSTS }}
+        run: |
+          missing=0
+          [ -n "$SSH_KEY" ] || { echo "::error::APORTS_SSH_KEY is not set"; missing=1; }
+          [ -n "$TOKEN" ] || { echo "::error::APORTS_TOKEN is not set"; missing=1; }
+          [ -n "$KNOWN_HOSTS" ] || { echo "::error::APORTS_KNOWN_HOSTS is not set"; missing=1; }
+          exit "$missing"
       # Before the checkout, so that it uses git.
       - run: apk add --no-cache abuild atools git github-cli glab jq openssh-client
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

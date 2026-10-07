@@ -213,3 +213,6 @@ jobs:
     uses: ./.github/workflows/aports.yml
     with:
       tag: ${{ needs.release.outputs.tag_name }}
+    secrets:
+      APORTS_SSH_KEY: ${{ secrets.APORTS_SSH_KEY }}
+      APORTS_TOKEN: ${{ secrets.APORTS_TOKEN }}
