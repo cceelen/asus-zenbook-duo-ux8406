@@ -1,0 +1,29 @@
+[package]
+name = "asus-ux8406-keyboard-state"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Backlight and function row of the ASUS Zenbook Duo UX8406 keyboard, kept from one connection to the next"
+publish = false
+
+[dependencies]
+# Version 0.14 needs Rust 1.87, and Debian 13 has 1.85. Remove the upper limit
+# when rust-version is 1.87.
+aya = { version = ">=0.13.1, <0.14", default-features = false }
+clap = { version = "4", features = ["derive"] }
+tempfile = "3"
+thiserror = "2"
+
+[dev-dependencies]
+# Not used directly: assert_fs brings it in. Version 0.4.30 needs Rust 1.88 but
+# does not declare it, and Debian 13 has 1.85. Later versions declare it, and
+# cargo does not select them. Remove this line when rust-version is 1.88.
+ignore = ">=0.4.25, <0.4.30"
+assert_cmd = "2"
+assert_fs = "1"
+predicates = "3"
+rstest = "0.27"
+
+[lints]
+workspace = true

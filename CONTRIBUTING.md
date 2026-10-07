@@ -106,6 +106,8 @@ uses the committed files only.
 second-screen/   helper for the lower screen (Rust), udev rule
 tcc-guard/       thermal guard (Rust), systemd unit, OpenRC script
 keyboard-bpf/    HID-BPF program (C), hwdb entry
+keyboard-state/  helper that keeps the keyboard's light and row mode (Rust),
+                 udev rule; part of the keyboard-bpf package
 gnome-keys/      GNOME Shell extension for the display keys
 gnome-rotation/  GNOME Shell extension that turns the screens
 gnome-common/    files that the two extensions share

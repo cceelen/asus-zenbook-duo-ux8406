@@ -84,15 +84,17 @@ documentation directory.
 
 %package -n asus-zenbook-duo-ux8406-keyboard-bpf
 Summary:        HID-BPF program for the hotkeys of the Zenbook Duo UX8406 keyboard
-License:        GPL-2.0-only
-BuildArch:      noarch
+License:        GPL-2.0-only AND MIT
+Requires:       udev
 Requires:       udev-hid-bpf
 
 %description -n asus-zenbook-duo-ux8406-keyboard-bpf
 Makes the function row of the detachable keyboard (USB 0b05:1bf2, Bluetooth
 0b05:1bf3) work with the generic HID driver of the kernel: display brightness,
 microphone mute, emoji, MyASUS, the two display keys, the keyboard lighting
-and Fn+Esc. Loaded by udev-hid-bpf when the keyboard connects.
+and Fn+Esc. Loaded by udev-hid-bpf when the keyboard connects. A helper, run
+by udev, carries the lighting and the mode of the function row from the dock
+to Bluetooth and back.
 
 %package -n gnome-shell-extension-asus-zenbook-duo-ux8406-keys
 Summary:        GNOME Shell extension for the display keys of the Zenbook Duo UX8406
@@ -130,7 +132,7 @@ gnome-extensions enable builtin-screen-rotation@cceelen.github.io
 %build
 # The macros give the directories: Fedora ships no udev.pc and systemd.pc for
 # Meson to ask, and defines no macro for the udev directory itself.
-# -Dlicensedir installs each package's licence text and the notices of the two
+# -Dlicensedir installs each package's licence text and the notices of the
 # Rust programs to %%{_defaultlicensedir}/<package name>/ (%%{_licensedir}
 # itself is that directory plus this spec's name).
 %meson \
@@ -214,13 +216,17 @@ fi
 %systemd_postun_with_restart asus-ux8406-tcc-guard.service
 %endif
 
-# Fedora's macro expands to nothing (hwdb is updated by a file trigger of
-# systemd); an empty scriptlet would only be reported by rpmlint.
-%if 0%{?suse_version}
+# Fedora's hwdb macro expands to nothing (hwdb is updated by a file trigger
+# of systemd).
 %post -n asus-zenbook-duo-ux8406-keyboard-bpf
+%udev_rules_update
+%if 0%{?suse_version}
 %udev_hwdb_update
+%endif
 
 %postun -n asus-zenbook-duo-ux8406-keyboard-bpf
+%udev_rules_update
+%if 0%{?suse_version}
 %udev_hwdb_update
 %endif
 
@@ -244,6 +250,8 @@ fi
 %doc README.md
 %{_prefix}/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o
 %{_udevhwdbdir}/82-hid-bpf-asus-ux8406.hwdb
+%{_libexecdir}/asus-ux8406-keyboard-state
+%{_udevrulesdir}/80-asus-ux8406-keyboard-state.rules
 # openSUSE checks that every directory of a package has an owner; no package
 # there owns these.
 %if 0%{?suse_version}

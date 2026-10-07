@@ -1,0 +1,25 @@
+# ASUS Zenbook Duo UX8406 detachable keyboard: the backlight and the mode of
+# the function row go with the keyboard from the dock to Bluetooth and back.
+#
+# The keyboard is another HID device on each connection and starts each one
+# without its backlight and with the function row in its default mode. The
+# HID-BPF program of the keyboard holds both for the connection it is loaded
+# for, and takes its start values from the properties ASUS_UX8406_KBD_BACKLIGHT
+# and ASUS_UX8406_KBD_FN_LOCK of the HID device.
+#
+# This file sorts before udev-hid-bpf's 81-hid-bpf.rules: the properties are
+# set before the program is loaded, and the program's values are read before
+# it is removed (udev runs the commands of an event in the order of the rules).
+
+SUBSYSTEM!="hid", GOTO="asus_ux8406_keyboard_state_end"
+# USB (0b05:1bf2, or 0b05:1b2c of the UX8406MA) and Bluetooth (0b05:1bf3).
+KERNEL!="0003:0B05:1BF2.*|0005:0B05:1BF3.*|0003:0B05:1B2C.*", GOTO="asus_ux8406_keyboard_state_end"
+
+# A connection starts: what the other connection has, if it is still there,
+# else what was written down when the last one ended.
+ACTION=="add", IMPORT{program}="@LIBEXECDIR@/asus-ux8406-keyboard-state load %k"
+
+# A connection ends: write down what its program has.
+ACTION=="remove", RUN+="@LIBEXECDIR@/asus-ux8406-keyboard-state save %k"
+
+LABEL="asus_ux8406_keyboard_state_end"

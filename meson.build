@@ -6,6 +6,9 @@
 #                 OpenRC script
 #   keyboard-bpf  the HID-BPF program for the keyboard's hotkeys, and the
 #                 hwdb entry that has udev-hid-bpf load it
+#   keyboard-state the helper that carries the keyboard's backlight and
+#                 function row mode from one connection to the next, and
+#                 its udev rule; goes with keyboard-bpf
 #   gnome-keys    the GNOME Shell extension for the two display keys
 #   gnome-rotation the GNOME Shell extension that turns the built-in panels
 # This file sets the install directories and the cargo command; the parts
@@ -90,7 +93,7 @@ gnome_common = files('gnome-common/display.js', 'gnome-common/state.js')
 
 # Cargo. One target directory inside the build directory, so that nothing is
 # written into the source tree.
-rust = get_option('screen') or get_option('guard')
+rust = get_option('screen') or get_option('guard') or get_option('keyboard')
 cargo = find_program('cargo', required: rust)
 offline = get_option('offline').enabled() or (get_option('offline').auto() and fs.is_dir('vendor'))
 cargo_args = ['--locked', '--manifest-path', meson.project_source_root() / 'Cargo.toml']
@@ -123,6 +126,7 @@ if get_option('guard')
 endif
 if get_option('keyboard')
   subdir('keyboard-bpf')
+  subdir('keyboard-state')
 endif
 if get_option('gnome')
   subdir('gnome-keys')

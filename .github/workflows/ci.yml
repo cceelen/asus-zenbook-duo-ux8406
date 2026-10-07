@@ -33,6 +33,7 @@ jobs:
           cargo llvm-cov --locked -p asus-ux8406-tcc-guard --features failpoints
           --ignore-filename-regex /tests/ --fail-under-regions 100
       # The committed notices are those of Cargo.lock.
+      - run: cargo about generate --locked --offline -m keyboard-state/Cargo.toml about.hbs -o keyboard-state/THIRD-PARTY-NOTICES.txt
       - run: cargo about generate --locked --offline -m second-screen/Cargo.toml about.hbs -o second-screen/THIRD-PARTY-NOTICES.txt
       - run: cargo about generate --locked --offline -m tcc-guard/Cargo.toml about.hbs -o tcc-guard/THIRD-PARTY-NOTICES.txt
       - run: git diff --exit-code

@@ -25,7 +25,7 @@ Files: vendor/*
 Copyright: the authors of the crates, as stated in each crate's directory
 License: MIT or Apache-2.0 or Unicode-3.0 or Zlib or Unlicense or 0BSD
 Comment: Third-party Rust crates, exactly as published on crates.io, which
- the two Rust programs are built from (the source archive carries them so
+ the three Rust programs are built from (the source archive carries them so
  that the build needs no network). Each crate is in a directory of its own,
  name and version, with its licence text and copyright notices. The
  licence expressions that occur in the set are: MIT; Apache-2.0;
@@ -33,7 +33,8 @@ Comment: Third-party Rust crates, exactly as published on crates.io, which
  "Apache-2.0 WITH LLVM-exception" as further choices; "Unlicense OR MIT";
  Unicode-3.0 (the icu and related crates); Zlib (zlib-rs). Where a crate
  offers a choice, any of the offered licences may be used. The
- notices of the crates linked into the two programs are in
+ notices of the crates linked into the three programs are in
+ /usr/share/doc/asus-zenbook-duo-ux8406-keyboard-bpf/THIRD-PARTY-NOTICES.txt,
  /usr/share/doc/asus-zenbook-duo-ux8406-second-screen/THIRD-PARTY-NOTICES.txt and
  /usr/share/doc/asus-zenbook-duo-ux8406-tcc-guard/THIRD-PARTY-NOTICES.txt.
  .

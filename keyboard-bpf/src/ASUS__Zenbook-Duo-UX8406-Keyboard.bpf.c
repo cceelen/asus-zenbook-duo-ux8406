@@ -26,12 +26,14 @@
  *    keyboard does that by itself only until the host has sent it a command
  *    (such as the one for the backlight); from then on it merely reports the
  *    key;
- *  - starts every connection with F1 to F12; Fn+Esc activates the hotkeys.
- *    Docking and undocking moves the keyboard between USB and Bluetooth,
- *    which are two HID devices with one instance of this program each, and
- *    the keyboard does not come up in the same state on both. The state
- *    cannot be shared between the instances: udev-hid-bpf pins every map
- *    below the device's own directory and refuses a map pinned by name;
+ *  - starts every connection with the function row and the backlight that
+ *    two udev properties of the HID device give, and without them with F1
+ *    to F12; Fn+Esc activates the hotkeys. Docking and undocking moves the
+ *    keyboard between USB and Bluetooth, which are two HID devices with one
+ *    instance of this program each, and the keyboard comes up without its
+ *    backlight and not in the same row state on both. The instances cannot
+ *    share the state themselves: udev-hid-bpf pins every map below the
+ *    device's own directory and refuses a map pinned by name;
  *  - drops a report the keyboard sends unasked (5a 3d ...), whose further
  *    bytes would otherwise be taken for keys.
  */
@@ -256,6 +258,34 @@ struct {
 } zenbook_duo_kbd_state SEC(".maps");
 // NOLINTEND(misc-use-internal-linkage,cppcoreguidelines-avoid-non-const-global-variables)
 
+/*
+ * What the keyboard was last asked for on its other connection, as udev
+ * properties of the HID device: udev-hid-bpf fills a variable of this name
+ * with the property when it loads the program, and leaves it empty when
+ * there is none. One digit each: the backlight level (0 to 3) and the
+ * function row (0 hotkeys, 1 F1 to F12). asus-ux8406-keyboard-state sets
+ * the properties from the map above (keyboard-state/ in this tree).
+ */
+// NOLINTBEGIN(misc-use-internal-linkage,cppcoreguidelines-avoid-non-const-global-variables,readability-identifier-naming)
+char UDEV_PROP_ASUS_UX8406_KBD_BACKLIGHT[4];
+char UDEV_PROP_ASUS_UX8406_KBD_FN_LOCK[4];
+// NOLINTEND(misc-use-internal-linkage,cppcoreguidelines-avoid-non-const-global-variables,readability-identifier-naming)
+
+/*
+ * Put the digit of a property into `value`, if the property is one digit up
+ * to `max`. Says whether it was; `value` is left alone otherwise.
+ */
+static __always_inline bool property_digit(const char* property, __u8 max,
+                                           __u8* value) {
+  const char digit = property[0];
+
+  if (digit < '0' || digit > '0' + max || property[1] != '\0') {
+    return false;
+  }
+  *value = digit - '0';
+  return true;
+}
+
 static __always_inline struct KbdState* kbd_state(void) {
   __u32 key = 0;
 
@@ -469,15 +499,39 @@ static __always_inline bool has_hotkeys(const struct hid_bpf_probe_args* ctx) {
  * switches the function row by itself.
  *
  * The keyboard comes up with the function row in a state that cannot be
- * read, and not the same one on each connection. Starting with F1 to F12
- * makes Fn+Esc switch from a known state. The backlight is left as the
- * keyboard has it.
+ * read, and not the same one on each connection. Starting with the
+ * remembered state, or with F1 to F12 if there is none, makes Fn+Esc switch
+ * from a known state.
  *
  * The command is sent from here and waited for, which holds the connection
  * up for as long as the keyboard takes to answer (about half a second over
  * Bluetooth). It cannot be handed to the work queue from this function: the
  * program then loads and is dropped again at once.
  */
+static __always_inline void start(struct hid_bpf_ctx* hctx,
+                                  struct KbdState* state) {
+  /* A keyboard that refuses this still has its keys. */
+  state->fn_lock = kFnLockFunctionKeys;
+  property_digit(UDEV_PROP_ASUS_UX8406_KBD_FN_LOCK, kFnLockFunctionKeys,
+                 &state->fn_lock);
+  fn_lock_report()[kFnLockStateIndex] = state->fn_lock;
+  hid_bpf_hw_request(hctx, fn_lock_report(), kFeatureReportSize,
+                     HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
+
+  /*
+   * The keyboard comes up without its backlight after a change between the
+   * dock and Bluetooth. With a remembered level the backlight is set to it;
+   * without one it is left as the keyboard has it.
+   */
+  state->backlight = kBacklightOff;
+  if (property_digit(UDEV_PROP_ASUS_UX8406_KBD_BACKLIGHT, kBacklightOn,
+                     &state->backlight)) {
+    backlight_report()[kBacklightLevelIndex] = state->backlight;
+    hid_bpf_hw_request(hctx, backlight_report(), kFeatureReportSize,
+                       HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
+  }
+}
+
 SEC("syscall")
 // The loader looks the program up by its name, so it is global.
 // NOLINTNEXTLINE(misc-use-internal-linkage)
@@ -505,11 +559,7 @@ int probe(struct hid_bpf_probe_args* ctx) {
     return 0;
   }
 
-  /* A keyboard that refuses this still has its keys. */
-  state->fn_lock = kFnLockFunctionKeys;
-  fn_lock_report()[kFnLockStateIndex] = state->fn_lock;
-  hid_bpf_hw_request(hctx, fn_lock_report(), kFeatureReportSize,
-                     HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
+  start(hctx, state);
   hid_bpf_release_context(hctx);
 
   return 0;

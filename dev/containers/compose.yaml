@@ -26,6 +26,13 @@ x-check: &check
           /usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
           | grep -c '"pid"' | grep -qx 3
         echo "udev-hid-bpf reads the keyboard program"
+        # The helper that keeps the keyboard's state, and its rule: before
+        # the rule of udev-hid-bpf, and with the helper's own path.
+        "$${HELPER%/*}/asus-ux8406-keyboard-state" --version
+        grep -c "\"$${HELPER%/*}/asus-ux8406-keyboard-state " \
+          /usr/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules | grep -qx 2
+        "$${HELPER%/*}/asus-ux8406-keyboard-state" load 0003:0B05:1BF2.0001
+        echo "keyboard state helper in place"
       else
         echo "keyboard package not installed: no udev-hid-bpf here"
       fi
@@ -46,7 +53,9 @@ x-check: &check
       # Removal: the package manager runs the removal scripts, and no file of
       # the packages stays.
       eval "$$REMOVE"
-      for f in "$$HELPER" /usr/bin/asus-ux8406-tcc-guard /usr/sbin/asus-ux8406-tcc-guard \
+      for f in "$$HELPER" "$${HELPER%/*}/asus-ux8406-keyboard-state" \
+          /usr/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules \
+          /usr/bin/asus-ux8406-tcc-guard /usr/sbin/asus-ux8406-tcc-guard \
           /usr/lib/systemd/system/asus-ux8406-tcc-guard.service /etc/init.d/asus-ux8406-tcc-guard \
           /usr/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \
           /usr/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
@@ -148,11 +157,16 @@ services:
         ls -l /second-screen/libexec/asus-ux8406-second-screen /second-screen/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \
           /keyboard-bpf/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
           /keyboard-bpf/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
+          /keyboard-bpf/libexec/asus-ux8406-keyboard-state \
+          /keyboard-bpf/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules \
           /gnome-keys/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/extension.js \
           /gnome-rotation/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/extension.js
         grep -c "RUN+=\"$$(readlink /second-screen)/libexec/asus-ux8406-second-screen " \
           /second-screen/lib/udev/rules.d/90-asus-ux8406-second-screen.rules | grep -qx 3
         /second-screen/libexec/asus-ux8406-second-screen --version
+        grep -c "\"$$(readlink /keyboard-bpf)/libexec/asus-ux8406-keyboard-state " \
+          /keyboard-bpf/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules | grep -qx 2
+        /keyboard-bpf/libexec/asus-ux8406-keyboard-state --version
         ls -l /tcc-guard/bin/asus-ux8406-tcc-guard /tcc-guard/lib/systemd/system/asus-ux8406-tcc-guard.service \
           /tcc-guard/share/doc/asus-ux8406-tcc-guard/asus-ux8406-tcc-guard.toml.example
         grep -q "ExecStart=$$(readlink /tcc-guard)/bin/asus-ux8406-tcc-guard$$" \

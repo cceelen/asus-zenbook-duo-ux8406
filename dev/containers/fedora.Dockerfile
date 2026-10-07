@@ -49,7 +49,7 @@ FROM registry.fedoraproject.org/fedora:${RELEASE} AS install
 RUN --mount=type=bind,from=build,source=/out,target=/pkgs \
     dnf install -y /pkgs/asus-zenbook-duo-ux8406-second-screen-[0-9]*.x86_64.rpm \
         /pkgs/asus-zenbook-duo-ux8406-tcc-guard-[0-9]*.x86_64.rpm \
-        /pkgs/asus-zenbook-duo-ux8406-keyboard-bpf-*.noarch.rpm \
+        /pkgs/asus-zenbook-duo-ux8406-keyboard-bpf-[0-9]*.x86_64.rpm \
         /pkgs/gnome-shell-extension-asus-zenbook-duo-ux8406-keys-*.noarch.rpm \
         /pkgs/gnome-shell-extension-builtin-screen-rotation-*.noarch.rpm \
     && dnf clean all
