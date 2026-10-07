@@ -14,7 +14,9 @@ tested.
 The extension takes each built-in screen as mounted upright in the machine. Some
 small tablets and convertibles have a screen that is mounted turned (the kernel
 then reports a panel orientation). On such a machine the extension turns the
-picture wrongly: do not use it there.
+picture wrongly: do not use it there. The compositor (mutter) knows the panel
+orientation, but up to GNOME 51 it gives it neither to extensions nor over D-Bus
+(`GetCurrentState`).
 
 ## What it does
 
