@@ -1,6 +1,6 @@
 // Reading the display layout from the compositor and giving it one, through
 // org.gnome.Mutter.DisplayConfig. No GNOME Shell imports here, so that it can
-// be tried from the command line (verify.js).
+// be tried from the command line (the tools in the tests/ directories).
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
@@ -36,7 +36,7 @@ function call(method, parameters) {
     });
 }
 
-/** The compositor's state, as layout.js reads it. */
+/** The compositor's state, as state.js reads it. */
 export async function currentState() {
     const reply = await call('GetCurrentState', null);
 

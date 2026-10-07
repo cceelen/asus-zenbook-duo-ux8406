@@ -15,6 +15,7 @@ test('metadata.json carries the uuid the build installs under', () => {
 });
 
 test('shell-version holds plain major versions as strings', () => {
+    assert.ok(Array.isArray(metadata['shell-version']));
     assert.ok(metadata['shell-version'].length > 0);
     for (const version of metadata['shell-version'])
         assert.match(

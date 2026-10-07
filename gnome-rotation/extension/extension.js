@@ -16,8 +16,8 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {QuickToggle, SystemIndicator} from 'resource:///org/gnome/shell/ui/quickSettings.js';
 
-import {applyLayout, currentState, Method} from './display.js';
-import {panelsOf, rotate} from './rotation.js';
+import {applyLayout, currentState} from './display.js';
+import {rotate, uprightAfter} from './rotation.js';
 import {OrientationSensor} from './sensor.js';
 
 // GNOME's own setting for the rotation of the built-in panel.
@@ -31,41 +31,35 @@ const SETTLE_MS = 700;
  * GNOME shows its own switch for the same setting while it turns the panel
  * itself (no pointer device); this one is then hidden.
  */
-const RotationIndicator = GObject.registerClass(
-    class RotationIndicator extends SystemIndicator {
-        constructor(settings) {
-            super();
-            this._toggle = new QuickToggle({
-                title: 'Auto-rotate',
-                iconName: 'rotation-allowed-symbolic',
-                toggleMode: true,
-            });
-            settings.bind(LOCK, this._toggle, 'checked', Gio.SettingsBindFlags.INVERT_BOOLEAN);
-            this.quickSettingsItems.push(this._toggle);
+function rotationIndicator(settings) {
+    const indicator = new SystemIndicator();
+    const toggle = new QuickToggle({
+        title: 'Auto-rotate',
+        iconName: 'rotation-allowed-symbolic',
+        toggleMode: true,
+    });
 
-            this._monitors = global.backend.get_monitor_manager();
-            this._managed = this._monitors.connect('notify::panel-orientation-managed', () =>
-                this._sync(),
-            );
-            this._sync();
-        }
-
-        _sync() {
-            this._toggle.visible = !this._monitors.get_panel_orientation_managed();
-        }
-
-        destroy() {
-            this._monitors.disconnect(this._managed);
-            for (const item of this.quickSettingsItems) item.destroy();
-            super.destroy();
-        }
-    },
-);
+    settings.bind(LOCK, toggle, 'checked', Gio.SettingsBindFlags.INVERT_BOOLEAN);
+    // The binding ends when the switch is destroyed.
+    global.backend
+        .get_monitor_manager()
+        .bind_property(
+            'panel-orientation-managed',
+            toggle,
+            'visible',
+            GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.INVERT_BOOLEAN,
+        );
+    indicator.quickSettingsItems.push(toggle);
+    return indicator;
+}
 
 export default class BuiltinScreenRotation extends Extension {
+    // The layout from before the panels were turned. It stays when the
+    // extension is disabled: the Shell does that at each screen lock, and the
+    // laptop can be upright again only after it.
+    _upright = null;
+
     enable() {
-        // The layout from before the panels were turned.
-        this._upright = null;
         this._settleId = 0;
 
         const schema = Gio.SettingsSchemaSource.get_default().lookup(TOUCHSCREEN, true);
@@ -73,15 +67,15 @@ export default class BuiltinScreenRotation extends Extension {
         if (!schema?.has_key(LOCK)) return;
 
         this._settings = new Gio.Settings({settings_schema: schema});
-        this._lockChanged = this._settings.connect(`changed::${LOCK}`, () => this._settle());
-        this._indicator = new RotationIndicator(this._settings);
+        this._lockChanged = this._settings.connect(`changed::${LOCK}`, () => this._watch());
+        this._indicator = rotationIndicator(this._settings);
         Main.panel.statusArea.quickSettings.addExternalIndicator(this._indicator);
-        this._sensor = new OrientationSensor(() => this._settle());
         // A monitor came or went, as when the keyboard is put on the lower
         // panel: the layout that the compositor then takes is upright.
         this._monitorsChanged = Main.layoutManager.connect('monitors-changed', () =>
             this._settle(),
         );
+        this._watch();
     }
 
     disable() {
@@ -91,12 +85,26 @@ export default class BuiltinScreenRotation extends Extension {
         this._monitorsChanged = 0;
         this._sensor?.destroy();
         this._sensor = null;
+        for (const item of this._indicator?.quickSettingsItems ?? []) item.destroy();
         this._indicator?.destroy();
         this._indicator = null;
         if (this._lockChanged) this._settings.disconnect(this._lockChanged);
         this._lockChanged = 0;
         this._settings = null;
-        this._upright = null;
+    }
+
+    /**
+     * Have the sensor only while the rotation is not locked: the service
+     * reads the accelerometer as long as a program has a claim on it. A new
+     * sensor tells its orientation, and the panels then follow it.
+     */
+    _watch() {
+        if (this._settings.get_boolean(LOCK)) {
+            this._sensor?.destroy();
+            this._sensor = null;
+        } else if (!this._sensor) {
+            this._sensor = new OrientationSensor(() => this._settle());
+        }
     }
 
     /** Follow the orientation once it has held for SETTLE_MS. */
@@ -110,20 +118,25 @@ export default class BuiltinScreenRotation extends Extension {
     }
 
     async _rotate() {
-        if (!this._sensor || this._settings.get_boolean(LOCK)) return;
+        const sensor = this._sensor;
+
+        // No sensor: the rotation is locked, or the extension is disabled.
+        if (!sensor) return;
 
         const state = await currentState();
-        const orientation = this._sensor.orientation;
+
+        // Locked or disabled while the compositor gave its answer: do no more.
+        if (sensor !== this._sensor) return;
+
+        const orientation = sensor.orientation;
         const layout = rotate(state, orientation, this._upright);
 
         if (!layout) return;
-        // A layout that the compositor does not accept is not applied: the
-        // check throws, and the panels stay as they are.
-        await applyLayout(state, layout, Method.VERIFY);
+        // The compositor checks a layout before it takes it. One that it
+        // does not accept is not applied: the call throws, and the panels
+        // stay as they are.
         await applyLayout(state, layout);
-        // Turned from upright: remember the layout, to put it back as it was.
-        if (orientation === 'normal') this._upright = null;
-        else if (panelsOf(state).every((panel) => panel.transform === 0))
-            this._upright = state.logical;
+        if (sensor === this._sensor)
+            this._upright = uprightAfter(state, orientation, this._upright);
     }
 }
