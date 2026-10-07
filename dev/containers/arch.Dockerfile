@@ -5,7 +5,10 @@
 #   docker build -f dev/containers/arch.Dockerfile --target packages \
 #     --output dist/arch .
 
-FROM docker.io/library/archlinux:latest AS build
+# The base image, pinned by digest. Renovate updates the tag and the digest.
+FROM docker.io/library/archlinux:latest@sha256:4e77cf2ea5f410e6f8be5abf93ccf17ce2436e87a138c167208356711a405dbd AS base
+
+FROM base AS build
 # The makedepends of the PKGBUILD, and git for the source archive.
 # udev-hid-bpf is needed at run time only.
 RUN pacman -Syu --noconfirm --needed base-devel git meson rust clang libbpf \
@@ -47,7 +50,7 @@ RUN --network=none set -eu; \
 FROM scratch AS packages
 COPY --from=build /out/ /
 
-FROM docker.io/library/archlinux:latest AS install
+FROM base AS install
 # The image leaves out /usr/share/doc and /usr/share/man when installing; the
 # guard's example configuration and manual page are there.
 RUN sed -i 's# usr/share/doc/\*##; s#usr/share/man/\* ##' /etc/pacman.conf

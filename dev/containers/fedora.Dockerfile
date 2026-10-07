@@ -4,9 +4,11 @@
 # The packages alone, into dist/fedora/:
 #   docker build -f dev/containers/fedora.Dockerfile --target packages \
 #     --output dist/fedora .
-ARG RELEASE=44
 
-FROM registry.fedoraproject.org/fedora:${RELEASE} AS build
+# The base image, pinned by digest. Renovate updates the tag and the digest.
+FROM registry.fedoraproject.org/fedora:44@sha256:ba35579e107f26a4c2c000390fb3ff549f3858a9584a6b5a35f7fa51f54de309 AS base
+
+FROM base AS build
 RUN dnf install -y rpm-build git cargo clang libbpf-devel meson ninja-build python3 \
         systemd-devel systemd-rpm-macros kernel-headers glib2 nodejs rpmlint \
     && dnf clean all
@@ -45,7 +47,7 @@ RUN rc=0; \
 FROM scratch AS packages
 COPY --from=build /out/ /
 
-FROM registry.fedoraproject.org/fedora:${RELEASE} AS install
+FROM base AS install
 RUN --mount=type=bind,from=build,source=/out,target=/pkgs \
     dnf install -y /pkgs/asus-zenbook-duo-ux8406-second-screen-[0-9]*.x86_64.rpm \
         /pkgs/asus-zenbook-duo-ux8406-tcc-guard-[0-9]*.x86_64.rpm \

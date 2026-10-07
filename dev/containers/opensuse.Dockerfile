@@ -6,7 +6,10 @@
 #   docker build -f dev/containers/opensuse.Dockerfile --target packages \
 #     --output dist/opensuse .
 
-FROM registry.opensuse.org/opensuse/tumbleweed:latest AS build
+# The base image, pinned by digest. Renovate updates the tag and the digest.
+FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:3906bb6ea95dca6992ec37c360c75403f79331b11670c1972645390f031327a0 AS base
+
+FROM base AS build
 RUN zypper -n install rpm-build git cargo clang libbpf-devel meson ninja python3 \
         systemd-devel systemd-rpm-macros linux-glibc-devel gzip tar glib2-tools \
         nodejs-default rpmlint \
@@ -46,7 +49,7 @@ RUN rc=0; \
 FROM scratch AS packages
 COPY --from=build /out/ /
 
-FROM registry.opensuse.org/opensuse/tumbleweed:latest AS install
+FROM base AS install
 # Tumbleweed does not package udev-hid-bpf, which the keyboard package needs;
 # only the second-screen and guard packages are installed. The extension
 # package is not installed either: it would pull in a whole GNOME.
