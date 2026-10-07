@@ -124,11 +124,16 @@ export class OrientationSensor {
 }
 
 /**
- * Follows whether iio-sensor-proxy has an accelerometer, without a claim:
- * the property HasAccelerometer can be read by any program. Calls `changed()`
- * when the answer changes, also when the service starts or stops.
+ * Follows whether iio-sensor-proxy gives the orientation of the laptop,
+ * without a claim: any program can read the property. Calls `changed()` when
+ * the answer changes, also when the service starts or stops.
+ *
+ * The service gives the orientation from an accelerometer only, as GNOME's
+ * own rotation does: the accelerometer measures where gravity is. A
+ * gyroscope measures only how fast the laptop turns, and that does not tell
+ * which side is up.
  */
-export class AccelerometerPresence {
+export class OrientationPresence {
     constructor(changed) {
         this._changed = changed;
         this._cancellable = new Gio.Cancellable();
@@ -161,7 +166,7 @@ export class AccelerometerPresence {
         );
     }
 
-    /** True while the service is there and has an accelerometer. */
+    /** True while the service is there and gives the orientation. */
     get present() {
         if (!this._proxy?.g_name_owner) return false;
 

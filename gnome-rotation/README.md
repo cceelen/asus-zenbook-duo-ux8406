@@ -31,7 +31,7 @@ only; the saved `monitors.xml` does not change. With the built-in screens off,
 the extension does nothing.
 
 The orientation comes from `iio-sensor-proxy`. On a machine without a built-in
-screen or without an accelerometer, the extension does nothing.
+screen, the extension does nothing.
 
 GNOME Shell 45 to 51 is declared. Only GNOME Shell 50 is tested.
 
@@ -48,10 +48,19 @@ The switch "Auto-rotate" in the quick settings turns the rotation on and off. It
 is GNOME's setting `orientation-lock`. While it is off, the extension does not
 use the sensor.
 
-The switch shows only when `iio-sensor-proxy` has an accelerometer and the
+The switch shows only when `iio-sensor-proxy` gives the orientation and the
 machine has a built-in screen. When GNOME turns the screen itself (no pointer
 device connected), GNOME shows its own switch for the same setting, and this one
 is hidden.
+
+When no sensor gives the orientation, two buttons are in the place of the
+switch. Each turns the built-in screens by 90 degrees, counterclockwise or
+clockwise: left side up, upright, right side up. To try the buttons on a machine
+with a sensor, stop the service:
+
+```sh
+sudo systemctl stop iio-sensor-proxy
+```
 
 ## Test
 
