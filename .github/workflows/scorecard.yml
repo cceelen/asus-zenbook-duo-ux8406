@@ -2,10 +2,12 @@
 # The result goes to code scanning and, in a public repository, to the
 # Scorecard API for the badge of the README. Most checks are about the
 # settings of the repository, not about a commit: once a week is enough.
+# After a change of the settings, start a run by hand ("Run workflow").
 name: scorecard
 
 on:
   branch_protection_rule:
+  workflow_dispatch:
   schedule:
     - cron: "41 3 * * 2"
 
