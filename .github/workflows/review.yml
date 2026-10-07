@@ -131,15 +131,12 @@ jobs:
       TRUSTED: ${{ github.event.pull_request.user.login == github.repository_owner }}
     steps:
       # The review text is made from the fields of the findings, most severe
-      # first. A finding blocks when the model says so, when it is critical
-      # or high, or when it is medium in safety, security or supply chain:
-      # the rule is here, not left to the model. A blocking finding asks for
-      # changes.
+      # first. A finding blocks when it is medium or more severe, or when the
+      # model says so: the rule is here, not left to the model. A blocking
+      # finding asks for changes.
       - run: |
           rules='
-            def blocks: .blocking
-              or (.severity == "critical" or .severity == "high")
-              or (.severity == "medium" and (.area == "safety" or .area == "security" or .area == "supply-chain"));
+            def blocks: .blocking or .severity != "low";
             [.findings[] | select(.confidence >= 0.8)]'
           jq -r "$rules"'
             | sort_by({critical: 0, high: 1, medium: 2, low: 3}[.severity])
