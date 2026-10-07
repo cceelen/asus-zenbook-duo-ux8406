@@ -67,6 +67,11 @@ gh attestation verify asus-zenbook-duo-ux8406-<version>.tar.gz \
     --signer-workflow cceelen/asus-zenbook-duo-ux8406/.github/workflows/release-files.yml
 ```
 
+The release has the Sigstore bundle of that attestation next to the archive,
+`asus-zenbook-duo-ux8406-<version>.tar.gz.sigstore.json`. With it, the check
+does not need the attestation API: add
+`--bundle asus-zenbook-duo-ux8406-<version>.tar.gz.sigstore.json`.
+
 A Nix package: the subject of its attestations is the NAR of its store path.
 
 ```sh

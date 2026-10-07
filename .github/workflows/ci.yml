@@ -64,6 +64,29 @@ jobs:
         with:
           createIssues: false
 
+  # The fuzz targets of the guard (tcc-guard/fuzz) build, and a short run of
+  # each finds nothing. Longer runs are for a contributor's machine.
+  fuzz:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          toolchain: nightly
+          components: clippy, rustfmt
+      - run: cargo install --locked cargo-fuzz
+      - working-directory: tcc-guard/fuzz
+        run: |
+          cargo fmt --check
+          # cargo fuzz has no --locked: the fetch fails if Cargo.lock is stale.
+          cargo fetch --locked
+          cargo clippy --locked --all-targets -- -D warnings
+          for target in $(cargo fuzz list); do
+            cargo fuzz run "$target" -- -max_total_time=60
+          done
+
   # Every hook of .pre-commit-config.yaml: formats, lints, spelling,
   # licences.
   pre-commit:

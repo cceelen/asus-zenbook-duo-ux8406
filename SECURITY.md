@@ -13,5 +13,5 @@ Do not open a public issue for a vulnerability.
 Only the latest release gets fixes.
 
 The service that reads the kernel log is a workaround until the BIOS or the
-kernel handles the thermal event. Its parsers have tests for hostile input, but
-no fuzz tests.
+kernel handles the thermal event. Its parsers have tests for hostile input and
+fuzz targets (`tcc-guard/fuzz`, run with `cargo +nightly fuzz run kmsg`).

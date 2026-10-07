@@ -1,0 +1,41 @@
+# Fuzz targets for what the guard reads from outside: kernel log records, sysfs
+# values and the configuration file. Not a member of the workspace: it needs
+# a nightly compiler and libFuzzer (cargo-fuzz), and is not in a release.
+#
+#   cargo +nightly fuzz run kmsg
+[package]
+name = "asus-ux8406-tcc-guard-fuzz"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+asus-ux8406-tcc-guard = { path = ".." }
+
+[workspace]
+
+[[bin]]
+name = "kmsg"
+path = "fuzz_targets/kmsg.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "sysfs"
+path = "fuzz_targets/sysfs.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "config"
+path = "fuzz_targets/config.rs"
+test = false
+doc = false
+bench = false

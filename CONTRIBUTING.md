@@ -76,6 +76,16 @@ cargo llvm-cov -p asus-ux8406-tcc-guard --features failpoints \
     --ignore-filename-regex /tests/ --fail-under-regions 100
 ```
 
+The fuzz targets of the guard, with
+[cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz) and a nightly compiler:
+`kmsg` (kernel log records), `sysfs` (sysfs values), `config` (the configuration
+file). The CI runs each for a minute.
+
+```sh
+cd tcc-guard/fuzz
+cargo +nightly fuzz run kmsg
+```
+
 After a change of `Cargo.lock`, write the third-party notices again with
 [cargo-about](https://github.com/EmbarkStudios/cargo-about). The commands are in
 `about.toml`.
