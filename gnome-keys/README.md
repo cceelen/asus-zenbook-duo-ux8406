@@ -32,7 +32,8 @@ meson test -C build --suite gnome-keys
 The tests use node and need no GNOME session. `layout.js` has the logic and no
 GNOME imports; `display.js` calls `org.gnome.Mutter.DisplayConfig`. `state.js`
 and `display.js` are links to `../gnome-common`: the two extensions of this
-project use the same files, and the build installs a copy in each.
+project use the same files, and the build installs a copy in each. The tests of
+the two extensions also share their fixtures: `../gnome-common/tests`.
 
 `tests/verify.js` is a manual check in a GNOME session. It asks Mutter to verify
 the current layout and the layout that the key requests. It applies nothing.

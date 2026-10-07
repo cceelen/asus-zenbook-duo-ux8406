@@ -130,6 +130,31 @@ export function isValid(state, layout) {
     return reached.size === areas.length;
 }
 
+/**
+ * `logical` with the monitors that lie in line with `area`, at its near edge
+ * or beyond it in the direction [dx, dy], moved by `steps` times the size of
+ * `area` in that direction: 1 makes room for a monitor there, -1 closes the
+ * hole that one leaves.
+ */
+export function shifted(state, logical, area, [dx, dy], steps) {
+    const [from, size, across, span] =
+        dx !== 0 ? ['x', 'width', 'y', 'height'] : ['y', 'height', 'x', 'width'];
+    const forward = dx + dy > 0;
+
+    return logical.map((monitor) => {
+        const other = areaOf(state, monitor);
+        const inLine =
+            other[across] < area[across] + area[span] && other[across] + other[span] > area[across];
+        const beyond = forward
+            ? other[from] >= area[from]
+            : other[from] + other[size] <= area[from] + area[size];
+
+        return inLine && beyond
+            ? {...monitor, [from]: monitor[from] + steps * (dx + dy) * area[size]}
+            : {...monitor};
+    });
+}
+
 /** Whether `logical` shows exactly the connectors of `saved`, without `except`. */
 export function isRest(logical, saved, except = null) {
     const now = logical.flatMap((monitor) => monitor.connectors).sort();
