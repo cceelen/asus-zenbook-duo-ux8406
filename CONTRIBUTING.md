@@ -57,7 +57,9 @@ Formats and lints are [pre-commit](https://pre-commit.com) hooks. Run
 tree.
 
 Do not run the tests as root. `meson configure build` lists the options; for
-example `-Dkeyboard=false` omits a part.
+example `-Dkeyboard=false` omits a part. `-Dunit_checks=enabled` adds the checks
+of the guard's systemd unit with `systemd-analyze` (`verify`, and an exposure of
+at most 1.3), as CI does.
 
 The command below builds the packages of all distributions in containers. Each
 build runs the linter of the distribution (rpmlint, lintian, namcap,
@@ -84,6 +86,11 @@ Fuzz targets of the guard's parsers are in `fuzz/`, with
 mkdir -p fuzz/corpus/kmsg
 cargo +nightly fuzz run kmsg fuzz/corpus/kmsg fuzz/seeds/kmsg -- -max_total_time=60
 ```
+
+Each pull request gives each target every input of `fuzz/seeds/` and of the
+saved corpus once. The fuzzing runs each night on main (`fuzz.yml`), and each
+input that makes a target fail gets an issue. Add that input to
+`fuzz/seeds/<target>/` in the pull request that fixes the failure.
 
 After a change of `Cargo.lock`, write the third-party notices again with
 [cargo-about](https://github.com/EmbarkStudios/cargo-about). The commands are in

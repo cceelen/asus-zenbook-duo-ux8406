@@ -102,10 +102,17 @@ jobs:
       id-token: write
       attestations: write
       artifact-metadata: write
+  # The packages of each distribution: built, linted, installed and removed.
+  packages:
+    needs: release
+    if: ${{ needs.release.outputs.release_created == 'true' }}
+    uses: ./.github/workflows/packages.yml
+    permissions:
+      contents: read
   # Releases are immutable: every file must be on the draft before it is
   # published. GitHub attests the release, with its files, at publication.
   publish:
-    needs: [release, release-files, release-nix]
+    needs: [release, release-files, release-nix, packages]
     runs-on: ubuntu-26.04
     env:
       GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
