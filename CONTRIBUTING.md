@@ -57,8 +57,8 @@ Formats and lints are [pre-commit](https://pre-commit.com) hooks. Run
 tree.
 
 Do not run the tests as root. `meson configure build` lists the options; for
-example `-Dkeyboard=false` omits a part. `-Dunit_checks=enabled` adds the checks of
-the guard's systemd unit with `systemd-analyze` (`verify`, and an exposure of
+example `-Dkeyboard=false` omits a part. `-Dunit_checks=enabled` adds the checks
+of the guard's systemd unit with `systemd-analyze` (`verify`, and an exposure of
 at most 1.3), as CI does.
 
 The command below builds the packages of all distributions in containers. Each
