@@ -59,7 +59,7 @@ repos:
     rev: v2.5.15
     hooks:
       - id: biome-check
-        files: ^gnome-keys/.*\.js$
+        files: ^gnome-(common|keys|rotation)/.*\.js$
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
     hooks:
