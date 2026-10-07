@@ -25,10 +25,20 @@ permissions:
 jobs:
   rust:
     runs-on: ubuntu-26.04
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      # Without the cache service, rustc compiles as without sccache.
+      SCCACHE_IGNORE_SERVER_IO_ERROR: "1"
+      RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # sccache keeps what rustc compiles in the Actions cache: a crate that
+      # did not change is not compiled again, also a crate of this workspace.
+      - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
+        with:
+          version: v0.18.0
       - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
         with:
           components: clippy, rustfmt, llvm-tools-preview
@@ -59,10 +69,17 @@ jobs:
   # enough: the language and the library are those of the compiler front end.
   rust-oldest:
     runs-on: ubuntu-26.04
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      SCCACHE_IGNORE_SERVER_IO_ERROR: "1"
+      RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
+        with:
+          version: v0.18.0
       - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
         with:
           toolchain: "1.85"
@@ -136,10 +153,17 @@ jobs:
   # runs the same tests with the fail points, for the coverage.
   meson:
     runs-on: ubuntu-26.04
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      SCCACHE_IGNORE_SERVER_IO_ERROR: "1"
+      RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
+        with:
+          version: v0.18.0
       # Meson builds the crates into build/cargo.
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
