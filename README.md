@@ -1,5 +1,7 @@
 # Linux packages for the ASUS Zenbook Duo UX8406
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cceelen/asus-zenbook-duo-ux8406/badge)](https://scorecard.dev/viewer/?uri=github.com/cceelen/asus-zenbook-duo-ux8406)
+
 Packages that fix common Linux problems on the
 [ASUS Zenbook Duo UX8406](https://www.asus.com/us/laptops/for-home/zenbook/asus-zenbook-duo-2024-ux8406/).
 
