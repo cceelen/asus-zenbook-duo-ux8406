@@ -235,14 +235,11 @@ Keyboard:
 - Bluetooth special function is triggering BT connect events of the keyboard and
   as far as the current testing showed does not generate a host visible event.
 - The package controls the keyboard light. The desktop cannot control it.
-- The first press of F4 after a connection can have no effect.
 
 Lower screen:
 
 - Windows from the lower screen stay on the upper screen when the lower screen
   comes back.
-- If the laptop starts with the keyboard on the lower screen, the screen
-  possibly stays off after you remove the keyboard. Not tested.
 
 ## Upstream fixes
 
