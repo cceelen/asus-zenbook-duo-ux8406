@@ -192,80 +192,9 @@ jobs:
         with:
           filePath: sbom
           filePattern: "*.spdx.json"
-  # Alpine: a merge request to aports, from the owner's fork. Alpine's CI
-  # builds it; after an Alpine developer merges it, Alpine's builders build
-  # and sign the packages. No maintained template makes aports merge
-  # requests, so the steps are written here.
-  #
-  # The first run adds the aport to testing/; later runs upgrade it. The
-  # token in the environment `aports` can push to the fork only.
+  # Alpine: a merge request to aports (aports.yml).
   aports:
     needs: [release, publish]
-    if: ${{ vars.APORTS_FORK != '' }}
-    runs-on: ubuntu-26.04
-    environment: aports
-    env:
-      GH_TOKEN: ${{ github.token }}
-      GH_REPO: ${{ github.repository }}
-      TAG: ${{ needs.release.outputs.tag_name }}
-      FORK: ${{ vars.APORTS_FORK }}
-      # testing/ until Alpine moves the aport to community/. The directory has
-      # the name of pkgname in the APKBUILD, as aports wants.
-      APORT: ${{ vars.APORTS_DIR || 'testing' }}/asus-zenbook-duo-ux8406-second-screen
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ needs.release.outputs.tag_name }}
-          persist-credentials: false
-          path: tree
-      # The archive that abuild checksum hashes is the attested one.
-      - run: |
-          gh release download "$TAG" --pattern 'asus-zenbook-duo-ux8406-*.tar.gz' --dir distfiles
-          gh attestation verify distfiles/*.tar.gz --repo "$GH_REPO" \
-            --signer-workflow "$GH_REPO/.github/workflows/release-files.yml"
-      # Only the commits of aports are fetched, and only the directory of the
-      # aport is checked out. The history is complete, so that the fork
-      # accepts the push.
-      - run: |
-          git clone --filter=tree:0 --no-checkout \
-            https://gitlab.alpinelinux.org/alpine/aports.git aports
-          git -C aports sparse-checkout set "$APORT"
-          git -C aports checkout
-          mkdir -p "aports/$APORT"
-          cp tree/packaging/alpine/* "aports/$APORT/"
-      - uses: jirutka/setup-alpine@ae3b3ddba35054804fc4a3507b519fa7e8152050 # v1.4.1
-        with:
-          branch: edge
-          packages: abuild atools
-      - shell: alpine.sh {0}
-        run: |
-          cd "aports/$APORT"
-          SRCDEST="$GITHUB_WORKSPACE/distfiles" abuild checksum
-          apkbuild-lint APKBUILD
-          abuild validate
-      # The push opens the merge request (GitLab push options). The author is
-      # the maintainer of the APKBUILD.
-      - env:
-          APORTS_TOKEN: ${{ secrets.APORTS_TOKEN }}
-        run: |
-          cd aports
-          version=${TAG#v}
-          if git cat-file -e "HEAD:$APORT/APKBUILD" 2>/dev/null; then
-            title="$APORT: upgrade to $version"
-          else
-            title="$APORT: new aport"
-          fi
-          author=$(sed -n 's/^# Maintainer: //p' "$APORT/APKBUILD")
-          email=${author##*<}
-          git add "$APORT"
-          git -c user.name="${author% <*}" -c user.email="${email%>}" \
-            commit --quiet --message "$title"
-          branch="asus-zenbook-duo-ux8406-$version"
-          git push --quiet \
-            -o merge_request.create \
-            -o merge_request.target_project=alpine/aports \
-            -o merge_request.target=master \
-            -o "merge_request.title=$title" \
-            -o merge_request.remove_source_branch \
-            "https://oauth2:${APORTS_TOKEN}@gitlab.alpinelinux.org/${FORK}.git" \
-            "HEAD:refs/heads/$branch"
+    uses: ./.github/workflows/aports.yml
+    with:
+      tag: ${{ needs.release.outputs.tag_name }}
