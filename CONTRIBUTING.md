@@ -89,8 +89,8 @@ cargo +nightly fuzz run kmsg fuzz/corpus/kmsg fuzz/seeds/kmsg -- -max_total_time
 
 Each pull request gives each target every input of `fuzz/seeds/` and of the
 saved corpus once. The fuzzing runs each night on main (`fuzz.yml`), and each
-input that makes a target fail gets an issue. Add that input to
-`fuzz/seeds/<target>/` in the pull request that fixes the failure.
+input that makes a target fail gets a private draft security advisory. Add that
+input to `fuzz/seeds/<target>/` in the pull request that fixes the failure.
 
 After a change of `Cargo.lock`, write the third-party notices again with
 [cargo-about](https://github.com/EmbarkStudios/cargo-about). The commands are in
