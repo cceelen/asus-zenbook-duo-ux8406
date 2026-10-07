@@ -58,7 +58,8 @@ jobs:
       # goes next to it. The log of a public repository is public: the output
       # goes there only when the target saved no input (a failure to build or
       # to start, not a finding), as it then has no input in it.
-      - id: fuzz
+      - name: Fuzz each target for five minutes
+        id: fuzz
         run: |
           failed=""
           for target in $(cargo fuzz list); do
@@ -69,7 +70,10 @@ jobs:
               if [ -z "$(find "fuzz/artifacts/$target" -type f ! -name output.txt)" ]; then
                 cat "fuzz/artifacts/$target/output.txt"
               fi
+              echo "$target: failed"
               failed="$failed $target"
+            else
+              echo "$target: no failure"
             fi
           done
           if [ -n "$failed" ]; then
@@ -84,7 +88,8 @@ jobs:
       # The default token cannot write advisories: FUZZ_ADVISORY_TOKEN is a
       # fine-grained token with "Repository security advisories" set to read
       # and write (docs/releases.md), given to this step only.
-      - if: ${{ failure() && steps.fuzz.outcome == 'failure' }}
+      - name: Open a private advisory for each finding
+        if: ${{ failure() && steps.fuzz.outcome == 'failure' }}
         env:
           GH_TOKEN: ${{ secrets.FUZZ_ADVISORY_TOKEN }}
           GH_REPO: ${{ github.repository }}
@@ -139,7 +144,8 @@ jobs:
           done
       # Only what adds coverage is kept. Saved also after a failure: what
       # led there is worth keeping.
-      - if: ${{ !cancelled() }}
+      - name: Keep only the corpus that adds coverage
+        if: ${{ !cancelled() }}
         run: |
           for target in $(cargo fuzz list); do
             cargo fuzz cmin "$target" "fuzz/corpus/$target"
