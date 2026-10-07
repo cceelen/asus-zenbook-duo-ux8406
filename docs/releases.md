@@ -119,8 +119,9 @@ The attestations do not cover the packages from COPR, OBS and Alpine.
   and variables, Actions). Renew it before it expires.
 - A personal access token for the nightly fuzz run: fine-grained, for this
   repository only, with "Repository security advisories" set to read and write.
-  Store it as the repository secret `FUZZ_ADVISORY_TOKEN`. Without it, a finding
-  is only in the artifact `fuzz-findings` of the failed run.
+  Store it as the repository secret `FUZZ_ADVISORY_TOKEN`. Without it, the run
+  fails and does not keep the input: the log and the artifacts of a public
+  repository are public.
 - Rulesets (Settings, Rules, Rulesets): one for `main` and one for the tags
   `v*`. For `main`: no deletion, no force push, linear history, pull requests,
   and the checks of `ci.yml` as required status checks, with "Require branches
