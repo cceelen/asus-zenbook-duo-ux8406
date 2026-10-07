@@ -101,7 +101,8 @@ uses the committed files only.
 - A change to the build, the install paths or a recipe passes the container
   builds.
 - Rust for programs, C for the HID-BPF program, Meson for the build. No
-  Makefiles. No shell scripts for logic.
+  Makefiles. No shell scripts for logic. A few lines of shell in a step of a
+  workflow are not a script.
 - Use established crates for the command line, logging, signals and errors.
 - No test code in `src/`. Tests are in `tests/`, one file for each topic. A test
   machine is a directory tree in `tests/fixtures/`.
@@ -110,8 +111,8 @@ uses the committed files only.
   each file.
 
 An AI reviewer (`.github/workflows/review.yml`) reads each pull request. It
-approves a pull request of the owner or of Renovate when it finds nothing that
-must change, and requests changes when it finds something. For a pull request of
+approves a pull request of the owner when it finds nothing that must change, and
+requests changes when it finds something. For a pull request of Renovate or of
 another contributor it writes a comment; the owner reviews and approves it.
 
 ## Layout

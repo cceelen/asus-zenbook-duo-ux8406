@@ -1,9 +1,10 @@
 # AI review of each pull request (Claude Code, anthropics/claude-code-action).
 # The model reads the diff and gives a verdict; it has no tool that writes.
 # A second job, which does not check out the pull request, posts the verdict
-# as a review: an approval for a pull request of the owner or of Renovate, a
-# request for changes when something blocks, and a comment in all other
-# cases. Other contributors' pull requests get their approval from the owner.
+# as a review: an approval for a pull request of the owner, a request for
+# changes when something blocks, and a comment in all other cases. Pull
+# requests of Renovate and of other contributors get their approval from the
+# owner: their text comes from outside and could steer the model.
 #
 # Set up: one of two secrets, CLAUDE_CODE_OAUTH_TOKEN (a Claude Pro or Max
 # subscription; make it with `claude setup-token`) or ANTHROPIC_API_KEY (the
@@ -40,7 +41,6 @@ jobs:
       - if: ${{ env.HAS_KEY == 'true' }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
       - if: ${{ env.HAS_KEY == 'true' }}
         id: review
@@ -53,8 +53,8 @@ jobs:
           allowed_bots: renovate
           prompt: |
             Review pull request #${{ github.event.pull_request.number }} of ${{ github.repository }}.
-            The base is origin/${{ github.event.pull_request.base.ref }}; read the diff with
-            `git diff origin/${{ github.event.pull_request.base.ref }}...HEAD`.
+            Read the diff with `gh pr diff ${{ github.event.pull_request.number }}`; the
+            files of the pull request are in the working directory.
 
             Read CONTRIBUTING.md and SECURITY.md first. Look for defects, security
             problems (the guard and the second-screen helper run as root), missing
@@ -69,7 +69,7 @@ jobs:
             what you checked.
           claude_args: |
             --max-turns 40
-            --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
+            --allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr view:*)"
             --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["approve","request_changes"]},"body":{"type":"string"}},"required":["verdict","body"],"additionalProperties":false}'
 
   # Posts the verdict. It runs nothing from the pull request.
@@ -84,8 +84,8 @@ jobs:
       GH_REPO: ${{ github.repository }}
       PR: ${{ github.event.pull_request.number }}
       RESULT: ${{ needs.review.outputs.result }}
-      # Only these authors get an approval from the AI.
-      TRUSTED: ${{ github.event.pull_request.user.login == github.repository_owner || github.event.pull_request.user.login == 'renovate[bot]' }}
+      # Only the owner gets an approval from the AI.
+      TRUSTED: ${{ github.event.pull_request.user.login == github.repository_owner }}
     steps:
       - run: |
           verdict=$(jq -r .verdict <<< "$RESULT")
