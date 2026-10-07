@@ -1,10 +1,28 @@
 {
   description = "Userland support for the ASUS Zenbook Duo UX8406";
 
+  # The binary cache that the release workflow fills (docs/releases.md). Nix
+  # reads this for `nix build` or `nix run` of this flake and asks before it
+  # uses it. A NixOS system that has this flake as an input does not read it:
+  # set nix.settings there (README, NixOS).
+  nixConfig = {
+    extra-substituters = [ "https://asus-zenbook-duo-ux8406.cachix.org" ];
+    extra-trusted-public-keys = [ "asus-zenbook-duo-ux8406.cachix.org-1:XtBns1QGgU3DVAFWmbBzGpVX1jnhJbNcmp+U86CfQbQ=" ];
+  };
+
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  # Only for the output sboms, which the release workflow builds. Nix fetches
+  # an input when an output needs it: a user of the packages does not fetch
+  # this one.
+  inputs.bombon.url = "github:nikstur/bombon";
+  inputs.bombon.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs =
-    { self, nixpkgs }:
+    {
+      self,
+      nixpkgs,
+      bombon,
+    }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -19,6 +37,13 @@
         gnome-shell-extension-builtin-screen-rotation = parts.gnome-rotation;
         default = parts.second-screen;
       };
+
+      # One CycloneDX SBOM for each package: its runtime closure and, for the
+      # Rust packages, the crates in the binary (package.nix, vendoredSbom).
+      # .github/workflows/release-nix.yml attests each one with its package.
+      sboms.${system} = builtins.mapAttrs (_: package: bombon.lib.${system}.buildBom package { }) (
+        removeAttrs self.packages.${system} [ "default" ]
+      );
 
       # NixOS: imports = [ asus-zenbook-duo-ux8406.nixosModules.default ];
       #

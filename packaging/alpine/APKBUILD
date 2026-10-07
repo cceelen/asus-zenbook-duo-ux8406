@@ -1,3 +1,4 @@
+# Contributor: Christian Ceelen <christian.ceelen+ux8406@gmail.com>
 # Maintainer: Christian Ceelen <christian.ceelen+ux8406@gmail.com>
 pkgname=asus-zenbook-duo-ux8406-second-screen
 # The name of the thermal guard package; it is used in this one place.
@@ -8,8 +9,7 @@ pkgdesc="Lower panel of the Zenbook Duo UX8406 off while the keyboard lies on it
 url="https://github.com/cceelen/asus-zenbook-duo-ux8406"
 arch="x86_64"
 license="MIT"
-makedepends="abuild-meson cargo clang glib-dev libbpf-dev linux-headers meson
-	nodejs python3 samurai"
+makedepends="abuild-meson cargo glib-dev meson nodejs python3 samurai"
 # The scripts of the -openrc subpackage are named here as well: abuild reads
 # the install scripts of all subpackages from this list, by the name of the
 # package each belongs to. They start the guard, and stop it, which puts the
@@ -22,29 +22,32 @@ install="$pkgname.post-install $pkgname.post-upgrade $pkgname.pre-deinstall
 # licence files.
 subpackages="
 	$pkgname-udev:panel_udev:noarch
-	asus-zenbook-duo-ux8406-keyboard-bpf:keyboard
-	asus-zenbook-duo-ux8406-keyboard-bpf-udev:keyboard_udev:noarch
 	gnome-shell-extension-asus-zenbook-duo-ux8406-keys:gnome_keys:noarch
 	gnome-shell-extension-builtin-screen-rotation:gnome_rotation:noarch
 	$_guard:guard
 	$_guard-openrc:guard_openrc
 	$_guard-doc:guard_doc:noarch
 	"
-# No published source yet: the archive from `meson dist` lies next to this
-# file.
-source="asus-zenbook-duo-ux8406-$pkgver.tar.gz"
+# The archive of the GitHub release (meson dist, with the crates in vendor/),
+# which the release workflow attests. The container build puts the archive
+# of the tree into SRCDEST, so abuild does not download it.
+source="https://github.com/cceelen/asus-zenbook-duo-ux8406/releases/download/v$pkgver/asus-zenbook-duo-ux8406-$pkgver.tar.gz"
 builddir="$srcdir/asus-zenbook-duo-ux8406-$pkgver"
-# The HID-BPF object is not a host binary.
-options="!strip"
 
 # abuild-meson is Alpine's wrapper for `meson setup`: it sets the prefix, the
 # directories and the build type the way Alpine wants them. Alpine has no
 # systemd, so the guard is installed with its OpenRC script. udev.pc is in
 # eudev-dev, which is not needed for anything else here: the udev directory is
 # given. The licence texts go to /usr/share/licenses/<package>/.
+#
+# The keyboard part (the HID-BPF program and its state helper) is not built:
+# Alpine has no udev-hid-bpf, which loads the program. The GNOME extension
+# still gives each touchscreen its panel; only its two display keys need the
+# keyboard program. Refer to issue 43.
 build() {
 	abuild-meson \
 		-Dinit=openrc \
+		-Dkeyboard=false \
 		-Dudevdir=/usr/lib/udev \
 		-Dlicensedir=share/licenses \
 		. output
@@ -69,26 +72,6 @@ panel_udev() {
 	install_if="$pkgname=$pkgver-r$pkgrel udev"
 
 	amove usr/lib/udev/rules.d/90-asus-ux8406-second-screen.rules
-}
-
-keyboard() {
-	pkgdesc="HID-BPF program for the hotkeys of the Zenbook Duo UX8406 keyboard"
-	license="GPL-2.0-only AND MIT"
-	# udev-hid-bpf loads the program. Alpine does not package it yet.
-	depends="udev-hid-bpf"
-
-	amove usr/lib/firmware
-	amove usr/libexec/asus-ux8406-keyboard-state
-	amove usr/share/licenses/asus-zenbook-duo-ux8406-keyboard-bpf
-}
-
-keyboard_udev() {
-	pkgdesc="HID-BPF program for the Zenbook Duo UX8406 keyboard (hwdb entry, udev rule)"
-	license="GPL-2.0-only AND MIT"
-	install_if="asus-zenbook-duo-ux8406-keyboard-bpf=$pkgver-r$pkgrel udev"
-
-	amove usr/lib/udev/hwdb.d
-	amove usr/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules
 }
 
 gnome_keys() {

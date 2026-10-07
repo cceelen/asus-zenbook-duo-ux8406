@@ -94,8 +94,8 @@ Older GDM versions use `~gdm/.config/monitors.xml`. Not tested.
 | Debian testing       | ✅    | ✅            | ✅       | ✅    | ✅       |
 | Debian unstable      | ✅    | ✅            | ✅       | ✅    | ✅       |
 | Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅    | ✅       |
-| Alpine               | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️    | 🛠️       |
-| Nix                  | 🛠️    | 🛠️            | ❌ ⁴     | 🛠️    | 🛠️       |
+| Alpine               | 🛠️ ⁵  | 🛠️ ⁵          | ❌ ⁴     | 🛠️ ⁵  | 🛠️ ⁵     |
+| Nix                  | 🛠️ ⁶  | 🛠️ ⁶          | ❌ ⁴     | 🛠️ ⁶  | 🛠️ ⁶     |
 
 1. Built for RHEL 10 with EPEL 10. Installed in AlmaLinux 10 and Rocky Linux 10
    containers, not on RHEL.
@@ -104,7 +104,12 @@ Older GDM versions use `~gdm/.config/monitors.xml`. Not tested.
    the keyboard package installs and the loader reads the program. This project
    does not maintain that repository.
 3. Published, but not installed in a container: there is no container image.
-4. The distribution has no [udev-hid-bpf].
+4. The distribution has no [udev-hid-bpf]. For Alpine, refer to
+   [issue 43](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/43).
+5. In Alpine's `testing` repository, which is in edge only. Alpine builds and
+   signs the packages.
+6. In the flake of this repository, with the binary cache
+   `asus-zenbook-duo-ux8406.cachix.org`.
 
 🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
 keyboard ids and dock port can be different. Send your result in a GitHub issue
@@ -213,6 +218,46 @@ sudo pacman-key --lsign-key "$(gpg --show-keys --with-colons obs.key | awk -F: '
 printf '[home_cceelen_asus-zenbook-duo-ux8406_Arch]\nServer = %s/$arch\n' "$repo" | sudo tee -a /etc/pacman.conf
 sudo pacman -Sy $pkgs asus-zenbook-duo-ux8406-keyboard-bpf
 ```
+
+### Alpine
+
+`testing` is in the edge repositories only:
+
+```sh
+echo https://dl-cdn.alpinelinux.org/alpine/edge/testing | sudo tee -a /etc/apk/repositories
+sudo apk add $pkgs asus-zenbook-duo-ux8406-tcc-guard-openrc
+```
+
+### NixOS
+
+The flake of this repository has the packages and two NixOS modules. Add the
+flake as an input of your system flake, then:
+
+```nix
+{
+  imports = [
+    asus-zenbook-duo-ux8406.nixosModules.default
+    asus-zenbook-duo-ux8406.nixosModules.tcc-guard
+  ];
+  services.asus-zenbook-duo-ux8406-tcc-guard.enable = true;
+  environment.systemPackages = with asus-zenbook-duo-ux8406.packages.x86_64-linux; [
+    gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+    gnome-shell-extension-builtin-screen-rotation
+  ];
+  # The binary cache. Without it, Nix builds the packages.
+  nix.settings.substituters = [ "https://asus-zenbook-duo-ux8406.cachix.org" ];
+  nix.settings.trusted-public-keys = [ "asus-zenbook-duo-ux8406.cachix.org-1:XtBns1QGgU3DVAFWmbBzGpVX1jnhJbNcmp+U86CfQbQ=" ];
+}
+```
+
+`nix build` and `nix run` of the flake offer the same cache by themselves
+(`nixConfig` of `flake.nix`); a NixOS system does not read that, so set it as
+above. The cache has the packages of the `flake.lock` of the release. Do not set
+`inputs.nixpkgs.follows` for this input if you want the cache: with another
+nixpkgs, the store paths are different and Nix builds the packages.
+
+Each package and its SBOM have an attestation; refer to
+[docs/releases.md](docs/releases.md#check-a-released-file).
 
 ### After the installation
 

@@ -5,9 +5,12 @@
 # last release. It sets the pull request to merge by itself when the checks
 # are green.
 #
-# The merge starts this workflow again. That run makes the source archive,
-# attests it, attaches it to the draft release and publishes the release. The
-# tag is made at publication, when the archive is there.
+# The merge starts this workflow again. That run makes the source archive
+# and the Nix packages with one SBOM for each, attests them, attaches the
+# archive and the SBOMs to the draft release and publishes the release. The
+# tag is made at publication, when the files are there. Then the Nix packages
+# go to Cachix, the SBOMs to the dependency graph, and a merge request to
+# Alpine's aports.
 #
 # RELEASE_TOKEN is a personal access token of the maintainer for this
 # repository. What the default token does starts no checks and no workflow.
@@ -88,16 +91,31 @@ jobs:
       artifact-metadata: write
     with:
       release: true
+  # The Nix packages and one SBOM for each, attested. Their SBOMs go on the
+  # release; the store paths go to Cachix after the publication.
+  release-nix:
+    needs: release
+    if: ${{ needs.release.outputs.release_created == 'true' }}
+    uses: ./.github/workflows/release-nix.yml
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+  # Releases are immutable: every file must be on the draft before it is
+  # published. GitHub attests the release, with its files, at publication.
   publish:
-    needs: [release, release-files]
+    needs: [release, release-files, release-nix]
     runs-on: ubuntu-26.04
     env:
       GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       GH_REPO: ${{ github.repository }}
       TAG: ${{ needs.release.outputs.tag_name }}
     steps:
+      # release-*: the files for the release page only, not the Nix closure.
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
+          pattern: release-*
           path: release
           merge-multiple: true
       # The check a user makes.
@@ -105,7 +123,149 @@ jobs:
           gh attestation verify release/asus-zenbook-duo-ux8406-*.tar.gz --repo "$GH_REPO"
           --signer-workflow "$GH_REPO/.github/workflows/release-files.yml"
           --source-ref "$GITHUB_REF"
-      # The archive must be attached before publication: a published release
-      # cannot be changed.
       - run: gh release upload "$TAG" release/*
       - run: gh release edit "$TAG" --draft=false
+  # The rest does not change the release. Each job runs only when its service
+  # is set up (docs/releases.md, "Cachix and aports").
+  #
+  # Cachix signs the store paths with the key of the cache, which Cachix
+  # keeps. The token in the environment `cachix` can only upload to this
+  # cache. The paths are those of release-nix, which it attested.
+  cachix:
+    needs: publish
+    if: ${{ vars.CACHIX_CACHE != '' }}
+    runs-on: ubuntu-26.04
+    environment: cachix
+    env:
+      CACHE: ${{ vars.CACHIX_CACHE }}
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: nix-closure
+          path: closure
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+        with:
+          name: ${{ vars.CACHIX_CACHE }}
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: true
+      # The file cache is not signed. Each store path is checked against its
+      # attestation, as a user checks it, before it goes to the cache.
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # shellcheck disable=SC2046
+          nix copy --no-check-sigs --from "file://$PWD/closure" $(cat closure/paths.txt)
+          while read -r path; do
+            nix store dump-path "$path" > store-path.nar
+            gh attestation verify store-path.nar --repo "$GH_REPO" \
+              --signer-workflow "$GH_REPO/.github/workflows/release-nix.yml"
+          done < closure/paths.txt
+          cachix push "$CACHE" < closure/paths.txt
+  # The SBOMs of the packages in the dependency graph (Insights, Dependency
+  # graph), so that Dependabot reports the crates of each package. The
+  # submission takes SPDX; Syft converts the CycloneDX files.
+  dependency-graph:
+    needs: [release, publish]
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release.outputs.tag_name }}
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-sbom-nix
+          path: sbom
+      - id: syft
+        uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+      - env:
+          SYFT: ${{ steps.syft.outputs.cmd }}
+        run: |
+          for f in sbom/*.cdx.json; do
+            "$SYFT" convert "$f" -o "spdx-json=${f%.cdx.json}.spdx.json"
+          done
+      - uses: advanced-security/spdx-dependency-submission-action@b009efcf8b9d562a4569d2028c276522232e631f # v0.4.0
+        with:
+          filePath: sbom
+          filePattern: "*.spdx.json"
+  # Alpine: a merge request to aports, from the owner's fork. Alpine's CI
+  # builds it; after an Alpine developer merges it, Alpine's builders build
+  # and sign the packages. No maintained template makes aports merge
+  # requests, so the steps are written here.
+  #
+  # The first run adds the aport to testing/; later runs upgrade it. The
+  # token in the environment `aports` can push to the fork only.
+  aports:
+    needs: [release, publish]
+    if: ${{ vars.APORTS_FORK != '' }}
+    runs-on: ubuntu-26.04
+    environment: aports
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.release.outputs.tag_name }}
+      FORK: ${{ vars.APORTS_FORK }}
+      # testing/ until Alpine moves the aport to community/. The directory has
+      # the name of pkgname in the APKBUILD, as aports wants.
+      APORT: ${{ vars.APORTS_DIR || 'testing' }}/asus-zenbook-duo-ux8406-second-screen
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release.outputs.tag_name }}
+          persist-credentials: false
+          path: tree
+      # The archive that abuild checksum hashes is the attested one.
+      - run: |
+          gh release download "$TAG" --pattern 'asus-zenbook-duo-ux8406-*.tar.gz' --dir distfiles
+          gh attestation verify distfiles/*.tar.gz --repo "$GH_REPO" \
+            --signer-workflow "$GH_REPO/.github/workflows/release-files.yml"
+      # Only the commits of aports are fetched, and only the directory of the
+      # aport is checked out. The history is complete, so that the fork
+      # accepts the push.
+      - run: |
+          git clone --filter=tree:0 --no-checkout \
+            https://gitlab.alpinelinux.org/alpine/aports.git aports
+          git -C aports sparse-checkout set "$APORT"
+          git -C aports checkout
+          mkdir -p "aports/$APORT"
+          cp tree/packaging/alpine/* "aports/$APORT/"
+      - uses: jirutka/setup-alpine@ae3b3ddba35054804fc4a3507b519fa7e8152050 # v1.4.1
+        with:
+          branch: edge
+          packages: abuild atools
+      - shell: alpine.sh {0}
+        run: |
+          cd "aports/$APORT"
+          SRCDEST="$GITHUB_WORKSPACE/distfiles" abuild checksum
+          apkbuild-lint APKBUILD
+          abuild validate
+      # The push opens the merge request (GitLab push options). The author is
+      # the maintainer of the APKBUILD.
+      - env:
+          APORTS_TOKEN: ${{ secrets.APORTS_TOKEN }}
+        run: |
+          cd aports
+          version=${TAG#v}
+          if git cat-file -e "HEAD:$APORT/APKBUILD" 2>/dev/null; then
+            title="$APORT: upgrade to $version"
+          else
+            title="$APORT: new aport"
+          fi
+          author=$(sed -n 's/^# Maintainer: //p' "$APORT/APKBUILD")
+          email=${author##*<}
+          git add "$APORT"
+          git -c user.name="${author% <*}" -c user.email="${email%>}" \
+            commit --quiet --message "$title"
+          branch="asus-zenbook-duo-ux8406-$version"
+          git push --quiet \
+            -o merge_request.create \
+            -o merge_request.target_project=alpine/aports \
+            -o merge_request.target=master \
+            -o "merge_request.title=$title" \
+            -o merge_request.remove_source_branch \
+            "https://oauth2:${APORTS_TOKEN}@gitlab.alpinelinux.org/${FORK}.git" \
+            "HEAD:refs/heads/$branch"
