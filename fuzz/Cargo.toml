@@ -42,3 +42,11 @@ path = "fuzz_targets/config.rs"
 test = false
 doc = false
 bench = false
+
+# The notes of the offsets found.
+[[bin]]
+name = "notes"
+path = "fuzz_targets/notes.rs"
+test = false
+doc = false
+bench = false
