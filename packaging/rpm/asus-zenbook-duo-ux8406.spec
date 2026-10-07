@@ -104,7 +104,8 @@ Recommends:     asus-zenbook-duo-ux8406-keyboard-bpf
 %description -n gnome-shell-extension-asus-zenbook-duo-ux8406-keys
 The key right of F12 switches the lower panel on and off, and F8 swaps the
 windows of the two panels. The keyboard delivers these keys with
-asus-zenbook-duo-ux8406-keyboard-bpf. To be enabled per user:
+asus-zenbook-duo-ux8406-keyboard-bpf. The extension also gives each
+touchscreen its panel. To be enabled per user:
 gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io
 
 %package -n gnome-shell-extension-builtin-screen-rotation

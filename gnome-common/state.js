@@ -35,12 +35,15 @@ function modeOf(modes) {
 /** The compositor's state in the form the functions below work on. */
 export function readState([serial, monitors, logicalMonitors, properties]) {
     const connected = new Map();
+    const identities = new Map();
     const builtin = [];
     const leased = [];
 
     for (const [spec, modes, settings] of monitors) {
-        const [connector] = spec;
+        const [connector, vendor, product, serialNumber] = spec;
         const mode = modeOf(modes);
+
+        identities.set(connector, [vendor, product, serialNumber]);
 
         if (settings['is-builtin'] === true) builtin.push(connector);
         if (settings['is-for-lease'] === true) leased.push(spec);
@@ -62,6 +65,8 @@ export function readState([serial, monitors, logicalMonitors, properties]) {
         logicalMode: (properties['layout-mode'] ?? LAYOUT_MODE_LOGICAL) === LAYOUT_MODE_LOGICAL,
         canSetMode: properties['supports-changing-layout-mode'] === true,
         connected,
+        // What each connected monitor says it is: [vendor, product, serial].
+        identities,
         // The connectors of the panels that are part of the machine.
         builtin,
         // The monitors that are not in the layout but for a program to take

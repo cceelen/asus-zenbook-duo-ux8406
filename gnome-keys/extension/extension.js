@@ -9,6 +9,10 @@
 //
 // The keyboard delivers these keys only with asus-zenbook-duo-ux8406-keyboard-bpf, as F18
 // (XF86Launch9) and F19. On any other model the extension binds nothing.
+//
+// It also tells the compositor which panel each touchscreen and pen belongs
+// to, where the user has set nothing: refer to touch.js.
+import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
@@ -19,11 +23,18 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {applyLayout, currentState} from './display.js';
 import {toggle} from './layout.js';
 import {find} from './state.js';
+import {assignments, controllersOf} from './touch.js';
 
 const MODEL = 'UX8406';
 const UPPER = 'eDP-1';
 const LOWER = 'eDP-2';
 const KEYS = ['toggle-lower-panel', 'swap-windows'];
+const I2C_DEVICES = '/sys/bus/i2c/devices';
+// The settings of a touchscreen and of a pen, each at .../<group>/<id>/.
+const TOUCH_SETTINGS = [
+    ['org.gnome.desktop.peripherals.touchscreen', 'touchscreens'],
+    ['org.gnome.desktop.peripherals.tablet', 'tablets'],
+];
 
 function isModel() {
     try {
@@ -32,6 +43,24 @@ function isModel() {
         return new TextDecoder().decode(contents).includes(MODEL);
     } catch {
         return false;
+    }
+}
+
+/** The names in a directory; none if it cannot be read. */
+function namesIn(path) {
+    try {
+        const entries = Gio.File.new_for_path(path).enumerate_children(
+            'standard::name',
+            Gio.FileQueryInfoFlags.NONE,
+            null,
+        );
+        const names = [];
+
+        for (let info = entries.next_file(null); info; info = entries.next_file(null))
+            names.push(info.get_name());
+        return names;
+    } catch {
+        return [];
     }
 }
 
@@ -69,11 +98,25 @@ export default class ZenbookDuoKeys extends Extension {
         this._bind('toggle-lower-panel', () => this._toggleLowerPanel());
         this._bind('swap-windows', () => this._swapWindows());
         this._bound = true;
+
+        // The touch controllers do not change while the machine runs.
+        this._controllers = controllersOf(
+            namesIn(I2C_DEVICES).map((name) => [name, namesIn(`${I2C_DEVICES}/${name}`)]),
+        );
+        // The lower panel can be away at the start (the keyboard lies on it):
+        // look again when a monitor comes.
+        this._monitorsChanged = Main.layoutManager.connect('monitors-changed', () =>
+            this._assignTouch(),
+        );
+        this._assignTouch();
     }
 
     disable() {
         if (this._bound) for (const key of KEYS) Main.wm.removeKeybinding(key);
         this._bound = false;
+        if (this._monitorsChanged) Main.layoutManager.disconnect(this._monitorsChanged);
+        this._monitorsChanged = 0;
+        this._controllers = null;
         this._settings = null;
         this._saved = null;
     }
@@ -87,6 +130,36 @@ export default class ZenbookDuoKeys extends Extension {
             () =>
                 action().catch((error) => console.error(`${this.uuid}: ${key}: ${error.message}`)),
         );
+    }
+
+    /**
+     * Give each touchscreen and pen its panel, where the user has set
+     * nothing. The settings stay when the extension is disabled: they are
+     * right for the machine with or without it.
+     */
+    _assignTouch() {
+        if (!this._controllers?.length) return;
+        currentState()
+            .then((state) => {
+                const source = Gio.SettingsSchemaSource.get_default();
+
+                for (const {id, output} of assignments(this._controllers, state, UPPER, LOWER)) {
+                    for (const [schemaId, group] of TOUCH_SETTINGS) {
+                        const schema = source.lookup(schemaId, true);
+
+                        if (!schema?.has_key('output')) continue;
+
+                        const settings = new Gio.Settings({
+                            settings_schema: schema,
+                            path: `/org/gnome/desktop/peripherals/${group}/${id}/`,
+                        });
+
+                        if (settings.get_user_value('output') === null)
+                            settings.set_strv('output', output);
+                    }
+                }
+            })
+            .catch((error) => console.error(`${this.uuid}: touch: ${error.message}`));
     }
 
     async _toggleLowerPanel() {

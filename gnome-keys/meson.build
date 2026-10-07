@@ -6,7 +6,7 @@
 uuid = 'asus-zenbook-duo-ux8406-keys@cceelen.github.io'
 extdir = datadir / 'gnome-shell' / 'extensions' / uuid
 
-files = ['extension.js', 'layout.js', 'metadata.json']
+files = ['extension.js', 'layout.js', 'touch.js', 'metadata.json']
 foreach f : files
   install_data('extension' / f, install_dir: extdir, install_mode: 'rw-r--r--')
 endforeach
@@ -47,7 +47,7 @@ endif
 # The tests need no GNOME session; tests/verify.js does and is run by hand,
 # so the files are named (a directory would pick it up). Node's test runner
 # writes nothing into the source tree.
-foreach t : ['layout', 'package']
+foreach t : ['layout', 'package', 'touch']
   test(
     t,
     node,
