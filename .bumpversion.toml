@@ -11,15 +11,13 @@ filename = "Cargo.toml"
 search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
 
+# Every crate of this tree: their names start with "asus-ux8406-". One
+# pattern, so that a new crate needs no entry here.
 [[tool.bumpversion.files]]
 filename = "Cargo.lock"
-search = "name = \"asus-ux8406-second-screen\"\nversion = \"{current_version}\""
-replace = "name = \"asus-ux8406-second-screen\"\nversion = \"{new_version}\""
-
-[[tool.bumpversion.files]]
-filename = "Cargo.lock"
-search = "name = \"asus-ux8406-tcc-guard\"\nversion = \"{current_version}\""
-replace = "name = \"asus-ux8406-tcc-guard\"\nversion = \"{new_version}\""
+regex = true
+search = "(name = \"asus-ux8406-[a-z-]+\"\nversion = \"){current_version}\""
+replace = "\\g<1>{new_version}\""
 
 [[tool.bumpversion.files]]
 filename = "meson.build"
