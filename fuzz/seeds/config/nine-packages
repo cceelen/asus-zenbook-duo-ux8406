@@ -1,0 +1,27 @@
+[[package]]
+id = 0
+offset = "/sys/devices/platform/coretemp.0/offset"
+[[package]]
+id = 1
+offset = "/sys/devices/platform/coretemp.1/offset"
+[[package]]
+id = 2
+offset = "/sys/devices/platform/coretemp.2/offset"
+[[package]]
+id = 3
+offset = "/sys/devices/platform/coretemp.3/offset"
+[[package]]
+id = 4
+offset = "/sys/devices/platform/coretemp.4/offset"
+[[package]]
+id = 5
+offset = "/sys/devices/platform/coretemp.5/offset"
+[[package]]
+id = 6
+offset = "/sys/devices/platform/coretemp.6/offset"
+[[package]]
+id = 7
+offset = "/sys/devices/platform/coretemp.7/offset"
+[[package]]
+id = 8
+offset = "/sys/devices/platform/coretemp.8/offset"

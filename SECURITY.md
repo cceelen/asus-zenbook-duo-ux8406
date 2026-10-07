@@ -15,5 +15,5 @@ Only the latest release gets fixes.
 The service that reads the kernel log is a workaround until the BIOS or the
 kernel handles the thermal event. Its parsers have tests for hostile input and
 fuzz targets (`fuzz/`): the records of the kernel log, the numbers from sysfs,
-and the configuration file. CI runs each for a minute on every change and for a
-quarter of an hour once a week.
+the configuration file, and the notes of the offsets found. CI runs each for a
+minute on every change and for a quarter of an hour once a week.
