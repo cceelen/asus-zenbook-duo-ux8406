@@ -122,3 +122,71 @@ export class OrientationSensor {
         this._connection = null;
     }
 }
+
+/**
+ * Follows whether iio-sensor-proxy gives the orientation of the laptop,
+ * without a claim: any program can read the property. Calls `changed()` when
+ * the answer changes, also when the service starts or stops.
+ *
+ * The service gives the orientation from an accelerometer only, as GNOME's
+ * own rotation does: the accelerometer measures where gravity is. A
+ * gyroscope measures only how fast the laptop turns, and that does not tell
+ * which side is up.
+ */
+export class OrientationPresence {
+    constructor(changed) {
+        this._changed = changed;
+        this._cancellable = new Gio.Cancellable();
+        this._proxy = null;
+        this._signals = [];
+        this._reported = false;
+        Gio.DBusProxy.new(
+            Gio.DBus.system,
+            // The service is not started for this: it starts by itself when
+            // the kernel has a sensor.
+            Gio.DBusProxyFlags.DO_NOT_AUTO_START,
+            null,
+            NAME,
+            PATH,
+            NAME,
+            this._cancellable,
+            (_source, result) => {
+                try {
+                    this._proxy = Gio.DBusProxy.new_finish(result);
+                } catch {
+                    // Cancelled, or there is no system bus.
+                    return;
+                }
+                this._signals = [
+                    this._proxy.connect('g-properties-changed', () => this._report()),
+                    this._proxy.connect('notify::g-name-owner', () => this._report()),
+                ];
+                this._report();
+            },
+        );
+    }
+
+    /** True while the service is there and gives the orientation. */
+    get present() {
+        if (!this._proxy?.g_name_owner) return false;
+
+        const value = this._proxy.get_cached_property('HasAccelerometer');
+
+        return value ? value.unpack() : false;
+    }
+
+    _report() {
+        const present = this.present;
+
+        if (present === this._reported) return;
+        this._reported = present;
+        this._changed();
+    }
+
+    destroy() {
+        this._cancellable.cancel();
+        for (const signal of this._signals) this._proxy.disconnect(signal);
+        this._signals = [];
+        this._proxy = null;
+    }
+}
