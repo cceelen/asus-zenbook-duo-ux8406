@@ -109,6 +109,11 @@ uses the committed files only.
 - No licence or copyright header in the files. `REUSE.toml` gives the licence of
   each file.
 
+An AI reviewer (`.github/workflows/review.yml`) reads each pull request. It
+approves a pull request of the owner or of Renovate when it finds nothing that
+must change, and requests changes when it finds something. For a pull request of
+another contributor it writes a comment; the owner reviews and approves it.
+
 ## Layout
 
 ```text
