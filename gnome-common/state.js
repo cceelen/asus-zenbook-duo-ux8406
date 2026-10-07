@@ -36,11 +36,14 @@ function modeOf(modes) {
 export function readState([serial, monitors, logicalMonitors, properties]) {
     const connected = new Map();
     const builtin = [];
+    const leased = [];
 
-    for (const [[connector], modes, settings] of monitors) {
+    for (const [spec, modes, settings] of monitors) {
+        const [connector] = spec;
         const mode = modeOf(modes);
 
         if (settings['is-builtin'] === true) builtin.push(connector);
+        if (settings['is-for-lease'] === true) leased.push(spec);
 
         // What the monitor is set to besides its mode, to be kept.
         connected.set(
@@ -49,6 +52,7 @@ export function readState([serial, monitors, logicalMonitors, properties]) {
                 ...mode,
                 colorMode: settings['color-mode'],
                 rgbRange: settings['rgb-range'],
+                underscanning: settings['is-underscanning'],
             },
         );
     }
@@ -60,6 +64,9 @@ export function readState([serial, monitors, logicalMonitors, properties]) {
         connected,
         // The connectors of the panels that are part of the machine.
         builtin,
+        // The monitors that are not in the layout but for a program to take
+        // (a headset), each as [connector, vendor, product, serial]: to be kept.
+        leased,
         logical: logicalMonitors.map(([x, y, scale, transform, primary, shown]) => ({
             x,
             y,
@@ -137,8 +144,8 @@ export function isRest(logical, saved, except = null) {
 /**
  * A layout as the argument list of ApplyMonitorsConfig, without the variants
  * around the property dictionaries: [x, y, scale, transform, primary,
- * [[connector, modeId, {colorMode, rgbRange}]]]. Null if a monitor in it has
- * no mode.
+ * [[connector, modeId, {colorMode, rgbRange, underscanning}]]]. Null if a
+ * monitor in it has no mode.
  */
 export function toConfig(logical, connected) {
     const config = logical.map((monitor) => [
@@ -148,9 +155,9 @@ export function toConfig(logical, connected) {
         monitor.transform,
         monitor.primary,
         monitor.connectors.map((connector) => {
-            const {id, colorMode, rgbRange} = connected.get(connector) ?? {};
+            const {id, colorMode, rgbRange, underscanning} = connected.get(connector) ?? {};
 
-            return [connector, id, {colorMode, rgbRange}];
+            return [connector, id, {colorMode, rgbRange, underscanning}];
         }),
     ]);
 

@@ -65,7 +65,9 @@ test('the state is read with modes and connectors', () => {
         height: 1800,
         colorMode: 0,
         rgbRange: undefined,
+        underscanning: undefined,
     });
+    assert.deepEqual(state.leased, []);
     assert.deepEqual(find(state.logical, LOWER).connectors, [LOWER]);
 });
 
@@ -166,14 +168,33 @@ test('a layout becomes the arguments of ApplyMonitorsConfig', () => {
     const state = twoPanels();
 
     assert.deepEqual(toConfig(state.logical, state.connected), [
-        [0, 0, 1.25, 0, false, [[UPPER, '2880x1800@120.000', {colorMode: 0, rgbRange: undefined}]]],
+        [
+            0,
+            0,
+            1.25,
+            0,
+            false,
+            [
+                [
+                    UPPER,
+                    '2880x1800@120.000',
+                    {colorMode: 0, rgbRange: undefined, underscanning: undefined},
+                ],
+            ],
+        ],
         [
             0,
             1440,
             1.25,
             0,
             true,
-            [[LOWER, '2880x1800@120.000', {colorMode: 0, rgbRange: undefined}]],
+            [
+                [
+                    LOWER,
+                    '2880x1800@120.000',
+                    {colorMode: 0, rgbRange: undefined, underscanning: undefined},
+                ],
+            ],
         ],
     ]);
     assert.equal(toConfig(state.logical, new Map()), null);
