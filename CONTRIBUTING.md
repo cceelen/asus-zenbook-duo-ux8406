@@ -76,6 +76,14 @@ cargo llvm-cov -p asus-ux8406-tcc-guard --features failpoints \
     --ignore-filename-regex /tests/ --fail-under-regions 100
 ```
 
+Fuzz targets of the guard's parsers are in `fuzz/`, with
+[cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz) and a nightly compiler.
+`cargo fuzz list` names them:
+
+```sh
+cargo +nightly fuzz run kmsg -- -max_total_time=60
+```
+
 After a change of `Cargo.lock`, write the third-party notices again with
 [cargo-about](https://github.com/EmbarkStudios/cargo-about). The commands are in
 `about.toml`.
@@ -113,5 +121,6 @@ gnome-rotation/  GNOME Shell extension that turns the screens
 gnome-common/    files that the two extensions share
 packaging/       one directory of recipes for each packaging system
 dev/containers/  container builds for development
+fuzz/            fuzz targets of the guard's parsers (cargo-fuzz)
 docs/releases.md how to make a release
 ```

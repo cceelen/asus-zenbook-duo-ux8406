@@ -11,3 +11,7 @@ __pycache__/
 /packaging/rpm/*.tar.gz
 /*.src.rpm
 .ruff_cache/
+/fuzz/target/
+/fuzz/corpus/
+/fuzz/artifacts/
+/fuzz/coverage/
