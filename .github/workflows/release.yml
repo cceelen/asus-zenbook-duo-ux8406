@@ -123,6 +123,14 @@ jobs:
           gh attestation verify release/asus-zenbook-duo-ux8406-*.tar.gz --repo "$GH_REPO"
           --signer-workflow "$GH_REPO/.github/workflows/release-files.yml"
           --source-ref "$GITHUB_REF"
+      # The same check with the bundle on the release page, as a user makes
+      # it offline.
+      - run: |
+          for f in release/asus-zenbook-duo-ux8406-*.tar.gz; do
+            gh attestation verify "$f" --bundle "$f.intoto.jsonl" --repo "$GH_REPO" \
+              --signer-workflow "$GH_REPO/.github/workflows/release-files.yml" \
+              --source-ref "$GITHUB_REF"
+          done
       - run: gh release upload "$TAG" release/*
       - run: gh release edit "$TAG" --draft=false
   # The rest does not change the release. Each job runs only when its service
