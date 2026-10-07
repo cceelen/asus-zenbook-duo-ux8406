@@ -1,0 +1,105 @@
+# Builds the five Nix packages of the flake and one SBOM for each package
+# (flake.nix, output sboms), and attests them: the build provenance of each
+# package and its SBOM, keyless through Sigstore. Only release.yml calls it.
+#
+# The subject of an attestation is the NAR of the store path, that is the
+# file `nix store dump-path` writes. Its sha256 is the narHash that Nix and
+# Cachix show for the path. Refer to docs/releases.md for the check a user
+# makes.
+#
+# Reusable, so that a caller cannot add steps to the build or signing jobs:
+# this gives SLSA Build L3 for the provenance.
+name: release-nix
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-26.04
+    outputs:
+      packages: ${{ steps.build.outputs.packages }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      # For each package: the package, its SBOM, and one line
+      # "<sha256 of the NAR>  <store path name>" in checksums.txt. The closure
+      # of the packages goes into a file binary cache, from which the cachix
+      # job of release.yml pushes exactly these store paths.
+      - id: build
+        run: |
+          mkdir -p sbom
+          : > checksums.txt
+          : > paths.txt
+          packages='[]'
+          for p in $(nix eval --raw .#packages.x86_64-linux --apply 'ps: toString (builtins.attrNames (removeAttrs ps [ "default" ]))'); do
+            out=$(nix build -L --no-link --print-out-paths ".#$p")
+            bom=$(nix build -L --no-link --print-out-paths ".#sboms.x86_64-linux.$p")
+            version=$(nix eval --raw ".#$p.version")
+            cp "$bom" "sbom/$p-$version.cdx.json"
+            hex=$(nix hash convert --hash-algo sha256 --to base16 "$(nix-store --query --hash "$out")")
+            echo "$hex  $(basename "$out")" >> checksums.txt
+            echo "$out" >> paths.txt
+            packages=$(jq -c --arg p "$p" --arg v "$version" --arg d "$hex" --arg n "$(basename "$out")" \
+              '. + [{package: $p, sbom: "\($p)-\($v).cdx.json", digest: "sha256:\($d)", name: $n}]' <<< "$packages")
+          done
+          # shellcheck disable=SC2046
+          nix copy --to "file://$PWD/closure?compression=zstd" $(cat paths.txt)
+          cp checksums.txt paths.txt closure/
+          echo "packages=$packages" >> "$GITHUB_OUTPUT"
+          cat checksums.txt
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          # release-*: release.yml puts these files on the release.
+          name: release-sbom-nix
+          path: sbom/*.cdx.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: nix-closure
+          path: closure
+          if-no-files-found: error
+          include-hidden-files: true
+  # Alone with the right to sign, and it runs nothing that the build made: it
+  # reads the digests and the SBOM files only.
+  provenance:
+    needs: build
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: nix-closure
+          path: closure
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-checksums: closure/checksums.txt
+  # One SBOM attestation for each package, with the NAR of its store path as
+  # the subject.
+  sbom:
+    needs: build
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.build.outputs.packages) }}
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-sbom-nix
+          path: sbom
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-digest: ${{ matrix.digest }}
+          subject-name: ${{ matrix.name }}
+          sbom-path: sbom/${{ matrix.sbom }}

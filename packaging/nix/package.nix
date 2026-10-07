@@ -21,6 +21,7 @@
   python3,
   glib,
   nodejs,
+  cargo-cyclonedx,
 }:
 let
   version = (lib.importTOML ../../Cargo.toml).workspace.package.version;
@@ -118,6 +119,38 @@ let
     # for it; here the crates are in cargoSetupHook's vendor directory.
     mesonFlags = [ "-Doffline=enabled" ];
   };
+  # The crates in one Rust binary, as a CycloneDX SBOM: those that cargo
+  # links into it, from Cargo.lock, without the build and dev dependencies.
+  # bombon reads it from the passthru bombonVendoredSbom and adds it to the
+  # SBOM of the package (flake.nix, output sboms), so that each package lists
+  # its own crates and not all crates of the workspace.
+  vendoredSbom =
+    bin:
+    stdenv.mkDerivation {
+      pname = "${bin}-vendored-sbom";
+      inherit version src cargoDeps;
+      strictDeps = true;
+      nativeBuildInputs = [
+        cargo
+        rustc
+        rustPlatform.cargoSetupHook
+        cargo-cyclonedx
+      ];
+      dontConfigure = true;
+      buildPhase = ''
+        runHook preBuild
+        cargo cyclonedx --spec-version 1.5 --format json --describe binaries \
+          --no-build-deps --target ${stdenv.hostPlatform.rust.rustcTarget}
+        runHook postBuild
+      '';
+      installPhase = ''
+        runHook preInstall
+        mkdir -p $out
+        install -m444 "$(find . -name '${bin}_bin.cdx.json')" $out/
+        runHook postInstall
+      '';
+    };
+
   meta = {
     homepage = "https://github.com/cceelen/asus-zenbook-duo-ux8406";
     platforms = [ "x86_64-linux" ];
@@ -129,6 +162,7 @@ in
     enable = [ "screen" ];
     attrs = rustInputs // {
       pname = "asus-zenbook-duo-ux8406-second-screen";
+      passthru.bombonVendoredSbom = vendoredSbom "asus-ux8406-second-screen";
       meta = meta // {
         description = "Lower panel of the Zenbook Duo UX8406 off while the keyboard lies on it";
         license = lib.licenses.mit;
@@ -143,6 +177,7 @@ in
     enable = [ "guard" ];
     attrs = rustInputs // {
       pname = "asus-zenbook-duo-ux8406-tcc-guard";
+      passthru.bombonVendoredSbom = vendoredSbom "asus-ux8406-tcc-guard";
       meta = meta // {
         description = "CPU thermal-offset guard for the ASUS Zenbook Duo UX8406";
         license = lib.licenses.mit;
@@ -158,6 +193,7 @@ in
     enable = [ "keyboard" ];
     attrs = rustInputs // {
       pname = "asus-zenbook-duo-ux8406-keyboard-bpf";
+      passthru.bombonVendoredSbom = vendoredSbom "asus-ux8406-keyboard-state";
       nativeBuildInputs = rustInputs.nativeBuildInputs ++ [
         # The wrapped clang adds host flags that do not apply to the BPF
         # target; Meson finds this one as `clang`.

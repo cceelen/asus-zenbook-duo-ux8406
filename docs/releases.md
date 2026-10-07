@@ -2,21 +2,37 @@
 
 For the maintainer: how to make a release and how to keep the tree current.
 
-**Status: no release has been made.** The workflows and the build-service files
-in this tree have not run on GitHub, COPR or OBS. The packages build and install
-in the containers of `dev/containers/` only.
-
 ## Who builds what
 
-| Distribution                         | Built by                     | Configuration                          |
-| ------------------------------------ | ---------------------------- | -------------------------------------- |
-| Fedora, RHEL 10 with EPEL 10         | Fedora COPR, through Packit  | `.packit.yaml`                         |
-| openSUSE, Debian, Ubuntu 26.04, Arch | openSUSE Build Service       | `.obs/workflows.yml`, `packaging/obs/` |
-| Nix                                  | the user, from the flake     | `flake.nix`, `packaging/nix/`          |
-| Alpine                               | not distributed; recipe only | `packaging/alpine/`                    |
+| Distribution                         | Built by                    | Configuration                          |
+| ------------------------------------ | --------------------------- | -------------------------------------- |
+| Fedora, RHEL 10 with EPEL 10         | Fedora COPR, through Packit | `.packit.yaml`                         |
+| openSUSE, Debian, Ubuntu 26.04, Arch | openSUSE Build Service      | `.obs/workflows.yml`, `packaging/obs/` |
+| Nix                                  | `release-nix.yml`; Cachix   | `flake.nix`, `packaging/nix/`          |
+| Alpine                               | Alpine, through aports      | `packaging/alpine/`                    |
 
-COPR and OBS sign their repositories. The source archive on the GitHub release
-page carries a GitHub build attestation.
+COPR, OBS, Cachix and Alpine sign their repositories, each with its own key. No
+signing key is stored in GitHub: the attestations are keyless (Sigstore, through
+the OIDC token of the workflow).
+
+## Provenance and SBOMs
+
+| File                                  | Made by             | Attestations                             |
+| ------------------------------------- | ------------------- | ---------------------------------------- |
+| Source archive                        | `release-files.yml` | build provenance                         |
+| The five Nix packages (store paths)   | `release-nix.yml`   | build provenance; SBOM, one for each     |
+| SBOMs, `<package>-<version>.cdx.json` | `release-nix.yml`   | on the release page; GitHub release      |
+| The release and all its files         | GitHub              | release attestation (immutable releases) |
+| Alpine packages                       | Alpine's builders   | none from this project; signed by Alpine |
+
+The workflows that make and attest the files are reusable workflows, which gives
+SLSA Build L3 for the provenance. Each SBOM is a CycloneDX file that bombon
+makes from the Nix package: the run-time closure and, for the Rust programs, the
+crates in the binary (cargo-cyclonedx). The SBOMs also go to the dependency
+graph of the repository (Insights, Dependency graph), as SPDX.
+
+The Alpine packages are built from the same source archive, so they have the
+same crates. Their system libraries are those of Alpine, not those in the SBOMs.
 
 ## Make a release
 
@@ -29,9 +45,15 @@ The other steps occur automatically:
   section of `CHANGELOG.md`, made from the commit titles since the last release:
   `fix:` gives a patch release, `feat:` a minor release.
 - The pull request merges itself when the checks are green.
-- `release.yml` makes the source archive (`meson dist`), attests it, attaches it
-  to the release and publishes the release. The tag is made at that moment.
+- `release.yml` makes the source archive (`meson dist`) and the Nix packages
+  with their SBOMs, attests them, attaches the archive and the SBOMs to the
+  draft release and publishes the release. The tag is made at that moment. The
+  releases are immutable: nothing can be added after the publication.
 - OBS and COPR start their builds.
+- `release.yml` pushes the Nix packages to Cachix, sends the SBOMs to the
+  dependency graph, and opens a merge request to Alpine's aports. Each of these
+  jobs runs only when its service is set up
+  ([Cachix and aports](#cachix-and-aports)).
 
 If no `fix:` or `feat:` was merged since the last release, the run fails and
 says so. Do not push a tag by hand, and do not change the version in the files
@@ -45,7 +67,24 @@ gh attestation verify asus-zenbook-duo-ux8406-<version>.tar.gz \
     --signer-workflow cceelen/asus-zenbook-duo-ux8406/.github/workflows/release-files.yml
 ```
 
-The attestation does not cover the packages from COPR and OBS.
+A Nix package: the subject of its attestations is the NAR of its store path.
+
+```sh
+nix store dump-path /nix/store/<hash>-<package>-<version> > package.nar
+gh attestation verify package.nar \
+    --repo cceelen/asus-zenbook-duo-ux8406 \
+    --signer-workflow cceelen/asus-zenbook-duo-ux8406/.github/workflows/release-nix.yml
+# The SBOM of the package:
+gh attestation verify package.nar \
+    --repo cceelen/asus-zenbook-duo-ux8406 \
+    --signer-workflow cceelen/asus-zenbook-duo-ux8406/.github/workflows/release-nix.yml \
+    --predicate-type https://cyclonedx.org/bom --format json
+```
+
+The release and its files: `gh release verify v<version>` and
+`gh release verify-asset v<version> <file>`.
+
+The attestations do not cover the packages from COPR, OBS and Alpine.
 
 ## Keep the tree current
 
@@ -77,3 +116,18 @@ The attestation does not cover the packages from COPR and OBS.
 - Packit and COPR: install the Packit GitHub application on the repository. The
   Fedora account `cceelen` must name the GitHub user `cceelen`.
 - OBS: refer to `packaging/obs/README.md`.
+
+## Cachix and aports
+
+The jobs `cachix` and `aports` of `release.yml` run only when their variables
+are set:
+
+| Job      | Environment | Secret              | Variables                               |
+| -------- | ----------- | ------------------- | --------------------------------------- |
+| `cachix` | `cachix`    | `CACHIX_AUTH_TOKEN` | `CACHIX_CACHE`                          |
+| `aports` | `aports`    | `APORTS_TOKEN`      | `APORTS_FORK`; `APORTS_DIR` (`testing`) |
+
+The aports merge requests come from a service account; the commits keep the
+maintainer of the APKBUILD as their author. Make the changes that the aports
+reviewers ask for in `packaging/alpine/`, so that the next release has them.
+When Alpine moves the aport to `community/`, set `APORTS_DIR` to `community`.
