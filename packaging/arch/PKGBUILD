@@ -3,7 +3,7 @@ pkgbase=asus-zenbook-duo-ux8406
 pkgname=(asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf
          gnome-shell-extension-asus-zenbook-duo-ux8406-keys
          gnome-shell-extension-builtin-screen-rotation)
-pkgver=0.2.0
+pkgver=0.2.1
 pkgrel=1
 arch=(x86_64)
 url="https://github.com/cceelen/asus-zenbook-duo-ux8406"
