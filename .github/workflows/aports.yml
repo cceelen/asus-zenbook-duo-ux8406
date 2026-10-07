@@ -7,6 +7,9 @@
 # release.yml calls it after the publication. It can also be started by
 # hand for a published tag, for example when a run failed.
 #
+# The job runs in an Alpine container, with the tools from apk. abuild runs
+# as root there (-F); the container is used once.
+#
 # Git goes over SSH: the bot protection of gitlab.alpinelinux.org refuses
 # anonymous HTTPS clones from CI runners. glab opens the merge request
 # through the API with the token.
@@ -29,10 +32,15 @@ on:
         required: true
 permissions:
   contents: read
+# One run at a time: two runs would push the same branch.
+concurrency:
+  group: aports
+  cancel-in-progress: false
 jobs:
   aports:
     if: ${{ vars.APORTS_FORK != '' }}
     runs-on: ubuntu-26.04
+    container: docker.io/library/alpine:edge
     environment: aports
     env:
       GH_TOKEN: ${{ github.token }}
@@ -44,6 +52,8 @@ jobs:
       APORT: ${{ vars.APORTS_DIR || 'testing' }}/asus-zenbook-duo-ux8406-second-screen
       BRANCH: asus-zenbook-duo-ux8406
     steps:
+      # Before the checkout, so that it uses git.
+      - run: apk add --no-cache abuild atools git github-cli glab jq openssh-client
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.tag }}
@@ -90,16 +100,11 @@ jobs:
           git checkout -B "$BRANCH" upstream/master
           mkdir -p "$APORT"
           cp ../tree/packaging/alpine/* "$APORT/"
-      - uses: jirutka/setup-alpine@ae3b3ddba35054804fc4a3507b519fa7e8152050 # v1.4.1
-        with:
-          branch: edge
-          packages: abuild atools glab jq
-      - shell: alpine.sh {0}
-        run: |
+      - run: |
           cd "aports/$APORT"
-          SRCDEST="$GITHUB_WORKSPACE/distfiles" abuild checksum
+          SRCDEST="$GITHUB_WORKSPACE/distfiles" abuild -F checksum
           apkbuild-lint APKBUILD
-          abuild validate
+          abuild -F validate
       # The author is the maintainer of the APKBUILD. The title is the one
       # that aports wants for a new or an upgraded aport.
       - run: |
@@ -133,8 +138,7 @@ jobs:
       # A new merge request, or a new title for the open one. If the API is
       # not reachable, the branch is on the fork: the log gives the link that
       # opens the merge request by hand.
-      - shell: alpine.sh {0}
-        env:
+      - env:
           GITLAB_HOST: gitlab.alpinelinux.org
           GITLAB_TOKEN: ${{ secrets.APORTS_TOKEN }}
         run: |
