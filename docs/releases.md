@@ -44,10 +44,7 @@ The other steps occur automatically:
   release pull request. It has the next version in the package files and the new
   section of `CHANGELOG.md`, made from the commit titles since the last release:
   `fix:` gives a patch release, `feat:` a minor release.
-- The pull request merges itself when the checks are green. Each push to `main`
-  while it is open updates it: the new commits go into its version and
-  `CHANGELOG.md`, and its branch is up to date again. Its auto-merge is off
-  while the release workflow updates it.
+- The pull request merges itself when the checks are green.
 - `release.yml` makes the source archive (`meson dist`) and the Nix packages
   with their SBOMs, attests them, attaches the archive and the SBOMs to the
   draft release and publishes the release. The tag is made at that moment. The
