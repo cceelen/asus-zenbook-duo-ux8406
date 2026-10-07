@@ -10,7 +10,8 @@
 # the crates are in the store from Cargo.lock. Whether the build sandbox is
 # on is stated in the build log below.
 
-FROM docker.io/nixos/nix:latest
+# The base image, pinned by digest. Renovate updates the tag and the digest.
+FROM docker.io/nixos/nix:latest@sha256:7a007c766426c1877758ddc5cb87a965ac131fc78c582ce0083d922d51ae945c
 COPY . /build
 WORKDIR /build
 # path: so that Nix sees every file of the tree, tracked by git or not.

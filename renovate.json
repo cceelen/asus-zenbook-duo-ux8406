@@ -58,15 +58,16 @@
       "minimumReleaseAge": "3 days"
     },
     {
-      "description": "The local containers follow the tags on their own; only the release in ARG RELEASE is a decision, so no digests here.",
+      "description": "The base images of the local containers, pinned by digest: the updates of tags and digests together in one pull request.",
       "matchFileNames": [
         "dev/containers/*.Dockerfile"
       ],
-      "pinDigests": false,
+      "pinDigests": true,
       "labels": [
         "distribution-release"
       ],
-      "automerge": false
+      "automerge": false,
+      "groupName": "container images"
     }
   ]
 }

@@ -4,9 +4,11 @@
 # The packages alone, into dist/alpine/:
 #   docker build -f dev/containers/alpine.Dockerfile --target packages \
 #     --output dist/alpine .
-ARG RELEASE=edge
 
-FROM docker.io/library/alpine:${RELEASE} AS build
+# The base image, pinned by digest. Renovate updates the tag and the digest.
+FROM docker.io/library/alpine:edge@sha256:020dfcbaaf4cc1078bf2d9c7ba31a8466e334061dcd2f248001d68f79e52c000 AS base
+
+FROM base AS build
 # alpine-sdk has abuild, fakeroot and the C toolchain. The build
 # dependencies are installed here, as root: abuild is run with -d and
 # installs nothing itself.
@@ -46,7 +48,7 @@ RUN --network=none set -eu; \
 FROM scratch AS packages
 COPY --from=build /home/builder/out/ /
 
-FROM docker.io/library/alpine:${RELEASE} AS install
+FROM base AS install
 # Alpine has no udev-hid-bpf, so there is no keyboard package.
 RUN --mount=type=bind,from=build,source=/home/builder/out,target=/pkgs \
     apk add --no-cache --allow-untrusted /pkgs/asus-zenbook-duo-ux8406-second-screen-[0-9]*.apk \

@@ -12,7 +12,12 @@
 #     --build-arg RELEASE=testing --build-arg KEYBOARD=yes .
 ARG RELEASE=trixie
 
-FROM docker.io/library/debian:${RELEASE} AS build
+# The base images, pinned by digest. Renovate updates the digests. BuildKit
+# builds only the stage that RELEASE selects.
+FROM docker.io/library/debian:trixie@sha256:913f6706df59a68922d1dd08f78c2476560a8d367897200a6005b00e5f67c2d5 AS base-trixie
+FROM docker.io/library/debian:testing@sha256:f35963177a0584848d5222b3d2b4f4ebcc6434d39db0a709c3088237ef619cbf AS base-testing
+
+FROM base-${RELEASE} AS build
 RUN apt-get update -q \
     && apt-get install -qy --no-install-recommends build-essential debhelper \
         ca-certificates git fakeroot meson ninja-build pkgconf systemd-dev udev \
@@ -49,7 +54,7 @@ RUN --network=none set -eu; \
 FROM scratch AS packages
 COPY --from=build /home/builder/out/ /
 
-FROM docker.io/library/debian:${RELEASE} AS install
+FROM base-${RELEASE} AS install
 # No systemd runs here; the policy layer keeps invoke-rc.d from trying to
 # start the guard, as on any container image.
 RUN printf '#!/bin/sh\nexit 101\n' > /usr/sbin/policy-rc.d \
