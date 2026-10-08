@@ -24,7 +24,8 @@ on:
         description: The release tag, for example v0.4.0.
         type: string
         required: true
-    # A called workflow gets only the secrets that its caller passes.
+    # The job reads the secrets in the environment aports; a secret of the
+    # environment takes the place of one that the caller passes.
     secrets:
       APORTS_SSH_KEY:
         required: false
