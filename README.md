@@ -99,7 +99,7 @@ Older GDM versions use `~gdm/.config/monitors.xml`. Not tested.
 | Debian unstable      | ✅    | ✅            | ✅       | ✅    | ✅       |
 | Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅    | ✅       |
 | Alpine               | 🛠️ ⁵  | 🛠️ ⁵          | ❌ ⁴     | 🛠️ ⁵  | 🛠️ ⁵     |
-| Nix                  | 🛠️ ⁶  | 🛠️ ⁶          | ❌ ⁴     | 🛠️ ⁶  | 🛠️ ⁶     |
+| Nix                  | ✅ ⁶  | ✅ ⁶          | ❌ ⁴     | ✅ ⁶  | ✅ ⁶     |
 
 1. Built for RHEL 10 with EPEL 10. Installed in AlmaLinux 10 and Rocky Linux 10
    containers, not on RHEL.
@@ -110,10 +110,13 @@ Older GDM versions use `~gdm/.config/monitors.xml`. Not tested.
 3. Published, but not installed in a container: there is no container image.
 4. The distribution has no [udev-hid-bpf]. For Alpine, refer to
    [issue 43](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/43).
-5. In Alpine's `testing` repository, which is in edge only. Alpine builds and
-   signs the packages.
+5. Sent to Alpine's `testing` repository, which is in edge only:
+   [merge request 109394](https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/109394).
+   It is not merged yet. Until Alpine merges it, the packages build from
+   `packaging/alpine/`.
 6. In the flake of this repository, with the binary cache
-   `asus-zenbook-duo-ux8406.cachix.org`.
+   `asus-zenbook-duo-ux8406.cachix.org`. The container builds each package of
+   the flake. The NixOS modules are not tested.
 
 🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
 keyboard ids and dock port can be different. Send your result in a GitHub issue
@@ -225,7 +228,12 @@ sudo pacman -Sy $pkgs asus-zenbook-duo-ux8406-keyboard-bpf
 
 ### Alpine
 
-`testing` is in the edge repositories only:
+The packages are not in `testing` until Alpine merges
+[merge request 109394](https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/109394).
+Until then, build them with `abuild` from `packaging/alpine/`, as
+`dev/containers/alpine.Dockerfile` does.
+
+After the merge: `testing` is in the edge repositories only:
 
 ```sh
 echo https://dl-cdn.alpinelinux.org/alpine/edge/testing | sudo tee -a /etc/apk/repositories
