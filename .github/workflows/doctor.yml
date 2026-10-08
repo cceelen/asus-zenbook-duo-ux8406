@@ -47,7 +47,7 @@ jobs:
           tag=$(jq -r .tag_name <<< "$release")
           age=$(( ($(date +%s) - $(date -d "$(jq -r .published_at <<< "$release")" +%s)) / 86400 ))
           { echo "version=${tag#v}"; echo "late=$([ "$age" -ge "$GRACE" ] && echo true || echo false)"; } >> "$GITHUB_OUTPUT"
-          echo "Latest release: [$tag]($(jq -r .html_url <<< "$release")), $age days ago" >> "$GITHUB_STEP_SUMMARY"
+          echo "Latest release: [$tag]($(jq -r .html_url <<< "$release")), $age days ago" | tee -a "$GITHUB_STEP_SUMMARY"
 
   # The fine-grained tokens of GitHub: GitHub gives the expiry in a header
   # of each answer. A token without an expiry passes.
@@ -122,8 +122,8 @@ jobs:
             | grep -o "$OBS_PACKAGE-[0-9][0-9.]*\.tar\.gz" | head -n 1 | sed "s/^$OBS_PACKAGE-//; s/\.tar\.gz\$//")
           builds=$(curl -fsS "https://build.opensuse.org/public/build/$OBS_PROJECT/_result?package=$OBS_PACKAGE" \
             | tr -d '\n' | sed 's|</result>|\n|g' | sed -n 's|.*repository="\([^"]*\)".*<status [^>]*code="\([^"]*\)".*|\1: \2|p')
-          echo "OBS: ${v:-none} - $link" >> "$GITHUB_STEP_SUMMARY"
-          echo "OBS builds: ${builds//$'\n'/, }" >> "$GITHUB_STEP_SUMMARY"
+          echo "OBS: ${v:-none} - $link" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "OBS builds: ${builds//$'\n'/, }" | tee -a "$GITHUB_STEP_SUMMARY"
           broken=$(grep -E ': (failed|unresolvable|broken)$' <<< "$builds" || true)
           if [ -n "$broken" ]; then echo "::error::OBS builds that failed: ${broken//$'\n'/, }"; exit 1; fi
           if [ "$v" != "$WANT" ] && [ "$LATE" = true ]; then echo "::error::OBS has ${v:-no version}, not the release $WANT"; exit 1; fi
@@ -146,7 +146,7 @@ jobs:
           link=https://copr.fedorainfracloud.org/coprs/$COPR_OWNER/$COPR_PROJECT/
           v=$(curl -fsS "https://copr.fedorainfracloud.org/api_3/package?ownername=$COPR_OWNER&projectname=$COPR_PROJECT&packagename=$OBS_PACKAGE&with_latest_succeeded_build=true" \
             | jq -r '.builds.latest_succeeded.source_package.version // empty' | sed 's/-[^-]*$//')
-          echo "COPR: ${v:-none} - $link" >> "$GITHUB_STEP_SUMMARY"
+          echo "COPR: ${v:-none} - $link" | tee -a "$GITHUB_STEP_SUMMARY"
           if [ "$v" != "$WANT" ] && [ "$LATE" = true ]; then echo "::error::COPR has ${v:-no build}, not the release $WANT"; exit 1; fi
 
   # The binary cache answers, and has the key of the README.
@@ -180,7 +180,7 @@ jobs:
             job=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run/jobs?per_page=100" \
               --jq '[.jobs[] | select(.name == "cachix")][-1] // empty | "\(.conclusion) \(.html_url)"')
           fi
-          echo "Nix: $WANT, cachix job ${job:-not found}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Nix: $WANT, cachix job ${job:-not found}" | tee -a "$GITHUB_STEP_SUMMARY"
           if [ "${job%% *}" != success ] && [ "$LATE" = true ]; then echo "::error::The release $WANT is not in Cachix: cachix job ${job:-not found}"; exit 1; fi
 
   # The merge request of the aport is open and its pipeline did not fail, or
@@ -216,4 +216,4 @@ jobs:
             || curl -fsS "$api/alpine%2Faports/repository/files/$file/raw?ref=master")
           v=$(sed -n 's/^pkgver=//p' <<< "$v")
           note=$([ "$v" = "$WANT" ] || echo ", not the release $WANT")
-          echo "Alpine: ${v:-none}$note - https://gitlab.alpinelinux.org/$FORK/-/blob/$APORTS_BRANCH/$APKBUILD" >> "$GITHUB_STEP_SUMMARY"
+          echo "Alpine: ${v:-none}$note - https://gitlab.alpinelinux.org/$FORK/-/blob/$APORTS_BRANCH/$APKBUILD" | tee -a "$GITHUB_STEP_SUMMARY"
