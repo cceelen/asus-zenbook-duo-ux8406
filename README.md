@@ -3,6 +3,7 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cceelen/asus-zenbook-duo-ux8406/badge)](https://scorecard.dev/viewer/?uri=github.com/cceelen/asus-zenbook-duo-ux8406)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15286/badge)](https://www.bestpractices.dev/projects/15286)
 [![codecov](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406/graph/badge.svg?token=CSOYWM3L9Q)](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406)
+[![Plumber Score](https://score.getplumber.io/github.com/cceelen/asus-zenbook-duo-ux8406.svg)](https://score.getplumber.io/github.com/cceelen/asus-zenbook-duo-ux8406)
 
 **Five packages that make the
 [ASUS Zenbook Duo UX8406](https://www.asus.com/us/laptops/for-home/zenbook/asus-zenbook-duo-2024-ux8406/)

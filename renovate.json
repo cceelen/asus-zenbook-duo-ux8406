@@ -58,9 +58,10 @@
       "minimumReleaseAge": "3 days"
     },
     {
-      "description": "The base images of the local containers, pinned by digest: the updates of tags and digests together in one pull request.",
+      "description": "The base images of the local containers and the container of the aports job, pinned by digest: the updates of tags and digests together in one pull request.",
       "matchFileNames": [
-        "dev/containers/*.Dockerfile"
+        "dev/containers/*.Dockerfile",
+        ".github/workflows/aports.yml"
       ],
       "pinDigests": true,
       "labels": [
