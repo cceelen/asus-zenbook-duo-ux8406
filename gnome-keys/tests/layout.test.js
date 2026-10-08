@@ -255,6 +255,52 @@ test('pressing it again puts the remembered layout back', () => {
     assert.equal(save, null);
 });
 
+test('after a turn of the laptop the remembered layout is not put back', () => {
+    const before = twoPanels().logical;
+    const state = lowerOff();
+
+    state.logical[0].transform = 1;
+
+    const {apply, save} = toggle(state, before, LOWER, UPPER);
+    const [upper, lower] = [find(apply, UPPER), find(apply, LOWER)];
+
+    assert.notEqual(apply, before);
+    assert.equal(save, null);
+    assert.equal(lower.transform, 1);
+    assert.deepEqual([lower.x - upper.x, lower.y - upper.y], [-1440, 0]);
+});
+
+test('after a turn the lower panel goes beside the upper one, also with a monitor', () => {
+    const connected = [monitor(UPPER), monitor(LOWER), monitor('DP-7')];
+    const before = readState([
+        4,
+        connected,
+        [
+            logical(UPPER, 0, 0, true),
+            logical(LOWER, 0, 1440, false),
+            logical('DP-7', 2304, 0, false, 1),
+        ],
+        properties,
+    ]).logical;
+    const state = readState([
+        5,
+        [monitor(UPPER), monitor(LOWER, false), monitor('DP-7')],
+        [logical(UPPER, 0, 0, true), logical('DP-7', 1440, 0, false, 1)],
+        properties,
+    ]);
+
+    state.logical[0].transform = 3;
+
+    const {apply} = toggle(state, before, LOWER, UPPER);
+
+    assert.notEqual(apply, before);
+    assert.equal(isValid(state, apply), true);
+    assert.deepEqual(
+        [UPPER, LOWER, 'DP-7'].map((connector) => find(apply, connector).x),
+        [0, 1440, 2880],
+    );
+});
+
 test('without a remembered layout the panel goes below the upper one', () => {
     const {apply} = toggle(lowerOff(), null, LOWER, UPPER);
 
