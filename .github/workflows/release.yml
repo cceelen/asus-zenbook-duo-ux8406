@@ -211,7 +211,8 @@ jobs:
         with:
           filePath: sbom
           filePattern: "*.spdx.json"
-  # Alpine: a merge request to aports (aports.yml).
+  # Alpine: a merge request to aports (aports.yml). Its job reads the aports
+  # secrets in the environment aports.
   aports:
     needs: [release, publish]
     uses: ./.github/workflows/aports.yml

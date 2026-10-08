@@ -151,8 +151,9 @@ names the check that failed.
 ## Cachix and aports
 
 The jobs `cachix` and `aports` of `release.yml` run only when their variables
-are set. The jobs run in the environments of the table. The aports secrets are
-repository secrets (Settings, Secrets and variables, Actions).
+are set. The jobs run in the environments of the table, and the secrets of the
+table are secrets of these environments (Settings, Environments). The
+environment `aports` allows the branch `main` only.
 
 | Job      | Environment | Secrets                          | Variables                                                     |
 | -------- | ----------- | -------------------------------- | ------------------------------------------------------------- |
@@ -165,9 +166,8 @@ fork to upstream's and replaces the branch `asus-zenbook-duo-ux8406`, so there
 is one merge request, with the latest release. The commits keep the maintainer
 of the APKBUILD as their author. Make the changes that the aports reviewers ask
 for in `packaging/alpine/`, so that the next release has them. To repeat the
-merge request of a release, run the workflow "aports" with its tag.
-`release.yml` passes the two repository secrets to `aports.yml` by name: a
-called workflow gets no other repository secrets. A run started by hand reads
-them itself. A secret or variable that is missing stops the job at its first
-step, with its name. When Alpine moves the aport to `community/`, set
+merge request of a release, run the workflow "aports" with its tag. The job of
+`aports.yml` reads its secrets in the environment `aports`, also when
+`release.yml` calls it. A secret or variable that is missing stops the job at
+its first step, with its name. When Alpine moves the aport to `community/`, set
 `APORTS_DIR` to `community`.
