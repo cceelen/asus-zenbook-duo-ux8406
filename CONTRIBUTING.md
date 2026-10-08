@@ -83,6 +83,8 @@ CI measures the coverage of all three Rust programs and of the extensions' logic
 [Codecov](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406). Only the
 guard has a limit; for the others the coverage is measured, not enforced.
 
+[![Coverage of each file](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406/graphs/tree.svg?token=CSOYWM3L9Q)](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406)
+
 Fuzz targets of the guard's parsers are in `fuzz/`, with
 [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz) and a nightly compiler.
 `cargo fuzz list` names them, and `fuzz/seeds/` has a start for each:
