@@ -1,8 +1,12 @@
 # openSUSE Build Service (OBS)
 
-One OBS package builds all packages for openSUSE, Debian, Ubuntu and Arch from a
-tagged release. The OBS package holds only `_service`. The service fetches the
-other files:
+**For the maintainer: how the OBS project is set up. One OBS package builds all
+packages for openSUSE, Debian, Ubuntu and Arch from a tagged release, and a new
+tag starts the build.** Users find the installation commands in the
+[README](../../README.md#installation); the release steps are in
+[docs/releases.md](../../docs/releases.md).
+
+The OBS package holds only `_service`. The service fetches the other files:
 
 | File                                            | Source                                                    |
 | ----------------------------------------------- | --------------------------------------------------------- |
@@ -61,8 +65,10 @@ repository. The project definition (Repositories, or the page `/meta`):
 ```
 
 - Ubuntu 24.04 is not a target: its Rust is 1.75 and 1.85 is necessary.
-- Debian 13 and openSUSE have no `udev-hid-bpf`. The keyboard package builds
-  there, but you cannot install it.
+- Where a distribution has no `udev-hid-bpf`, the keyboard package builds, but
+  you cannot install it. The
+  [compatibility table](../../README.md#compatibility) names these
+  distributions.
 
 ## Setup
 
@@ -81,14 +87,9 @@ repository. The project definition (Repositories, or the page `/meta`):
 
 ## Release
 
-A pushed tag starts the OBS workflow immediately. OBS can download the archive
-only from a published release, so the first build fails while the release is a
-draft. Publish the release, then redeliver the webhook (Settings, Webhooks,
-Recent deliveries).
+A pushed tag starts the OBS workflow (`.obs/workflows.yml`). The release
+workflow makes the tag when it publishes the release, so the archive is there
+when the build starts. If a build did not start, redeliver the webhook
+(Settings, Webhooks, Recent deliveries).
 
 There is no build for pull requests: a pull request has no release archive.
-
-## Users
-
-The "Download package" page of the project gives the commands that add the
-repository and its key.
