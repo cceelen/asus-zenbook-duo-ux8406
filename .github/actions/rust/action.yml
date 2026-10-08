@@ -1,0 +1,44 @@
+# A Rust toolchain from the rustup of the runner, and the cache of the build.
+# GitHub's runners have rustup: no installer script is fetched, unlike
+# actions-rust-lang/setup-rust-toolchain, which pipes sh.rustup.rs into sh
+# when rustup is missing. The environment is the one that action set.
+name: rust
+description: Install a Rust toolchain with the runner's rustup and cache the build.
+
+inputs:
+  toolchain:
+    description: The toolchain, for example stable, nightly or 1.85.
+    default: stable
+  components:
+    description: Components, separated by commas.
+    default: ""
+  cache-workspaces:
+    description: The workspaces for Swatinem/rust-cache, one for each line.
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        TOOLCHAIN: ${{ inputs.toolchain }}
+        COMPONENTS: ${{ inputs.components }}
+      run: |
+        args=()
+        IFS=', ' read -r -a list <<< "$COMPONENTS"
+        for component in "${list[@]}"; do
+          [ -n "$component" ] && args+=(--component "$component")
+        done
+        rustup toolchain install "$TOOLCHAIN" --profile minimal --no-self-update "${args[@]}"
+        rustup override set "$TOOLCHAIN"
+        rustc --version --verbose
+        # Warnings fail the build; no incremental build and no debug
+        # information in CI. A value that the job sets stays.
+        [ -n "${CARGO_BUILD_WARNINGS+x}" ] || echo "CARGO_BUILD_WARNINGS=deny" >> "$GITHUB_ENV"
+        [ -n "${CARGO_INCREMENTAL+x}" ] || echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+        [ -n "${CARGO_PROFILE_DEV_DEBUG+x}" ] || echo "CARGO_PROFILE_DEV_DEBUG=0" >> "$GITHUB_ENV"
+        [ -n "${CARGO_TERM_COLOR+x}" ] || echo "CARGO_TERM_COLOR=always" >> "$GITHUB_ENV"
+    - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      with:
+        workspaces: ${{ inputs.cache-workspaces }}
+        cache-on-failure: true
