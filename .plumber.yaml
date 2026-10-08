@@ -1,0 +1,16 @@
+# Plumber (.github/workflows/plumber.yml): the defaults, with these changes.
+version: "2.0"
+extends: plumber:default
+
+github:
+  controls:
+    # The publishers of the actions in use here that are not in Plumber's
+    # list. Each action is pinned by commit SHA and updated by Renovate.
+    githubActionMustComeFromAuthorizedSources:
+      includePlumberDefaults: true
+      trustedGithubActions:
+        - actions-rust-lang/* # Rust toolchain, cargo audit
+        - mozilla-actions/* # sccache
+        - taiki-e/* # install-action (cargo-llvm-cov)
+        - Swatinem/* # rust-cache
+        - advanced-security/* # GitHub's advanced-security team

@@ -46,7 +46,7 @@ jobs:
   aports:
     if: ${{ vars.APORTS_FORK != '' }}
     runs-on: ubuntu-26.04
-    container: docker.io/library/alpine:edge
+    container: docker.io/library/alpine:edge@sha256:020dfcbaaf4cc1078bf2d9c7ba31a8466e334061dcd2f248001d68f79e52c000
     environment: aports
     env:
       GH_TOKEN: ${{ github.token }}

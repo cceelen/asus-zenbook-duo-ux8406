@@ -1,0 +1,37 @@
+# Plumber: the workflows and the settings of the repository against its
+# CI/CD security controls (.plumber.yaml adds to its defaults). The findings
+# go to code scanning; the score (A to E) goes to score.getplumber.io for the
+# badge of the README, through OIDC, with no secret. Once a week, and after a
+# change of a workflow or of the configuration on main.
+name: plumber
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/**
+      - .plumber.yaml
+  workflow_dispatch:
+  schedule:
+    - cron: "29 3 * * 4"
+
+permissions: read-all
+
+jobs:
+  analysis:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: getplumber/plumber@fb943e4efba61cf7b0a0c56f6648710a7453519b # v0.5.20
+        with:
+          score-push: true
+          # Measured first: a finding goes to code scanning and to the score,
+          # and does not fail the run.
+          soft-fail: true
