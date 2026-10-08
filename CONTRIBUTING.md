@@ -79,7 +79,8 @@ cargo llvm-cov -p asus-ux8406-tcc-guard --features failpoints \
 ```
 
 CI measures the coverage of all three Rust programs and of the extensions' logic
-(Node's test runner), shows it in the summary of the run and sends it to
+(Node's test runner) on each pull request (`ci.yml`) and each night on main
+(`coverage.yml`), shows it in the summary of the run and sends it to
 [Codecov](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406). Only the
 guard has a limit; for the others the coverage is measured, not enforced.
 
