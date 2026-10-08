@@ -56,9 +56,9 @@ jobs:
           exit "$failed"
 
   # The token that opens the aports merge request, read where aports.yml
-  # reads it: in the environment aports.
+  # reads it: in the environment aports, which only main may use.
   gitlab-token:
-    if: ${{ vars.APORTS_FORK != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ vars.APORTS_FORK != '' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-26.04
     environment: aports
     steps:
@@ -84,10 +84,10 @@ jobs:
           list=$(curl -fsS "https://build.opensuse.org/public/source/$OBS_PROJECT") \
             || { echo "::error::OBS project $OBS_PROJECT cannot be read"; exit 1; }
           packages=$(grep -o '<entry name="[^"]*"' <<< "$list" | cut -d'"' -f2)
-          echo "OBS $OBS_PROJECT: $(echo $packages)" >> "$GITHUB_STEP_SUMMARY"
+          echo "OBS $OBS_PROJECT: ${packages//$'\n'/ }" >> "$GITHUB_STEP_SUMMARY"
           if ! grep -qx "$OBS_PACKAGE" <<< "$packages"; then echo "::error::OBS has no package $OBS_PACKAGE"; exit 1; fi
           stray=$(grep -vx "$OBS_PACKAGE" <<< "$packages" || true)
-          if [ -n "$stray" ]; then echo "::error::OBS packages that do not belong there: $(echo $stray)"; exit 1; fi
+          if [ -n "$stray" ]; then echo "::error::OBS packages that do not belong there: ${stray//$'\n'/ }"; exit 1; fi
 
   # Packit keeps the project (preserve_project in .packit.yaml).
   copr:
