@@ -9,7 +9,7 @@ github:
     githubActionMustComeFromAuthorizedSources:
       includePlumberDefaults: true
       trustedGithubActions:
-        - actions-rust-lang/* # Rust toolchain, cargo audit
+        - actions-rust-lang/* # cargo audit
         - mozilla-actions/* # sccache
         - taiki-e/* # install-action (cargo-llvm-cov)
         - Swatinem/* # rust-cache
