@@ -1,8 +1,11 @@
 # asus-ux8406-tcc-guard
 
-A service for the ASUS Zenbook Duo UX8406. It lowers the temperature at which
-the CPU throttles when the embedded controller (EC) warns of heat, and removes
-the change when the machine is cool again.
+**A service that prevents the power-off of the ASUS Zenbook Duo UX8406 with the
+lid closed. It lowers the temperature at which the CPU throttles when the
+embedded controller (EC) warns of heat, and removes the change when the machine
+is cool again. The package starts it; you set nothing.**
+
+For the installation, refer to the [README](../README.md#installation).
 
 ## The problem
 
@@ -34,7 +37,9 @@ line and ends. The setting `model` changes that.
 ## Use
 
 The packages enable and start the service. After a build from the source, do
-that with `systemctl enable --now asus-ux8406-tcc-guard.service`. The log:
+that with `systemctl enable --now asus-ux8406-tcc-guard.service`; the Meson
+option `-Dinit=openrc` installs an OpenRC script in place of the systemd unit.
+The log:
 
 ```sh
 journalctl -u asus-ux8406-tcc-guard
@@ -52,12 +57,10 @@ the documentation directory of the package gives each setting and its default.
 meson test -C build --suite asus-ux8406-tcc-guard
 ```
 
-Do not run the tests as root: some tests make files unreadable, and root ignores
-file permissions. The tests run two times, the second time with fault injection
+The tests run two times, the second time with fault injection
 (`--features failpoints`, `src/fault.rs`). An installed build does not contain
-the fault points.
-
-`-Dinit=openrc` installs an OpenRC script in place of the systemd unit.
+the fault points. For the build, the coverage and the fuzz targets, refer to
+[CONTRIBUTING.md](../CONTRIBUTING.md#build-and-test).
 
 ## Upstream
 

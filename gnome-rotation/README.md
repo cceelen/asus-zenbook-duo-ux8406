@@ -1,22 +1,29 @@
 # gnome-shell-extension-builtin-screen-rotation
 
-A GNOME Shell extension that turns the built-in screens when the laptop stands
-on its side. It is made for the two screens of the ASUS Zenbook Duo UX8406.
+**A GNOME Shell extension that turns the built-in screens when the laptop stands
+on its side, also with a keyboard, a touchpad or a mouse connected. It is made
+for the two screens of the ASUS Zenbook Duo UX8406, but it operates on a laptop
+of any model. Do not use it on a machine whose screen is mounted turned.**
 
 GNOME turns a built-in screen only when no pointer device is connected, and it
-turns one screen. This extension does it for all built-in screens, also with a
-keyboard, a touchpad or a mouse connected.
+turns one screen. This extension does it for all built-in screens.
 
-Nothing in it is specific to the UX8406: it uses the screens that the compositor
-marks as built-in, and takes their order from the layout. Only the UX8406CA is
-tested.
+## Which machines
+
+Nothing in the extension is specific to the UX8406: it uses the screens that the
+compositor marks as built-in, and takes their order from the layout. Only the
+UX8406CA is tested; a report from another laptop is useful (refer to
+[CONTRIBUTING.md](../CONTRIBUTING.md#report-your-results)).
 
 The extension takes each built-in screen as mounted upright in the machine. Some
 small tablets and convertibles have a screen that is mounted turned (the kernel
 then reports a panel orientation). On such a machine the extension turns the
-picture wrongly: do not use it there. The compositor (mutter) knows the panel
-orientation, but up to GNOME 51 it gives it neither to extensions nor over D-Bus
-(`GetCurrentState`).
+picture wrongly. The compositor (mutter) knows the panel orientation, but up to
+GNOME 51 it gives it neither to extensions nor over D-Bus (`GetCurrentState`).
+
+It needs GNOME Shell 45 to 51 (only 50 is tested) and `iio-sensor-proxy`, which
+gives the orientation. On a machine without a built-in screen, the extension
+does nothing.
 
 ## What it does
 
@@ -30,15 +37,12 @@ them, moves to make room. Other monitors stay. The change is for the session
 only; the saved `monitors.xml` does not change. With the built-in screens off,
 the extension does nothing.
 
-The orientation comes from `iio-sensor-proxy`. On a machine without a built-in
-screen, the extension does nothing.
-
-GNOME Shell 45 to 51 is declared. Only GNOME Shell 50 is tested.
-
 ## Use
 
-After the installation, log in again. GNOME Shell on Wayland finds a new
-extension only when it starts.
+Install the package `gnome-shell-extension-builtin-screen-rotation`: the
+[README](../README.md#installation) tells how to add the repository for your
+distribution. You do not need the other packages. Log in again, then enable the
+extension:
 
 ```sh
 gnome-extensions enable builtin-screen-rotation@cceelen.github.io
@@ -68,11 +72,10 @@ sudo systemctl stop iio-sensor-proxy
 meson test -C build --suite gnome-rotation
 ```
 
-The tests use node and need no GNOME session. `rotation.js` has the logic and no
-GNOME imports; `sensor.js` calls `net.hadess.SensorProxy`. `state.js` and
-`display.js` are links to `../gnome-common`: the two extensions of this project
-use the same files, and the build installs a copy in each. The tests of the two
-extensions also share their fixtures: `../gnome-common/tests`.
+`rotation.js` has the logic and no GNOME imports; `sensor.js` calls
+`net.hadess.SensorProxy`. For the files that the two extensions share, and for
+an installation from the tree, refer to
+[CONTRIBUTING.md](../CONTRIBUTING.md#an-extension-without-a-package).
 
 `tests/rotate.js` follows the orientation with the code of the extension, from
 outside GNOME Shell, and applies the layouts. Use it to try the rotation without
@@ -81,12 +84,3 @@ a new login; disable the extension first.
 ```sh
 gjs -m tests/rotate.js 120
 ```
-
-## Install for one user without a package
-
-```sh
-meson setup build --prefix ~/.local -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false
-meson install -C build
-```
-
-Remove the packaged extension first: it has the same UUID.

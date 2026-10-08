@@ -1,20 +1,17 @@
 # asus-ux8406-keyboard-state
 
-A helper for the detachable keyboard of the ASUS Zenbook Duo UX8406. It keeps
+**A helper for the detachable keyboard of the ASUS Zenbook Duo UX8406. It keeps
 the keyboard light and the mode of the function row (F1–F12 or hotkeys) when the
-keyboard changes between the dock, the cable and Bluetooth. It is part of the
-package [asus-zenbook-duo-ux8406-keyboard-bpf](../keyboard-bpf/README.md).
+keyboard changes between the dock, the cable and Bluetooth. udev runs it; there
+is no service and nothing to set.**
 
-## Why
-
-The keyboard is a different HID device on each connection. It starts each
-connection with its light off. The HID-BPF program of the keyboard is loaded for
-each device and holds the light and the row mode only for that device. When the
+It is part of the package
+[asus-zenbook-duo-ux8406-keyboard-bpf](../keyboard-bpf/README.md). The HID-BPF
+program of that package holds the light and the row mode for one HID device
+only, and the keyboard is a different HID device on each connection: when the
 device goes, udev-hid-bpf removes the program and its state.
 
 ## How it operates
-
-udev runs the helper. There is no service.
 
 | Event                              | Command       | Result                                              |
 | ---------------------------------- | ------------- | --------------------------------------------------- |
@@ -23,8 +20,8 @@ udev runs the helper. There is no service.
 
 udev-hid-bpf gives the properties to the program when it loads it, and the
 program sets the keyboard to them. The
-[README of the program](../keyboard-bpf/README.md#what-it-does) lists the
-properties.
+[README of the program](../keyboard-bpf/README.md#state-at-a-connection) lists
+the properties.
 
 When the keyboard goes onto the dock, the USB device comes at the same time as
 the Bluetooth device goes (seen on the UX8406CA: less than 0.1 s between the

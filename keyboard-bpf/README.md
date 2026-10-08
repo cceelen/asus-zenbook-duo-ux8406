@@ -1,10 +1,18 @@
 # asus-zenbook-duo-ux8406-keyboard-bpf
 
-A HID-BPF program for the detachable keyboard of the ASUS Zenbook Duo UX8406,
-and the hwdb entry with which [udev-hid-bpf] loads it when the keyboard
-connects. The package also has a [helper](../keyboard-state/README.md) that
-keeps the keyboard light and the mode of the function row from one connection to
-the next.
+**The package that makes the function row of the detachable keyboard of the ASUS
+Zenbook Duo UX8406 operate, on the dock, on the cable and with Bluetooth. It
+needs [udev-hid-bpf], which not each distribution has.**
+
+It has two parts:
+
+- A HID-BPF program, and the hwdb entry with which udev-hid-bpf loads it when
+  the keyboard connects. This document.
+- A [helper](../keyboard-state/README.md) that keeps the keyboard light and the
+  mode of the function row from one connection to the next.
+
+For the installation and the distributions, refer to the
+[README](../README.md#compatibility).
 
 | Keyboard | Bus       | Id          | State      |
 | -------- | --------- | ----------- | ---------- |
@@ -31,6 +39,8 @@ the UX8406CA keyboard.
 The volume keys and the display switch (F7) operate without this program.
 
 In F1–F12 mode, Fn and a key of the row give the hotkey of that key.
+
+## State at a connection
 
 The dock and Bluetooth are two HID devices, and the keyboard starts each
 connection with its light off. The program is loaded for each device and starts

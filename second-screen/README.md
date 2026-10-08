@@ -1,8 +1,10 @@
 # asus-ux8406-second-screen
 
-A helper for the lower screen of the ASUS Zenbook Duo UX8406. It sets the screen
-to off while the keyboard lies on it, and keeps it at the brightness of the
-upper screen. udev runs it; there is no service.
+**A helper for the lower screen of the ASUS Zenbook Duo UX8406. It sets the
+screen to off while the keyboard lies on it, and keeps it at the brightness of
+the upper screen. udev runs it; there is no service and nothing to set.**
+
+For the installation, refer to the [README](../README.md#installation).
 
 ## What it does
 

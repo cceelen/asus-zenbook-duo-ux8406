@@ -4,77 +4,59 @@
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15286/badge)](https://www.bestpractices.dev/projects/15286)
 [![codecov](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406/graph/badge.svg?token=CSOYWM3L9Q)](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406)
 
-Packages that fix common Linux problems on the
-[ASUS Zenbook Duo UX8406](https://www.asus.com/us/laptops/for-home/zenbook/asus-zenbook-duo-2024-ux8406/).
+**Five packages that make the
+[ASUS Zenbook Duo UX8406](https://www.asus.com/us/laptops/for-home/zenbook/asus-zenbook-duo-2024-ux8406/)
+operate correctly with Linux: no power-off with the lid closed, a lower screen
+that follows the keyboard and the brightness, a function row with all its keys,
+touch on the two screens, and screen rotation. They install from the package
+manager of your distribution. They are tested on a UX8406CA with Fedora 44; the
+UX8406MA is not tested.**
 
 I own a UX8406CA. The community solutions that I tried gave mixed results and
 needed manual installation. The power-off problem stayed for months. These
 packages are fixes or workarounds until the upstream projects (kernel, desktops,
 BIOS) supply the fix.
 
-## Problems and packages
+## Where to start
 
-**Power off with the lid closed.** The embedded controller (EC) sends an
-undocumented thermal event ("hot bag") when the lid is closed. If the system
-ignores the event, the EC switches the laptop off.
+| You want to                                           | Go to                                                  |
+| ----------------------------------------------------- | ------------------------------------------------------ |
+| Know what is fixed and what is not                    | [What the packages fix](#what-the-packages-fix)        |
+| Know if your distribution has the packages            | [Compatibility](#compatibility)                        |
+| Install the packages                                  | [Installation](#installation)                          |
+| Turn the screens of a laptop that is not a UX8406     | [Rotation extension](gnome-rotation/README.md)         |
+| Report a result or a problem on your hardware         | [CONTRIBUTING.md](CONTRIBUTING.md#report-your-results) |
+| Build, test or change the code                        | [CONTRIBUTING.md](CONTRIBUTING.md#build-and-test)      |
+| Make a release, or check the origin of a release file | [docs/releases.md](docs/releases.md)                   |
+| Report a vulnerability                                | [SECURITY.md](SECURITY.md)                             |
 
-- [asus-zenbook-duo-ux8406-tcc-guard](tcc-guard/README.md): a service that
-  lowers the temperature limit of the CPU when the EC sends the event, and
-  raises it again in steps when the alert stops.
+## What the packages fix
 
-**Lower screen.** It does not follow the brightness control. It stays on when
-the keyboard lies on it.
+Install only the packages that you need. The two display keys of Keys need the
+Keyboard package.
 
-- [asus-zenbook-duo-ux8406-second-screen](second-screen/README.md): sets the
-  lower screen to off while the keyboard is on it, and keeps the two screens at
-  the same brightness.
+| Without the package                                                                    | Package                                          | With the package                                                                                                           |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| With the lid closed and under load, the laptop switches off.                           | [Guard](tcc-guard/README.md)                     | A service lowers the temperature limit of the CPU for the time of the thermal alert.                                       |
+| The lower screen stays on below the keyboard and ignores the brightness control.       | [Second screen](second-screen/README.md)         | The lower screen is off while the keyboard is on it, and has the brightness of the upper screen.                           |
+| More than half of the special function keys do nothing.                                | [Keyboard](keyboard-bpf/README.md)               | The keys operate on the dock, on the cable and with Bluetooth. The keyboard light and Fn+Esc operate and keep their state. |
+| The two display keys do nothing. A touch on the lower screen acts on the upper screen. | [Keys](gnome-keys/README.md), GNOME only         | The keys switch the lower screen and swap the windows. Each touchscreen has its screen.                                    |
+| The screens do not turn when the laptop stands on its side (book mode).                | [Rotation](gnome-rotation/README.md), GNOME only | The two screens turn and go side by side. Not specific to this model.                                                      |
 
-**Keyboard.** More than half of the special function keys are not mapped.
+The names in the table are those of the columns in
+[Compatibility](#compatibility). [Installation](#installation) gives the names
+of the packages.
 
-- [asus-zenbook-duo-ux8406-keyboard-bpf](keyboard-bpf/README.md): maps the
-  special function keys, the keyboard light and Fn+Esc. It operates on the dock,
-  on the cable and with Bluetooth. The keyboard light and the mode of the
-  function row stay when the keyboard changes between them.
-- [gnome-shell-extension-asus-zenbook-duo-ux8406-keys](gnome-keys/README.md):
-  gives a function to the two display keys. GNOME only.
-
-**Touch.** A touch on the lower screen acts on the upper screen: GNOME cannot
-tell the two screens apart.
-
-- [gnome-shell-extension-asus-zenbook-duo-ux8406-keys](gnome-keys/README.md):
-  gives each touchscreen its screen. GNOME only.
-
-**Screen rotation.** GNOME does not turn the screens when the laptop stands on
-its side (book mode).
-
-- [gnome-shell-extension-builtin-screen-rotation](gnome-rotation/README.md):
-  turns the two screens and puts them side by side. GNOME only. It is not
-  specific to this model.
-
-**No fix in this project:**
+No fix in this project:
 
 - Microphone on the TRRS jack: no input. Possibly a hardware limit. Refer to the
   [SOF ticket](https://github.com/thesofproject/linux/issues/5703).
 - Battery charge limit: the limit of 80 % operates. The battery charged above it
   two times, to 87 % on 2026-09-30 and to 100 % on 2026-10-03. The cause is not
-  known.
+  known
+  ([issue 32](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/32)).
 
-**Login screen.** It has its own display settings and does not read those of
-your session. Without a saved layout it switches all screens on, the built-in
-screens also, at each logout. To give it the layouts of your session, copy the
-file. Do this again after you change the arrangement of your monitors.
-
-GDM 50 (Fedora 44):
-
-```sh
-dir=/var/lib/gdm/seat0/config
-sudo install -m 644 -o "$(sudo stat -c %u $dir)" -g "$(sudo stat -c %g $dir)" ~/.config/monitors.xml $dir/monitors.xml
-sudo restorecon $dir/monitors.xml
-```
-
-Older GDM versions use `~gdm/.config/monitors.xml`. Not tested.
-
-**Not examined:** fan profiles, pens, beam-forming microphones, camera.
+Not examined: fan profiles, pens, beam-forming microphones, camera.
 
 ## Compatibility
 
@@ -110,18 +92,14 @@ Older GDM versions use `~gdm/.config/monitors.xml`. Not tested.
 3. Published, but not installed in a container: there is no container image.
 4. The distribution has no [udev-hid-bpf]. For Alpine, refer to
    [issue 43](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/43).
-5. Sent to Alpine's `testing` repository, which is in edge only:
-   [merge request 109394](https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/109394).
-   It is not merged yet. Until Alpine merges it, the packages build from
-   `packaging/alpine/`.
+5. Not published yet. Refer to [Alpine](#alpine).
 6. In the flake of this repository, with the binary cache
    `asus-zenbook-duo-ux8406.cachix.org`. The container builds each package of
    the flake. The NixOS modules are not tested.
 
 🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
-keyboard ids and dock port can be different. Send your result in a GitHub issue
-to add a test mark. Refer to [CONTRIBUTING.md](CONTRIBUTING.md) for the data
-that helps.
+keyboard ids and dock port can be different. A result from your hardware adds a
+test mark: refer to [CONTRIBUTING.md](CONTRIBUTING.md#report-your-results).
 
 Requirements:
 
@@ -150,15 +128,23 @@ The packages are in two repositories:
   [download directory](https://download.opensuse.org/repositories/home:/cceelen:/asus-zenbook-duo-ux8406/)
   has one directory for each distribution.
 
-A package list for the commands below:
+The packages:
+
+| Part          | Package                                              |
+| ------------- | ---------------------------------------------------- |
+| Guard         | `asus-zenbook-duo-ux8406-tcc-guard`                  |
+| Second screen | `asus-zenbook-duo-ux8406-second-screen`              |
+| Keyboard      | `asus-zenbook-duo-ux8406-keyboard-bpf`               |
+| Keys          | `gnome-shell-extension-asus-zenbook-duo-ux8406-keys` |
+| Rotation      | `gnome-shell-extension-builtin-screen-rotation`      |
+
+The commands below use this list. It does not have the keyboard package: the
+commands add it where the distribution has udev-hid-bpf (refer to
+[Compatibility](#compatibility)).
 
 ```sh
 pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation"
 ```
-
-Where the distribution has udev-hid-bpf (refer to
-[Compatibility](#compatibility)), add `asus-zenbook-duo-ux8406-keyboard-bpf` to
-the list.
 
 ### Fedora and RHEL 10
 
@@ -228,12 +214,13 @@ sudo pacman -Sy $pkgs asus-zenbook-duo-ux8406-keyboard-bpf
 
 ### Alpine
 
-The packages are not in `testing` until Alpine merges
+The packages are not published yet. They are sent to Alpine's `testing`
+repository:
 [merge request 109394](https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/109394).
-Until then, build them with `abuild` from `packaging/alpine/`, as
-`dev/containers/alpine.Dockerfile` does.
+Until Alpine merges it, build the packages with `abuild` from
+`packaging/alpine/`, as `dev/containers/alpine.Dockerfile` does.
 
-After the merge: `testing` is in the edge repositories only:
+After the merge (`testing` is in the edge repositories only):
 
 ```sh
 echo https://dl-cdn.alpinelinux.org/alpine/edge/testing | sudo tee -a /etc/apk/repositories
@@ -273,30 +260,56 @@ Each package and its SBOM have an attestation; refer to
 
 ### After the installation
 
-The guard package enables and starts its service. On NixOS, set
-`services.asus-zenbook-duo-ux8406-tcc-guard.enable = true`.
+| Part           | What you do                                                                         |
+| -------------- | ----------------------------------------------------------------------------------- |
+| Guard          | Nothing. The package enables and starts the service.                                |
+| Second screen  | Nothing. It operates immediately.                                                   |
+| Keyboard       | Take the keyboard off the dock or put it on: the program loads at a new connection. |
+| Keys, Rotation | Log in again, then enable the extensions with the commands below.                   |
 
-Log in again and enable the extensions:
+GNOME Shell on Wayland finds a new extension only when it starts:
 
 ```sh
 gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io
 gnome-extensions enable builtin-screen-rotation@cceelen.github.io
 ```
 
+### Login screen
+
+This step is optional and manual. The login screen (GDM) has its own display
+settings and does not read those of your session. Without a saved layout it
+switches all screens on, the built-in screens also, at each logout. To give it
+the layouts of your session, copy the file. Do this again after you change the
+arrangement of your monitors.
+
+GDM 50 (Fedora 44):
+
+```sh
+dir=/var/lib/gdm/seat0/config
+sudo install -m 644 -o "$(sudo stat -c %u $dir)" -g "$(sudo stat -c %g $dir)" ~/.config/monitors.xml $dir/monitors.xml
+sudo restorecon $dir/monitors.xml
+```
+
+Older GDM versions use `~gdm/.config/monitors.xml`. Not tested.
+
 ## Known limits
 
 Keyboard:
 
 - After a start of the laptop, the function row is in F1–F12 mode, and the
-  keyboard light is as the keyboard has it.
-- Bluetooth special function is triggering BT connect events of the keyboard and
-  as far as the current testing showed does not generate a host visible event.
+  keyboard light is as the keyboard has it. From then on, the two stay as you
+  set them.
+- The Bluetooth key of the keyboard starts a new Bluetooth connection of the
+  keyboard. In the tests, the laptop gets no key event from it.
 - The package controls the keyboard light. The desktop cannot control it.
 
 Lower screen:
 
 - Windows from the lower screen stay on the upper screen when the lower screen
-  comes back.
+  comes back
+  ([issue 37](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/37)).
+
+Each part README gives the limits of its part.
 
 ## Upstream fixes
 
@@ -334,8 +347,10 @@ limit, suspend.
 
 Use the
 [GitHub issues](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues) for
-problems, questions and results on your hardware.
-[CONTRIBUTING.md](CONTRIBUTING.md) tells you how to build and test.
+problems, questions and results on your hardware. A report from a distribution
+or a model that is not tested is useful, also when all functions operate.
+[CONTRIBUTING.md](CONTRIBUTING.md) tells you what to send and how to build and
+test.
 
 ## AI policy
 

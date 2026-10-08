@@ -1,8 +1,9 @@
 # gnome-shell-extension-asus-zenbook-duo-ux8406-keys
 
-A GNOME Shell extension for the ASUS Zenbook Duo UX8406. It gives a function to
-two keys of the keyboard that need the desktop, and gives each touchscreen its
-screen.
+**A GNOME Shell extension for the ASUS Zenbook Duo UX8406. It gives a function
+to two keys of the keyboard that need the desktop, and gives each touchscreen
+its screen. Enable it one time after the installation; the keys need the
+keyboard package.**
 
 ## Keys
 
@@ -11,8 +12,8 @@ screen.
   on the lower screen, the key does nothing.
 - F8 swaps the windows of the two screens.
 
-The package `asus-zenbook-duo-ux8406-keyboard-bpf` is necessary: it makes the
-keyboard send these keys, as `XF86Launch9` and `F19`.
+The package [asus-zenbook-duo-ux8406-keyboard-bpf](../keyboard-bpf/README.md) is
+necessary: it makes the keyboard send these keys, as `XF86Launch9` and `F19`.
 
 ## Touch
 
@@ -34,18 +35,18 @@ dconf reset -f /org/gnome/desktop/peripherals/tablets/
 
 Touch is tested on the UX8406CA. The pens are not tested.
 
-On a machine that is not a UX8406, the extension binds no key and sets nothing.
-
-GNOME Shell 45 to 51 is declared. Only GNOME Shell 50 is tested.
-
 ## Use
 
-After the installation, log in again. GNOME Shell on Wayland finds a new
-extension only when it starts.
+Install the package (refer to the [README](../README.md#installation)), log in
+again, then enable the extension:
 
 ```sh
 gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io
 ```
+
+On a machine that is not a UX8406, the extension binds no key and sets nothing.
+
+GNOME Shell 45 to 51 is declared. Only GNOME Shell 50 is tested.
 
 ## Test
 
@@ -53,12 +54,10 @@ gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io
 meson test -C build --suite gnome-keys
 ```
 
-The tests use node and need no GNOME session. `layout.js` and `touch.js` have
-the logic and no GNOME imports; `display.js` calls
-`org.gnome.Mutter.DisplayConfig`. `state.js` and `display.js` are links to
-`../gnome-common`: the two extensions of this project use the same files, and
-the build installs a copy in each. The tests of the two extensions also share
-their fixtures: `../gnome-common/tests`.
+`layout.js` and `touch.js` have the logic and no GNOME imports; `display.js`
+calls `org.gnome.Mutter.DisplayConfig`. For the files that the two extensions
+share, and for an installation from the tree, refer to
+[CONTRIBUTING.md](../CONTRIBUTING.md#an-extension-without-a-package).
 
 `tests/verify.js` is a manual check in a GNOME session. It asks Mutter to verify
 the current layout and the layout that the key requests. It applies nothing.
@@ -66,12 +65,3 @@ the current layout and the layout that the key requests. It applies nothing.
 ```sh
 gjs -m tests/verify.js
 ```
-
-## Install for one user without a package
-
-```sh
-meson setup build --prefix ~/.local -Dscreen=false -Dguard=false -Dkeyboard=false -Drotation=false
-meson install -C build
-```
-
-Remove the packaged extension first: it has the same UUID.
