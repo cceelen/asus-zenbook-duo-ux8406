@@ -55,10 +55,12 @@ jobs:
           done
           exit "$failed"
 
-  # The token that opens the aports merge request.
+  # The token that opens the aports merge request, read where aports.yml
+  # reads it: in the environment aports.
   gitlab-token:
     if: ${{ vars.APORTS_FORK != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: ubuntu-26.04
+    environment: aports
     steps:
       - env:
           TOKEN: ${{ secrets.APORTS_TOKEN }}
