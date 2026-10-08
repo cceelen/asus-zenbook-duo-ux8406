@@ -1,12 +1,13 @@
-# Once a week: the services and credentials that the release relies on, so
-# that one of them going away shows as a red run, not as a failed release.
-# Each check is a job of its own; the summary of the run has the details.
+# Once a day: the services and credentials that the release relies on, so
+# that one of them going away shows as a red run, not as a failed release,
+# and the version that each delivery pipeline has, with its link. Each check
+# is a job of its own; the summary of the run has the details.
 # A pull request that changes this file runs the checks that need no secret.
 name: doctor
 
 on:
   schedule:
-    - cron: "37 4 * * 1"
+    - cron: "37 4 * * *"
   workflow_dispatch:
   pull_request:
     paths:
@@ -27,8 +28,27 @@ env:
   COPR_OWNER: packit
   COPR_PROJECT: cceelen-asus-zenbook-duo-ux8406-releases
   APORTS_BRANCH: asus-zenbook-duo-ux8406
+  # Days after a release that a pipeline may take to have it.
+  GRACE: "7"
 
 jobs:
+  # The latest release, which the jobs below compare their version with.
+  release:
+    runs-on: ubuntu-26.04
+    outputs:
+      version: ${{ steps.latest.outputs.version }}
+      late: ${{ steps.latest.outputs.late }}
+    steps:
+      - id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest")
+          tag=$(jq -r .tag_name <<< "$release")
+          age=$(( ($(date +%s) - $(date -d "$(jq -r .published_at <<< "$release")" +%s)) / 86400 ))
+          { echo "version=${tag#v}"; echo "late=$([ "$age" -ge "$GRACE" ] && echo true || echo false)"; } >> "$GITHUB_OUTPUT"
+          echo "Latest release: [$tag]($(jq -r .html_url <<< "$release")), $age days ago" >> "$GITHUB_STEP_SUMMARY"
+
   # The fine-grained tokens of GitHub: GitHub gives the expiry in a header
   # of each answer. A token without an expiry passes.
   # Not on a pull request: there the workflow of the pull request branch
@@ -79,7 +99,11 @@ jobs:
   # The OBS project has the one package of packaging/obs/README.md and no
   # other: OBS builds every package of the project.
   obs:
+    needs: release
     runs-on: ubuntu-26.04
+    env:
+      WANT: ${{ needs.release.outputs.version }}
+      LATE: ${{ needs.release.outputs.late }}
     steps:
       - run: |
           list=$(curl -fsS "https://build.opensuse.org/public/source/$OBS_PROJECT") \
@@ -89,20 +113,53 @@ jobs:
           if ! grep -qx "$OBS_PACKAGE" <<< "$packages"; then echo "::error::OBS has no package $OBS_PACKAGE"; exit 1; fi
           stray=$(grep -vx "$OBS_PACKAGE" <<< "$packages" || true)
           if [ -n "$stray" ]; then echo "::error::OBS packages that do not belong there: ${stray//$'\n'/ }"; exit 1; fi
+      # The version of the release archive in the package, and the build of
+      # each repository. A build that is waiting or running does not fail.
+      - if: ${{ !cancelled() }}
+        run: |
+          link=https://build.opensuse.org/package/show/$OBS_PROJECT/$OBS_PACKAGE
+          v=$(curl -fsS "https://build.opensuse.org/public/source/$OBS_PROJECT/$OBS_PACKAGE?expand=1" \
+            | grep -o "$OBS_PACKAGE-[0-9][0-9.]*\.tar\.gz" | head -n 1 | sed "s/^$OBS_PACKAGE-//; s/\.tar\.gz\$//")
+          builds=$(curl -fsS "https://build.opensuse.org/public/build/$OBS_PROJECT/_result?package=$OBS_PACKAGE" \
+            | tr -d '\n' | sed 's|</result>|\n|g' | sed -n 's|.*repository="\([^"]*\)".*<status [^>]*code="\([^"]*\)".*|\1: \2|p')
+          echo "OBS: ${v:-none} - $link" >> "$GITHUB_STEP_SUMMARY"
+          echo "OBS builds: ${builds//$'\n'/, }" >> "$GITHUB_STEP_SUMMARY"
+          broken=$(grep -E ': (failed|unresolvable|broken)$' <<< "$builds" || true)
+          if [ -n "$broken" ]; then echo "::error::OBS builds that failed: ${broken//$'\n'/, }"; exit 1; fi
+          if [ "$v" != "$WANT" ] && [ "$LATE" = true ]; then echo "::error::OBS has ${v:-no version}, not the release $WANT"; exit 1; fi
 
   # Packit keeps the project (preserve_project in .packit.yaml).
   copr:
+    needs: release
     runs-on: ubuntu-26.04
+    env:
+      WANT: ${{ needs.release.outputs.version }}
+      LATE: ${{ needs.release.outputs.late }}
     steps:
       - run: |
           project=$(curl -fsS "https://copr.fedorainfracloud.org/api_3/project?ownername=$COPR_OWNER&projectname=$COPR_PROJECT") \
             || { echo "::error::COPR project $COPR_OWNER/$COPR_PROJECT does not exist"; exit 1; }
           echo "COPR $COPR_OWNER/$COPR_PROJECT: $(jq -r '.chroot_repos | keys | join(", ")' <<< "$project")" >> "$GITHUB_STEP_SUMMARY"
+      # The version of the latest build that succeeded, without the release
+      # of the package.
+      - run: |
+          link=https://copr.fedorainfracloud.org/coprs/$COPR_OWNER/$COPR_PROJECT/
+          v=$(curl -fsS "https://copr.fedorainfracloud.org/api_3/package?ownername=$COPR_OWNER&projectname=$COPR_PROJECT&packagename=$OBS_PACKAGE&with_latest_succeeded_build=true" \
+            | jq -r '.builds.latest_succeeded.source_package.version // empty' | sed 's/-[^-]*$//')
+          echo "COPR: ${v:-none} - $link" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$v" != "$WANT" ] && [ "$LATE" = true ]; then echo "::error::COPR has ${v:-no build}, not the release $WANT"; exit 1; fi
 
   # The binary cache answers, and has the key of the README.
   cachix:
+    needs: release
     if: ${{ vars.CACHIX_CACHE != '' }}
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      actions: read
+    env:
+      WANT: ${{ needs.release.outputs.version }}
+      LATE: ${{ needs.release.outputs.late }}
     steps:
       - env:
           CACHE: ${{ vars.CACHIX_CACHE }}
@@ -112,12 +169,28 @@ jobs:
           key=$(curl -fsS "https://app.cachix.org/api/v1/cache/$CACHE" | jq -r '.publicSigningKeys[0] // empty')
           echo "Cachix $CACHE: $key" >> "$GITHUB_STEP_SUMMARY"
           if [ -z "$key" ]; then echo "::error::Cachix gives no signing key for $CACHE"; exit 1; fi
+      # The release run of the tag pushes the Nix packages: its job cachix.
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/v$WANT" --jq .sha)
+          run=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/release.yml/runs?head_sha=$sha" --jq '.workflow_runs[0].id // empty')
+          job=""
+          if [ -n "$run" ]; then
+            job=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run/jobs?per_page=100" \
+              --jq '[.jobs[] | select(.name == "cachix")][-1] // empty | "\(.conclusion) \(.html_url)"')
+          fi
+          echo "Nix: $WANT, cachix job ${job:-not found}" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${job%% *}" != success ] && [ "$LATE" = true ]; then echo "::error::The release $WANT is not in Cachix: cachix job ${job:-not found}"; exit 1; fi
 
   # The merge request of the aport is open and its pipeline did not fail, or
   # Alpine has merged it. A closed one, or none at all, fails.
   alpine:
+    needs: release
     if: ${{ vars.APORTS_FORK != '' }}
     runs-on: ubuntu-26.04
+    env:
+      WANT: ${{ needs.release.outputs.version }}
     steps:
       - run: |
           api=https://gitlab.alpinelinux.org/api/v4/projects/alpine%2Faports
@@ -130,3 +203,17 @@ jobs:
           if [ "$(jq -r '.state == "opened" and .head_pipeline.status == "failed"' <<< "$mr")" = true ]; then
             echo "::error::The pipeline of aports !$iid failed"; exit 1
           fi
+      # The pkgver of the APKBUILD: on the branch of the merge request, or in
+      # aports once merged. The review of Alpine takes its time: an older
+      # version is shown, it does not fail.
+      - env:
+          FORK: ${{ vars.APORTS_FORK }}
+          APKBUILD: ${{ vars.APORTS_DIR || 'testing' }}/asus-zenbook-duo-ux8406-second-screen/APKBUILD
+        run: |
+          api=https://gitlab.alpinelinux.org/api/v4/projects
+          file=$(jq -rn --arg f "$APKBUILD" '$f | @uri')
+          v=$(curl -fsS "$api/${FORK//\//%2F}/repository/files/$file/raw?ref=$APORTS_BRANCH" \
+            || curl -fsS "$api/alpine%2Faports/repository/files/$file/raw?ref=master")
+          v=$(sed -n 's/^pkgver=//p' <<< "$v")
+          note=$([ "$v" = "$WANT" ] || echo ", not the release $WANT")
+          echo "Alpine: ${v:-none}$note - https://gitlab.alpinelinux.org/$FORK/-/blob/$APORTS_BRANCH/$APKBUILD" >> "$GITHUB_STEP_SUMMARY"
