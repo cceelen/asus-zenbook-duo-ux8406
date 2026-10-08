@@ -78,6 +78,11 @@ cargo llvm-cov -p asus-ux8406-tcc-guard --features failpoints \
     --ignore-filename-regex /tests/ --fail-under-regions 100
 ```
 
+CI measures the coverage of all three Rust programs and of the extensions' logic
+(Node's test runner), shows it in the summary of the run and sends it to
+[Codecov](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406). Only the
+guard has a limit; for the others the coverage is measured, not enforced.
+
 Fuzz targets of the guard's parsers are in `fuzz/`, with
 [cargo-fuzz](https://github.com/rust-fuzz/cargo-fuzz) and a nightly compiler.
 `cargo fuzz list` names them, and `fuzz/seeds/` has a start for each:

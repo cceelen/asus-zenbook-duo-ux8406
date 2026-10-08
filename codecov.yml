@@ -1,0 +1,10 @@
+# Coverage is measured and reported; it is not a limit yet (the guard's
+# 100 % is in ci.yml). The checks of Codecov only inform.
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true

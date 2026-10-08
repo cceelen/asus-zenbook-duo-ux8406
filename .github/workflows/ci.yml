@@ -63,10 +63,29 @@ jobs:
       # adds the crates of the fuzz targets.
       - run: cp Cargo.lock fuzz/Cargo.lock
       - run: cargo clippy --manifest-path fuzz/Cargo.toml --all-targets -- -D warnings
-      # Every region of the guard is run by a test.
+      # Coverage of the three programs: one measurement, read twice. Every
+      # region of the guard is run by a test (the limit); second-screen and
+      # keyboard-state are measured for the report only. The clean removes
+      # data from an earlier run that the cache brought back.
+      - run: cargo llvm-cov clean --workspace
+      - run: cargo llvm-cov --locked --no-report -p asus-ux8406-tcc-guard --features failpoints
+      - run: cargo llvm-cov --locked --no-report -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
       - run: >-
-          cargo llvm-cov --locked -p asus-ux8406-tcc-guard --features failpoints
-          --ignore-filename-regex /tests/ --fail-under-regions 100
+          cargo llvm-cov report --ignore-filename-regex '/tests/|second-screen/|keyboard-state/'
+          --fail-under-regions 100
+      - run: |
+          cargo llvm-cov report --ignore-filename-regex /tests/ --lcov --output-path rust.lcov
+          {
+            echo '### Rust coverage'
+            echo '```text'
+            cargo llvm-cov report --ignore-filename-regex /tests/ --summary-only
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-rust
+          path: rust.lcov
+          retention-days: 7
       # The committed notices are those of Cargo.lock. cargo-about reads the
       # crates of all programs, and the steps before got those of the guard.
       - run: cargo fetch --locked
@@ -186,6 +205,49 @@ jobs:
       - run: meson setup build -Dunit_checks=enabled
       - run: meson compile -C build
       - run: meson test -C build --print-errorlogs --no-suite failpoints
+      # Coverage of the extensions' logic, for the report only. The modules
+      # that need a GNOME Shell (extension.js, display.js, sensor.js) are not
+      # loaded by a test, so they are not in it.
+      - run: |
+          node --test --experimental-test-coverage --test-coverage-exclude='**/tests/**' \
+            --test-reporter=spec --test-reporter-destination=stdout \
+            --test-reporter=lcov --test-reporter-destination=js.lcov \
+            gnome-keys/tests/layout.test.js gnome-keys/tests/touch.test.js \
+            gnome-rotation/tests/rotation.test.js | tee js.txt
+          {
+            echo '### Coverage of the extensions'
+            echo '```text'
+            sed -n '/start of coverage report/,/end of coverage report/p' js.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-js
+          path: js.lcov
+          retention-days: 7
+
+  # The coverage of the rust and meson jobs goes to Codecov. It is measured,
+  # not a limit (the guard's 100 % is in the rust job), and a failed upload
+  # does not fail the run. Only this job has the token; it runs nothing from
+  # the tree.
+  coverage:
+    needs: [rust, meson]
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: coverage-*
+          merge-multiple: true
+          path: coverage
+      - uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/rust.lcov,coverage/js.lcov
+          disable_search: true
+          fail_ci_if_error: false
 
   dependency-review:
     if: ${{ github.event_name == 'pull_request' }}
