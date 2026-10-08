@@ -79,7 +79,8 @@ export function withBelow(state, connector, anchor) {
  *
  * - The lower panel is shown: take it out and remember the layout.
  * - It is not shown but connected: put the remembered layout back if the
- *   other monitors are still the same, else put it below the upper panel.
+ *   other monitors are still the same and the upper panel is turned the same
+ *   way, else put it below the upper panel.
  * - It is not connected (the keyboard lies on it): nothing.
  */
 export function toggle(state, saved, lower, upper) {
@@ -89,6 +90,11 @@ export function toggle(state, saved, lower, upper) {
         return {apply, save: apply ? state.logical : saved};
     }
     if (!state.connected.has(lower)) return {apply: null, save: saved};
-    if (saved && isRest(state.logical, saved, lower)) return {apply: saved, save: null};
+    if (
+        saved &&
+        isRest(state.logical, saved, lower) &&
+        find(saved, upper)?.transform === find(state.logical, upper)?.transform
+    )
+        return {apply: saved, save: null};
     return {apply: withBelow(state, lower, upper), save: null};
 }
