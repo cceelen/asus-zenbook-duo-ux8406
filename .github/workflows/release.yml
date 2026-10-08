@@ -40,13 +40,16 @@ jobs:
       - id: pr
         run: |
           # The list of open pull requests, not a search: a search does not
-          # find a pull request in the first seconds after it is opened.
-          branch=$(gh api "repos/${GH_REPO}/pulls?state=open&per_page=100" --jq '[.[] | select(.head.ref | startswith("release-please--"))][0].head.ref // ""')
-          if [ -z "$branch" ]; then
+          # find a pull request in the first seconds after it is opened. The
+          # list also has pull requests from forks, whose branch can have the
+          # same name: only a branch of this repository is the release branch.
+          pr=$(gh api "repos/${GH_REPO}/pulls?state=open&per_page=100" --jq "[.[] | select(.head.repo.full_name == \"${GH_REPO}\" and (.head.ref | startswith(\"release-please--\")))][0] // empty | \"\(.number) \(.head.ref)\"")
+          if [ -z "$pr" ]; then
             echo "::error::No release pull request: no fix or feat was merged since the last release."
             exit 1
           fi
-          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "number=${pr%% *}" >> "$GITHUB_OUTPUT"
+          echo "branch=${pr#* }" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ steps.pr.outputs.branch }}
@@ -55,6 +58,7 @@ jobs:
       # it in the files of .bumpversion.toml.
       - env:
           BRANCH: ${{ steps.pr.outputs.branch }}
+          NUMBER: ${{ steps.pr.outputs.number }}
         run: |
           new=$(jq -r '."."' .release-please-manifest.json)
           old=$(sed -n 's/^current_version = "\(.*\)"$/\1/p' .bumpversion.toml)
@@ -65,7 +69,7 @@ jobs:
             git commit --all --message "chore: set version $new in the package files"
             git push "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git" "HEAD:${BRANCH}"
           fi
-          gh pr merge "$BRANCH" --auto --squash
+          gh pr merge "$NUMBER" --auto --squash
   # Makes the draft release if the push is the merge of a release pull
   # request; does nothing for every other push.
   release:
