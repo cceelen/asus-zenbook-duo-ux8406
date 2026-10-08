@@ -139,11 +139,14 @@ The attestations do not cover the packages from COPR, OBS and Alpine.
   Fedora account `cceelen` must name the GitHub user `cceelen`.
 - OBS: refer to `packaging/obs/README.md`.
 
-`doctor.yml` checks each Monday what a release needs: that `RELEASE_TOKEN`,
+`doctor.yml` checks each day what a release needs: that `RELEASE_TOKEN`,
 `FUZZ_ADVISORY_TOKEN` and `APORTS_TOKEN` are valid for three more weeks, that
 the OBS project has only its package, that the COPR project and the Cachix cache
-exist, and that the aports merge request is open or merged. A red run names the
-check that failed.
+exist, and that the aports merge request is open or merged. Its summary gives
+the version that COPR, OBS, Nix (Cachix) and the aport have, with links. A
+pipeline that does not have the latest release seven days after it was published
+fails, as does a failed OBS build; the aport only shows its version. A red run
+names the check that failed.
 
 ## Cachix and aports
 
