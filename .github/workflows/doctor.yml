@@ -1,0 +1,129 @@
+# Once a week: the services and credentials that the release relies on, so
+# that one of them going away shows as a red run, not as a failed release.
+# Each check is a job of its own; the summary of the run has the details.
+# A pull request that changes this file runs it too.
+name: doctor
+
+on:
+  schedule:
+    - cron: "37 4 * * 1"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/doctor.yml
+
+concurrency:
+  group: doctor-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # A token that expires within this many days fails the check.
+  DAYS: "21"
+  OBS_PROJECT: home:cceelen:asus-zenbook-duo-ux8406
+  OBS_PACKAGE: asus-zenbook-duo-ux8406
+  COPR_OWNER: packit
+  COPR_PROJECT: cceelen-asus-zenbook-duo-ux8406-releases
+  APORTS_BRANCH: asus-zenbook-duo-ux8406
+
+jobs:
+  # The fine-grained tokens of GitHub: GitHub gives the expiry in a header
+  # of each answer. A token without an expiry passes.
+  github-tokens:
+    # A pull request from a fork gets no secrets.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-26.04
+    steps:
+      - env:
+          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          FUZZ_ADVISORY_TOKEN: ${{ secrets.FUZZ_ADVISORY_TOKEN }}
+        run: |
+          failed=0
+          for name in RELEASE_TOKEN FUZZ_ADVISORY_TOKEN; do
+            token=${!name}
+            if [ -z "$token" ]; then echo "::error::$name is not set"; failed=1; continue; fi
+            headers=$(curl -sS -o /dev/null -D - -w '%{http_code}' -H "Authorization: Bearer $token" "https://api.github.com/repos/$GITHUB_REPOSITORY")
+            status=${headers##*$'\n'}
+            if [ "$status" != 200 ]; then echo "::error::$name is not accepted (HTTP $status)"; failed=1; continue; fi
+            expiry=$(printf '%s\n' "$headers" | sed -n 's/^github-authentication-token-expiration: *\(.*\)\r$/\1/Ip')
+            if [ -z "$expiry" ]; then echo "$name: no expiry" >> "$GITHUB_STEP_SUMMARY"; continue; fi
+            left=$(( ($(date -d "$expiry" +%s) - $(date +%s)) / 86400 ))
+            echo "$name: expires $expiry, in $left days" >> "$GITHUB_STEP_SUMMARY"
+            if [ "$left" -lt "$DAYS" ]; then echo "::error::$name expires in $left days ($expiry): renew it"; failed=1; fi
+          done
+          exit "$failed"
+
+  # The token that opens the aports merge request.
+  gitlab-token:
+    if: ${{ vars.APORTS_FORK != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: ubuntu-26.04
+    steps:
+      - env:
+          TOKEN: ${{ secrets.APORTS_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then echo "::error::APORTS_TOKEN is not set"; exit 1; fi
+          self=$(curl -fsS -H "PRIVATE-TOKEN: $TOKEN" https://gitlab.alpinelinux.org/api/v4/personal_access_tokens/self) \
+            || { echo "::error::APORTS_TOKEN is not accepted"; exit 1; }
+          expiry=$(jq -r '.expires_at // empty' <<< "$self")
+          if [ "$(jq -r .active <<< "$self")" != true ]; then echo "::error::APORTS_TOKEN is not active"; exit 1; fi
+          if [ -z "$expiry" ]; then echo "APORTS_TOKEN: no expiry" >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          left=$(( ($(date -d "$expiry" +%s) - $(date +%s)) / 86400 ))
+          echo "APORTS_TOKEN: expires $expiry, in $left days" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$left" -lt "$DAYS" ]; then echo "::error::APORTS_TOKEN expires in $left days ($expiry): renew it"; exit 1; fi
+
+  # The OBS project has the one package of packaging/obs/README.md and no
+  # other: OBS builds every package of the project.
+  obs:
+    runs-on: ubuntu-26.04
+    steps:
+      - run: |
+          list=$(curl -fsS "https://build.opensuse.org/public/source/$OBS_PROJECT") \
+            || { echo "::error::OBS project $OBS_PROJECT cannot be read"; exit 1; }
+          packages=$(grep -o '<entry name="[^"]*"' <<< "$list" | cut -d'"' -f2)
+          echo "OBS $OBS_PROJECT: $(echo $packages)" >> "$GITHUB_STEP_SUMMARY"
+          if ! grep -qx "$OBS_PACKAGE" <<< "$packages"; then echo "::error::OBS has no package $OBS_PACKAGE"; exit 1; fi
+          stray=$(grep -vx "$OBS_PACKAGE" <<< "$packages" || true)
+          if [ -n "$stray" ]; then echo "::error::OBS packages that do not belong there: $(echo $stray)"; exit 1; fi
+
+  # Packit keeps the project (preserve_project in .packit.yaml).
+  copr:
+    runs-on: ubuntu-26.04
+    steps:
+      - run: |
+          project=$(curl -fsS "https://copr.fedorainfracloud.org/api_3/project?ownername=$COPR_OWNER&projectname=$COPR_PROJECT") \
+            || { echo "::error::COPR project $COPR_OWNER/$COPR_PROJECT does not exist"; exit 1; }
+          echo "COPR $COPR_OWNER/$COPR_PROJECT: $(jq -r '.chroot_repos | keys | join(", ")' <<< "$project")" >> "$GITHUB_STEP_SUMMARY"
+
+  # The binary cache answers, and has the key of the README.
+  cachix:
+    if: ${{ vars.CACHIX_CACHE != '' }}
+    runs-on: ubuntu-26.04
+    steps:
+      - env:
+          CACHE: ${{ vars.CACHIX_CACHE }}
+        run: |
+          curl -fsS "https://$CACHE.cachix.org/nix-cache-info" > info \
+            || { echo "::error::Cachix cache $CACHE does not answer"; exit 1; }
+          key=$(curl -fsS "https://app.cachix.org/api/v1/cache/$CACHE" | jq -r '.publicSigningKeys[0] // empty')
+          echo "Cachix $CACHE: $key" >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$key" ]; then echo "::error::Cachix gives no signing key for $CACHE"; exit 1; fi
+
+  # The merge request of the aport is open and its pipeline did not fail, or
+  # Alpine has merged it. A closed one, or none at all, fails.
+  alpine:
+    if: ${{ vars.APORTS_FORK != '' }}
+    runs-on: ubuntu-26.04
+    steps:
+      - run: |
+          api=https://gitlab.alpinelinux.org/api/v4/projects/alpine%2Faports
+          mrs=$(curl -fsS "$api/merge_requests?source_branch=$APORTS_BRANCH&order_by=updated_at&per_page=5") \
+            || { echo "::error::GitLab of Alpine does not answer"; exit 1; }
+          iid=$(jq -r '[.[] | select(.state == "opened" or .state == "merged")][0].iid // empty' <<< "$mrs")
+          if [ -z "$iid" ]; then echo "::error::No open or merged aports merge request from $APORTS_BRANCH"; exit 1; fi
+          mr=$(curl -fsS "$api/merge_requests/$iid")
+          jq -r '"Alpine !\(.iid): \(.state), updated \(.updated_at), pipeline \(.head_pipeline.status // "none") - \(.web_url)"' <<< "$mr" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$(jq -r '.state == "opened" and .head_pipeline.status == "failed"' <<< "$mr")" = true ]; then
+            echo "::error::The pipeline of aports !$iid failed"; exit 1
+          fi
