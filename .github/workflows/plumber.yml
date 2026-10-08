@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: getplumber/plumber@fb943e4efba61cf7b0a0c56f6648710a7453519b # v0.5.20
+      - uses: getplumber/plumber@326eb09497b27dbbe7f2664682d55c845acf4bd9 # v0.5.23
         with:
           score-push: true
           # Measured first: a finding goes to code scanning and to the score,
