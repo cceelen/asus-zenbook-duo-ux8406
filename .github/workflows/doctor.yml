@@ -1,7 +1,7 @@
 # Once a week: the services and credentials that the release relies on, so
 # that one of them going away shows as a red run, not as a failed release.
 # Each check is a job of its own; the summary of the run has the details.
-# A pull request that changes this file runs it too.
+# A pull request that changes this file runs the checks that need no secret.
 name: doctor
 
 on:
@@ -31,9 +31,10 @@ env:
 jobs:
   # The fine-grained tokens of GitHub: GitHub gives the expiry in a header
   # of each answer. A token without an expiry passes.
+  # Not on a pull request: there the workflow of the pull request branch
+  # runs, and it must not get the tokens.
   github-tokens:
-    # A pull request from a fork gets no secrets.
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-26.04
     steps:
       - env:
