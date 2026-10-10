@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
 # Nix: build the packages of the flake. Nix builds into its store, so there
 # are no package files to take out; the image keeps the results as links:
 # /second-screen, /tcc-guard, /keyboard-bpf, /gnome-keys and /gnome-rotation.

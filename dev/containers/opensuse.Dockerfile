@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
 # openSUSE Tumbleweed: build the rpms from the same spec as Fedora, then
 # install on a clean system.
 #
@@ -7,7 +7,7 @@
 #     --output dist/opensuse .
 
 # The base image, pinned by digest. Renovate updates the tag and the digest.
-FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:3906bb6ea95dca6992ec37c360c75403f79331b11670c1972645390f031327a0 AS base
+FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:61e6e4bd417edca0fe79f7c9c8c7cd29e044064d049469182f1a7e783884673b AS base
 
 FROM base AS build
 RUN zypper -n install rpm-build git cargo clang libbpf-devel meson ninja python3 \

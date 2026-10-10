@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
 # Fedora: build the rpms, then install them on a clean system.
 #
 # The packages alone, into dist/fedora/:
@@ -6,7 +6,7 @@
 #     --output dist/fedora .
 
 # The base image, pinned by digest. Renovate updates the tag and the digest.
-FROM registry.fedoraproject.org/fedora:44@sha256:ba35579e107f26a4c2c000390fb3ff549f3858a9584a6b5a35f7fa51f54de309 AS base
+FROM registry.fedoraproject.org/fedora:44@sha256:8ade22c0f76f6b2f0892290b1fb39fa1bda1566ba6e276a2ed427f45589c159b AS base
 
 FROM base AS build
 RUN dnf install -y rpm-build git cargo clang libbpf-devel meson ninja-build python3 \
