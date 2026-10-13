@@ -98,6 +98,13 @@ For `drivers/hid/hid-asus.c` (refer to
   handle Fn+Esc.
 - On Bluetooth the keyboard refuses the light report if it does not have the
   declared 16 bytes.
+- The keyboard sends a report `5a 3d ...` that it is not asked for. Its meaning
+  is not known. The program drops it.
+
+These findings are posted in
+[asusctl issue 25](https://github.com/OpenGamingCollective/asusctl/issues/25#issuecomment-6149905573),
+where the hid-asus patch is tracked. The patch sends the light report with 5
+bytes and the Fn-lock report with 4 bytes (read from the source, not tried).
 
 For udev-hid-bpf: it pins each map below the directory of the device, and a map
 that is pinned by name makes the load fail. Thus a program cannot pass state

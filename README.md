@@ -318,7 +318,11 @@ State in October 2026:
 
 - Keyboard:
   [hid-asus patch](https://ratatoskr.run/linux-input/2026/05/9004316/t) for the
-  Linux kernel. Applied, then removed. Not in Linux 7.2.
+  Linux kernel. Applied, then removed because of a build error. Not in Linux
+  7.2. The work on it is tracked in
+  [asusctl issue 25](https://github.com/OpenGamingCollective/asusctl/issues/25).
+  [Our findings](https://github.com/OpenGamingCollective/asusctl/issues/25#issuecomment-6149905573)
+  are there.
 - Lower screen brightness:
   [backlight capability](https://ratatoskr.run/dri-devel/2026/09/17528280/t) for
   the Linux kernel. In review.
