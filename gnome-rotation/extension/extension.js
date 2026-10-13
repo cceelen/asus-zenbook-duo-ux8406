@@ -128,6 +128,8 @@ export default class BuiltinScreenRotation extends Extension {
         if (this._managedChanged) this._monitorManager.disconnect(this._managedChanged);
         this._managedChanged = 0;
         this._monitorManager = null;
+        // The binding of the switch to the setting goes with the switch.
+        if (this._switch) Gio.Settings.unbind(this._switch, 'checked');
         for (const item of this._indicator?.quickSettingsItems ?? []) item.destroy();
         this._indicator?.destroy();
         this._indicator = null;

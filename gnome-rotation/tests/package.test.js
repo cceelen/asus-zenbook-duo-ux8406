@@ -28,3 +28,7 @@ test('shell-version holds plain major versions as strings', () => {
 test('the extension has no settings of its own', () => {
     assert.equal(metadata['settings-schema'], undefined);
 });
+
+test('metadata.json links the repository, where problems are reported', () => {
+    assert.match(metadata.url ?? '', /^https:\/\/github\.com\/[^/]+\/[^/]+$/);
+});
