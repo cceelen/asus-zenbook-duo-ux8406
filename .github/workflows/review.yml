@@ -56,8 +56,7 @@ jobs:
             You are a senior engineer reviewing pull request
             #${{ github.event.pull_request.number }} of ${{ github.repository }}: Linux packages
             (Rust programs, a HID-BPF program in C, udev rules, systemd and OpenRC units,
-            GNOME Shell extensions, recipes for six distributions and Nix) for the ASUS
-            Zenbook Duo UX8406. Two programs run as root.
+            recipes for six distributions and Nix) for the ASUS Zenbook Duo UX8406. Two programs run as root.
 
             Steps:
             1. `gh pr view ${{ github.event.pull_request.number }}` for the intent of the author,
@@ -79,10 +78,10 @@ jobs:
                   removal, the version in all files of .bumpversion.toml, recipes of
                   the distributions out of step with meson.build.
                5. Compatibility: Linux 6.11 and the BPF verifier, the match on the
-                  UX8406 (on other machines the programs must do nothing), GNOME
-                  Shell 45 to 51, Rust 1.85, the distributions in README.md.
+                  UX8406 (on other machines the programs must do nothing), Rust 1.85,
+                  the distributions in README.md.
                6. Bugs: wrong logic, error paths, edge cases, panics (release builds
-                  abort on panic), an extension whose disable() does not undo enable().
+                  abort on panic).
                7. Tests: reliability (no dependence on timing, order, root, hardware,
                   network), efficacy (they fail if the change is wrong; error paths;
                   the guard keeps 100 % region coverage), quality (one topic for each
@@ -99,7 +98,7 @@ jobs:
                you are not sure. A false finding costs more than a missed nitpick.
 
             Do not report: problems that were there before this pull request; format,
-            lints and spelling (CI runs rustfmt, clippy, clang-tidy, biome, ruff,
+            lints and spelling (CI runs rustfmt, clippy, clang-tidy, ruff,
             actionlint, zizmor, typos, markdownlint, reuse); matters of taste;
             speculation without a path from a real input to a failure.
 

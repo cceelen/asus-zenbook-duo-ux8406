@@ -9,7 +9,7 @@ pkgdesc="Lower panel of the Zenbook Duo UX8406 off while the keyboard lies on it
 url="https://github.com/cceelen/asus-zenbook-duo-ux8406"
 arch="x86_64"
 license="MIT"
-makedepends="abuild-meson cargo glib-dev meson nodejs python3 samurai"
+makedepends="abuild-meson cargo meson python3 samurai"
 # The scripts of the -openrc subpackage are named here as well: abuild reads
 # the install scripts of all subpackages from this list, by the name of the
 # package each belongs to. They start the guard, and stop it, which puts the
@@ -22,8 +22,6 @@ install="$pkgname.post-install $pkgname.post-upgrade $pkgname.pre-deinstall
 # licence files.
 subpackages="
 	$pkgname-udev:panel_udev:noarch
-	gnome-shell-extension-asus-zenbook-duo-ux8406-keys:gnome_keys:noarch
-	gnome-shell-extension-builtin-screen-rotation:gnome_rotation:noarch
 	$_guard:guard
 	$_guard-openrc:guard_openrc
 	$_guard-doc:guard_doc:noarch
@@ -41,9 +39,7 @@ builddir="$srcdir/asus-zenbook-duo-ux8406-$pkgver"
 # given. The licence texts go to /usr/share/licenses/<package>/.
 #
 # The keyboard part (the HID-BPF program and its state helper) is not built:
-# Alpine has no udev-hid-bpf, which loads the program. The GNOME extension
-# still gives each touchscreen its panel; only its two display keys need the
-# keyboard program. Refer to issue 43.
+# Alpine has no udev-hid-bpf, which loads the program. Refer to issue 43.
 build() {
 	abuild-meson \
 		-Dinit=openrc \
@@ -72,24 +68,6 @@ panel_udev() {
 	install_if="$pkgname=$pkgver-r$pkgrel udev"
 
 	amove usr/lib/udev/rules.d/90-asus-ux8406-second-screen.rules
-}
-
-gnome_keys() {
-	pkgdesc="GNOME Shell extension for the display keys of the Zenbook Duo UX8406"
-	license="MIT"
-	depends="gnome-shell"
-
-	amove usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io
-	amove usr/share/licenses/gnome-shell-extension-asus-zenbook-duo-ux8406-keys
-}
-
-gnome_rotation() {
-	pkgdesc="GNOME Shell extension that turns the built-in screens with the laptop"
-	license="MIT"
-	depends="gnome-shell iio-sensor-proxy"
-
-	amove usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io
-	amove usr/share/licenses/gnome-shell-extension-builtin-screen-rotation
 }
 
 guard() {

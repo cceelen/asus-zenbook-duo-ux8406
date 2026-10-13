@@ -21,8 +21,7 @@ FROM base-${RELEASE} AS build
 RUN apt-get update -q \
     && apt-get install -qy --no-install-recommends build-essential debhelper \
         ca-certificates git fakeroot meson ninja-build pkgconf systemd-dev udev \
-        cargo rustc clang libbpf-dev linux-libc-dev python3 libglib2.0-bin \
-        nodejs lintian \
+        cargo rustc clang libbpf-dev linux-libc-dev python3 lintian \
     && rm -rf /var/lib/apt/lists/*
 # The tests of the guard need an ordinary user: root ignores file permissions.
 RUN useradd -m builder
@@ -33,7 +32,7 @@ WORKDIR /src
 # checkout; it carries the crates in vendor/). This step needs the network.
 RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
-    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false \
+    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
 # The packages, from that archive, without network, and lintian on the result
 # (source package and all binary packages, via the .changes file): every tag is
@@ -60,8 +59,7 @@ FROM base-${RELEASE} AS install
 RUN printf '#!/bin/sh\nexit 101\n' > /usr/sbin/policy-rc.d \
     && chmod +x /usr/sbin/policy-rc.d
 # udev-hid-bpf, which the keyboard package needs, is in testing and unstable
-# but not in Debian 13 (trixie). The extension package is built but not
-# installed here: it would pull in a whole GNOME.
+# but not in Debian 13 (trixie).
 ARG KEYBOARD=no
 RUN --mount=type=bind,from=build,source=/home/builder/out,target=/pkgs \
     apt-get update -q \

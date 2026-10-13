@@ -1,5 +1,0 @@
-{
-  "files": { "includes": ["gnome-common/**/*.js", "gnome-keys/**/*.js", "gnome-rotation/**/*.js"] },
-  "formatter": { "indentStyle": "space", "indentWidth": 4, "lineWidth": 100 },
-  "javascript": { "formatter": { "quoteStyle": "single", "bracketSpacing": false } }
-}

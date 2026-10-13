@@ -5,13 +5,14 @@
 [![codecov](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406/graph/badge.svg?token=CSOYWM3L9Q)](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406)
 [![Plumber Score](https://score.getplumber.io/github.com/cceelen/asus-zenbook-duo-ux8406.svg)](https://score.getplumber.io/github.com/cceelen/asus-zenbook-duo-ux8406)
 
-**Five packages that make the
+**Three packages and two GNOME Shell extensions that make the
 [ASUS Zenbook Duo UX8406](https://www.asus.com/us/laptops/for-home/zenbook/asus-zenbook-duo-2024-ux8406/)
 operate correctly with Linux: no power-off with the lid closed, a lower screen
 that follows the keyboard and the brightness, a function row with all its keys,
-touch on the two screens, and screen rotation. They install from the package
-manager of your distribution. They are tested on a UX8406CA with Fedora 44; the
-UX8406MA is not tested.**
+touch on the two screens, and screen rotation. The packages install from the
+package manager of your distribution. The extensions install from
+[extensions.gnome.org](https://extensions.gnome.org). They are tested on a
+UX8406CA with Fedora 44; the UX8406MA is not tested.**
 
 I own a UX8406CA. The community solutions that I tried gave mixed results and
 needed manual installation. The power-off problem stayed for months. These
@@ -25,7 +26,8 @@ BIOS) supply the fix.
 | Know what is fixed and what is not                    | [What the packages fix](#what-the-packages-fix)        |
 | Know if your distribution has the packages            | [Compatibility](#compatibility)                        |
 | Install the packages                                  | [Installation](#installation)                          |
-| Turn the screens of a laptop that is not a UX8406     | [Rotation extension](gnome-rotation/README.md)         |
+| Install the GNOME extensions (Keys, Rotation)         | [GNOME extensions](#gnome-extensions)                  |
+| Turn the screens of a laptop that is not a UX8406     | [Rotation extension][gnome-extension]                  |
 | Report a result or a problem on your hardware         | [CONTRIBUTING.md](CONTRIBUTING.md#report-your-results) |
 | Build, test or change the code                        | [CONTRIBUTING.md](CONTRIBUTING.md#build-and-test)      |
 | Make a release, or check the origin of a release file | [docs/releases.md](docs/releases.md)                   |
@@ -33,20 +35,22 @@ BIOS) supply the fix.
 
 ## What the packages fix
 
-Install only the packages that you need. The two display keys of Keys need the
-Keyboard package.
+Install only the parts that you need. The two display keys of Keys need the
+Keyboard package. Keys and Rotation are GNOME Shell extensions; they are in the
+repository [cceelen/gnome-extension][gnome-extension].
 
-| Without the package                                                                    | Package                                          | With the package                                                                                                           |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| With the lid closed and under load, the laptop switches off.                           | [Guard](tcc-guard/README.md)                     | A service lowers the temperature limit of the CPU for the time of the thermal alert.                                       |
-| The lower screen stays on below the keyboard and ignores the brightness control.       | [Second screen](second-screen/README.md)         | The lower screen is off while the keyboard is on it, and has the brightness of the upper screen.                           |
-| More than half of the special function keys do nothing.                                | [Keyboard](keyboard-bpf/README.md)               | The keys operate on the dock, on the cable and with Bluetooth. The keyboard light and Fn+Esc operate and keep their state. |
-| The two display keys do nothing. A touch on the lower screen acts on the upper screen. | [Keys](gnome-keys/README.md), GNOME only         | The keys switch the lower screen and swap the windows. Each touchscreen has its screen.                                    |
-| The screens do not turn when the laptop stands on its side (book mode).                | [Rotation](gnome-rotation/README.md), GNOME only | The two screens turn and go side by side. Not specific to this model.                                                      |
+| Without the package                                                                    | Package                                  | With the package                                                                                                           |
+| -------------------------------------------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| With the lid closed and under load, the laptop switches off.                           | [Guard](tcc-guard/README.md)             | A service lowers the temperature limit of the CPU for the time of the thermal alert.                                       |
+| The lower screen stays on below the keyboard and ignores the brightness control.       | [Second screen](second-screen/README.md) | The lower screen is off while the keyboard is on it, and has the brightness of the upper screen.                           |
+| More than half of the special function keys do nothing.                                | [Keyboard](keyboard-bpf/README.md)       | The keys operate on the dock, on the cable and with Bluetooth. The keyboard light and Fn+Esc operate and keep their state. |
+| The two display keys do nothing. A touch on the lower screen acts on the upper screen. | [Keys][gnome-extension], GNOME only      | The keys switch the lower screen and swap the windows. Each touchscreen has its screen.                                    |
+| The screens do not turn when the laptop stands on its side (book mode).                | [Rotation][gnome-extension], GNOME only  | The two screens turn and go side by side. Not specific to this model.                                                      |
 
 The names in the table are those of the columns in
 [Compatibility](#compatibility). [Installation](#installation) gives the names
-of the packages.
+of the packages, and [GNOME extensions](#gnome-extensions) tells you how to get
+Keys and Rotation.
 
 No fix in this project:
 
@@ -68,21 +72,21 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
 | ❌     | Not available.                                           |
 | 🤖     | Tested on the hardware.                                  |
 
-| Distribution         | Guard | Second screen | Keyboard | Keys  | Rotation |
-| -------------------- | ----- | ------------- | -------- | ----- | -------- |
-| Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖 | ✅ 🤖    |
-| Fedora 43            | ✅    | ✅            | ✅       | ✅    | ✅       |
-| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹  | ✅ ¹     |
-| Arch                 | ✅    | ✅            | ✅       | ✅    | ✅       |
-| openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅    | ✅       |
-| openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ³  | ✅ ³     |
-| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ✅    | ✅       |
-| Debian 13            | ✅    | ✅            | ❌ ⁴     | ✅    | ✅       |
-| Debian testing       | ✅    | ✅            | ✅       | ✅    | ✅       |
-| Debian unstable      | ✅    | ✅            | ✅       | ✅    | ✅       |
-| Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅    | ✅       |
-| Alpine               | 🛠️ ⁵  | 🛠️ ⁵          | ❌ ⁴     | 🛠️ ⁵  | 🛠️ ⁵     |
-| Nix                  | ✅ ⁶  | ✅ ⁶          | ❌ ⁴     | ✅ ⁶  | ✅ ⁶     |
+| Distribution         | Guard | Second screen | Keyboard |
+| -------------------- | ----- | ------------- | -------- |
+| Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    |
+| Fedora 43            | ✅    | ✅            | ✅       |
+| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     |
+| Arch                 | ✅    | ✅            | ✅       |
+| openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     |
+| openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   |
+| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     |
+| Debian 13            | ✅    | ✅            | ❌ ⁴     |
+| Debian testing       | ✅    | ✅            | ✅       |
+| Debian unstable      | ✅    | ✅            | ✅       |
+| Ubuntu 26.04         | ✅    | ✅            | ✅       |
+| Alpine               | 🛠️ ⁵  | 🛠️ ⁵          | ❌ ⁴     |
+| Nix                  | ✅ ⁶  | ✅ ⁶          | ❌ ⁴     |
 
 1. Built for RHEL 10 with EPEL 10. Installed in AlmaLinux 10 and Rocky Linux 10
    containers, not on RHEL.
@@ -97,6 +101,10 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
 6. In the flake of this repository, with the binary cache
    `asus-zenbook-duo-ux8406.cachix.org`. The container builds each package of
    the flake. The NixOS modules are not tested.
+
+Keys and Rotation are not distribution packages. They install from
+extensions.gnome.org on each distribution that has GNOME Shell 45 or later.
+Refer to [GNOME extensions](#gnome-extensions).
 
 🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
 keyboard ids and dock port can be different. A result from your hardware adds a
@@ -131,20 +139,18 @@ The packages are in two repositories:
 
 The packages:
 
-| Part          | Package                                              |
-| ------------- | ---------------------------------------------------- |
-| Guard         | `asus-zenbook-duo-ux8406-tcc-guard`                  |
-| Second screen | `asus-zenbook-duo-ux8406-second-screen`              |
-| Keyboard      | `asus-zenbook-duo-ux8406-keyboard-bpf`               |
-| Keys          | `gnome-shell-extension-asus-zenbook-duo-ux8406-keys` |
-| Rotation      | `gnome-shell-extension-builtin-screen-rotation`      |
+| Part          | Package                                 |
+| ------------- | --------------------------------------- |
+| Guard         | `asus-zenbook-duo-ux8406-tcc-guard`     |
+| Second screen | `asus-zenbook-duo-ux8406-second-screen` |
+| Keyboard      | `asus-zenbook-duo-ux8406-keyboard-bpf`  |
 
 The commands below use this list. It does not have the keyboard package: the
 commands add it where the distribution has udev-hid-bpf (refer to
 [Compatibility](#compatibility)).
 
 ```sh
-pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation"
+pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen"
 ```
 
 ### Fedora and RHEL 10
@@ -240,10 +246,6 @@ flake as an input of your system flake, then:
     asus-zenbook-duo-ux8406.nixosModules.tcc-guard
   ];
   services.asus-zenbook-duo-ux8406-tcc-guard.enable = true;
-  environment.systemPackages = with asus-zenbook-duo-ux8406.packages.x86_64-linux; [
-    gnome-shell-extension-asus-zenbook-duo-ux8406-keys
-    gnome-shell-extension-builtin-screen-rotation
-  ];
   # The binary cache. Without it, Nix builds the packages.
   nix.settings.substituters = [ "https://asus-zenbook-duo-ux8406.cachix.org" ];
   nix.settings.trusted-public-keys = [ "asus-zenbook-duo-ux8406.cachix.org-1:XtBns1QGgU3DVAFWmbBzGpVX1jnhJbNcmp+U86CfQbQ=" ];
@@ -261,19 +263,65 @@ Each package and its SBOM have an attestation; refer to
 
 ### After the installation
 
-| Part           | What you do                                                                         |
-| -------------- | ----------------------------------------------------------------------------------- |
-| Guard          | Nothing. The package enables and starts the service.                                |
-| Second screen  | Nothing. It operates immediately.                                                   |
-| Keyboard       | Take the keyboard off the dock or put it on: the program loads at a new connection. |
-| Keys, Rotation | Log in again, then enable the extensions with the commands below.                   |
+| Part          | What you do                                                                         |
+| ------------- | ----------------------------------------------------------------------------------- |
+| Guard         | Nothing. The package enables and starts the service.                                |
+| Second screen | Nothing. It operates immediately.                                                   |
+| Keyboard      | Take the keyboard off the dock or put it on: the program loads at a new connection. |
 
-GNOME Shell on Wayland finds a new extension only when it starts:
+## GNOME extensions
+
+Keys and Rotation are GNOME Shell extensions. Their source, issues and releases
+are in [cceelen/gnome-extension][gnome-extension]. This repository does not
+build packages of them.
+
+| Part     | UUID                                             |
+| -------- | ------------------------------------------------ |
+| Keys     | `asus-zenbook-duo-ux8406-keys@cceelen.github.io` |
+| Rotation | `builtin-screen-rotation@cceelen.github.io`      |
+
+Install them from [extensions.gnome.org](https://extensions.gnome.org) with the
+Extensions app, Extension Manager or the browser. In October 2026 the review on
+extensions.gnome.org is not complete. Until the extensions are there, install
+the zip files of the latest
+[release of cceelen/gnome-extension](https://github.com/cceelen/gnome-extension/releases/latest):
+
+```sh
+gnome-extensions install --force asus-zenbook-duo-ux8406-keys@cceelen.github.io.shell-extension.zip
+gnome-extensions install --force builtin-screen-rotation@cceelen.github.io.shell-extension.zip
+```
+
+GNOME Shell on Wayland finds a new extension only when it starts. Log in again,
+then enable the extensions:
 
 ```sh
 gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io
 gnome-extensions enable builtin-screen-rotation@cceelen.github.io
 ```
+
+### From the extension packages to extensions.gnome.org
+
+Releases up to 0.5.0 had the extensions as packages:
+`gnome-shell-extension-asus-zenbook-duo-ux8406-keys` and
+`gnome-shell-extension-builtin-screen-rotation`. Later releases do not have
+them. An installed package stays at its last version and gets no updates.
+
+Remove the packages, then install the extensions as above. The UUIDs are the
+same, so GNOME keeps your settings and the extensions stay enabled. A copy in
+your home directory has priority over the copy of a package, so the order of the
+two steps is not important.
+
+```sh
+ext="gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation"
+sudo dnf remove $ext      # Fedora and RHEL
+sudo zypper remove $ext   # openSUSE
+sudo apt remove $ext      # Debian and Ubuntu
+sudo pacman -R $ext       # Arch
+sudo apk del $ext         # Alpine
+```
+
+On NixOS, remove the two packages from `environment.systemPackages`: the flake
+does not have them now.
 
 ### Login screen
 
@@ -378,4 +426,5 @@ GPL-2.0-only, because they contain headers from the Linux kernel. `LICENSE` is
 the MIT text. `LICENSES/` has both texts, and `REUSE.toml` gives the licence of
 each file.
 
+[gnome-extension]: https://github.com/cceelen/gnome-extension
 [udev-hid-bpf]: https://gitlab.freedesktop.org/libevdev/udev-hid-bpf

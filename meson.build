@@ -9,8 +9,10 @@
 #   keyboard-state the helper that carries the keyboard's backlight and
 #                 function row mode from one connection to the next, and
 #                 its udev rule; goes with keyboard-bpf
-#   gnome-keys    the GNOME Shell extension for the two display keys
-#   gnome-rotation the GNOME Shell extension that turns the built-in panels
+#
+# The GNOME Shell extensions (Keys and Rotation) live in their own
+# repository, https://github.com/cceelen/gnome-extension, and are installed
+# from extensions.gnome.org.
 # This file sets the install directories and the cargo command; the parts
 # do the rest.
 #
@@ -74,8 +76,6 @@ package_names = {
   'second-screen': 'asus-zenbook-duo-ux8406-second-screen',
   'tcc-guard': 'asus-zenbook-duo-ux8406-tcc-guard',
   'keyboard-bpf': 'asus-zenbook-duo-ux8406-keyboard-bpf',
-  'gnome-keys': 'gnome-shell-extension-asus-zenbook-duo-ux8406-keys',
-  'gnome-rotation': 'gnome-shell-extension-builtin-screen-rotation',
 }
 
 # What templates (*.in) are filled in with.
@@ -85,11 +85,6 @@ paths = configuration_data({
 })
 
 python = find_program('python3')
-# The tests of the two GNOME Shell extensions run on node.
-node = find_program('node', required: get_option('gnome') or get_option('rotation'))
-# What the two extensions share. In each extension/ directory these are links,
-# for the tests and the manual tools; each part installs the files themselves.
-gnome_common = files('gnome-common/display.js', 'gnome-common/state.js')
 
 # Cargo. One target directory inside the build directory, so that nothing is
 # written into the source tree.
@@ -128,19 +123,11 @@ if get_option('keyboard')
   subdir('keyboard-bpf')
   subdir('keyboard-state')
 endif
-if get_option('gnome')
-  subdir('gnome-keys')
-endif
-if get_option('rotation')
-  subdir('gnome-rotation')
-endif
 
 summary({
   'second-screen': get_option('screen'),
   'tcc-guard': get_option('guard'),
   'keyboard-bpf': get_option('keyboard'),
-  'gnome-keys': get_option('gnome'),
-  'gnome-rotation': get_option('rotation'),
 }, section: 'Parts', bool_yn: true)
 summary({
   'init': get_option('init'),

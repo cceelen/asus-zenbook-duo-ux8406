@@ -18,16 +18,13 @@ BuildRequires:  meson >= 1.1
 BuildRequires:  cargo
 BuildRequires:  clang
 BuildRequires:  libbpf-devel
-BuildRequires:  nodejs
 BuildRequires:  python3
 BuildRequires:  systemd-rpm-macros
 %if 0%{?suse_version}
 BuildRequires:  ninja
-BuildRequires:  glib2-tools
 BuildRequires:  linux-glibc-devel
 %else
 BuildRequires:  ninja-build
-BuildRequires:  glib2
 BuildRequires:  kernel-headers
 %endif
 
@@ -95,36 +92,6 @@ microphone mute, emoji, MyASUS, the two display keys, the keyboard lighting
 and Fn+Esc. Loaded by udev-hid-bpf when the keyboard connects. A helper, run
 by udev, carries the lighting and the mode of the function row from the dock
 to Bluetooth and back.
-
-%package -n gnome-shell-extension-asus-zenbook-duo-ux8406-keys
-Summary:        GNOME Shell extension for the display keys of the Zenbook Duo UX8406
-License:        MIT
-BuildArch:      noarch
-Requires:       gnome-shell >= 45
-Recommends:     asus-zenbook-duo-ux8406-keyboard-bpf
-
-%description -n gnome-shell-extension-asus-zenbook-duo-ux8406-keys
-The key right of F12 switches the lower panel on and off, and F8 swaps the
-windows of the two panels. The keyboard delivers these keys with
-asus-zenbook-duo-ux8406-keyboard-bpf. The extension also gives each
-touchscreen its panel. To be enabled per user:
-gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io
-
-%package -n gnome-shell-extension-builtin-screen-rotation
-Summary:        GNOME Shell extension that turns the built-in screens with the laptop
-License:        MIT
-BuildArch:      noarch
-Requires:       gnome-shell >= 45
-Requires:       iio-sensor-proxy
-
-%description -n gnome-shell-extension-builtin-screen-rotation
-With the laptop on its left or right side, the built-in panels are turned,
-and two panels are put side by side. GNOME does this by itself only without a
-pointer device and for one panel. Made for the two panels of the Zenbook Duo
-UX8406; it does the same on other laptops. The switch "Auto-rotate" in the
-quick settings turns this on and off. iio-sensor-proxy gives the orientation.
-To be enabled per user:
-gnome-extensions enable builtin-screen-rotation@cceelen.github.io
 
 %prep
 %autosetup
@@ -258,24 +225,6 @@ fi
 %dir %{_prefix}/lib/firmware/hid
 %dir %{_prefix}/lib/firmware/hid/bpf
 %dir %{udevdir}/hwdb.d
-%endif
-
-%files -n gnome-shell-extension-asus-zenbook-duo-ux8406-keys
-%license %{_defaultlicensedir}/gnome-shell-extension-asus-zenbook-duo-ux8406-keys
-%doc README.md
-%{_datadir}/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/
-%if 0%{?suse_version}
-%dir %{_datadir}/gnome-shell
-%dir %{_datadir}/gnome-shell/extensions
-%endif
-
-%files -n gnome-shell-extension-builtin-screen-rotation
-%license %{_defaultlicensedir}/gnome-shell-extension-builtin-screen-rotation
-%doc README.md
-%{_datadir}/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/
-%if 0%{?suse_version}
-%dir %{_datadir}/gnome-shell
-%dir %{_datadir}/gnome-shell/extensions
 %endif
 
 %changelog

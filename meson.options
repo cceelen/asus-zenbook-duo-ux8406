@@ -5,10 +5,6 @@ option('guard', type: 'boolean', value: true,
        description: 'tcc-guard: CPU thermal-offset guard for the EC thermal warning')
 option('keyboard', type: 'boolean', value: true,
        description: 'keyboard-bpf and keyboard-state: HID-BPF program for the keyboard, and the helper that keeps its state')
-option('gnome', type: 'boolean', value: true,
-       description: 'gnome-keys: GNOME Shell extension for the two display keys')
-option('rotation', type: 'boolean', value: true,
-       description: 'gnome-rotation: GNOME Shell extension that turns the built-in panels')
 
 # How the guard is started.
 option('init', type: 'combo', choices: ['systemd', 'openrc'], value: 'systemd',

@@ -19,8 +19,6 @@
   linuxHeaders,
   removeReferencesTo,
   python3,
-  glib,
-  nodejs,
   cargo-cyclonedx,
 }:
 let
@@ -68,8 +66,6 @@ let
           (option "screen")
           (option "guard")
           (option "keyboard")
-          (option "gnome")
-          (option "rotation")
           # The guard goes to bin/, not sbin/ (nixpkgs has no sbin on PATH).
           "--sbindir=bin"
           "-Dudevdir=${placeholder "out"}/lib/udev"
@@ -111,9 +107,8 @@ let
       cargo
       rustc
       rustPlatform.cargoSetupHook
-      # For the tests of the keyboard and extension parts.
+      # For the tests of the keyboard part.
       python3
-      nodejs
     ];
     # The tree's Meson builds offline when it has vendor/ and otherwise asks
     # for it; here the crates are in cargoSetupHook's vendor directory.
@@ -232,50 +227,6 @@ in
           gpl2Only
           mit
         ];
-      };
-    };
-  };
-
-  # The GNOME Shell extension; list it in environment.systemPackages and
-  # enable it per user.
-  gnome-keys = mkPart {
-    enable = [ "gnome" ];
-    attrs = {
-      pname = "gnome-shell-extension-asus-zenbook-duo-ux8406-keys";
-      nativeBuildInputs = [
-        meson
-        ninja
-        pkg-config
-        glib
-        nodejs
-        python3
-      ];
-      passthru.extensionUuid = "asus-zenbook-duo-ux8406-keys@cceelen.github.io";
-      meta = meta // {
-        description = "GNOME Shell extension for the display keys of the Zenbook Duo UX8406";
-        license = lib.licenses.mit;
-      };
-    };
-  };
-
-  # The GNOME Shell extension that turns the panels; it needs
-  # hardware.sensor.iio.enable. List it in environment.systemPackages and
-  # enable it per user.
-  gnome-rotation = mkPart {
-    enable = [ "rotation" ];
-    attrs = {
-      pname = "gnome-shell-extension-builtin-screen-rotation";
-      nativeBuildInputs = [
-        meson
-        ninja
-        pkg-config
-        nodejs
-        python3
-      ];
-      passthru.extensionUuid = "builtin-screen-rotation@cceelen.github.io";
-      meta = meta // {
-        description = "GNOME Shell extension that turns the built-in screens with the laptop";
-        license = lib.licenses.mit;
       };
     };
   };
