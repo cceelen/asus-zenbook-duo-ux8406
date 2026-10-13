@@ -281,10 +281,10 @@ build packages of them.
 | Rotation | `builtin-screen-rotation@cceelen.github.io`      |
 
 Install them from [extensions.gnome.org](https://extensions.gnome.org) with the
-Extensions app, Extension Manager or the browser. In October 2026 the review on
-extensions.gnome.org is not complete. Until the extensions are there, install
-the zip files of the latest
-[release of cceelen/gnome-extension](https://github.com/cceelen/gnome-extension/releases/latest):
+Extensions app, Extension Manager or the browser. If an extension is not on
+extensions.gnome.org yet, download its zip file from the
+[releases of cceelen/gnome-extension](https://github.com/cceelen/gnome-extension/releases)
+and install it:
 
 ```sh
 gnome-extensions install --force asus-zenbook-duo-ux8406-keys@cceelen.github.io.shell-extension.zip
