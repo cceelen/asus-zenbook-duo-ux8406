@@ -275,10 +275,10 @@ Keys and Rotation are GNOME Shell extensions. Their source, issues and releases
 are in [cceelen/gnome-extension][gnome-extension]. This repository does not
 build packages of them.
 
-| Part     | UUID                                             |
-| -------- | ------------------------------------------------ |
-| Keys     | `asus-zenbook-duo-ux8406-keys@cceelen.github.io` |
-| Rotation | `builtin-screen-rotation@cceelen.github.io`      |
+| Part     | UUID                                             | extensions.gnome.org                     |
+| -------- | ------------------------------------------------ | ---------------------------------------- |
+| Keys     | `asus-zenbook-duo-ux8406-keys@cceelen.github.io` | [Zenbook Duo keys][ego-keys]             |
+| Rotation | `builtin-screen-rotation@cceelen.github.io`      | [Built-in screen rotation][ego-rotation] |
 
 Install them from [extensions.gnome.org](https://extensions.gnome.org) with the
 Extensions app, Extension Manager or the browser. If an extension is not on
@@ -426,5 +426,7 @@ GPL-2.0-only, because they contain headers from the Linux kernel. `LICENSE` is
 the MIT text. `LICENSES/` has both texts, and `REUSE.toml` gives the licence of
 each file.
 
+[ego-keys]: https://extensions.gnome.org/extension/11249/zenbook-duo-keys/
+[ego-rotation]: https://extensions.gnome.org/extension/11250/built-in-screen-rotation/
 [gnome-extension]: https://github.com/cceelen/gnome-extension
 [udev-hid-bpf]: https://gitlab.freedesktop.org/libevdev/udev-hid-bpf
