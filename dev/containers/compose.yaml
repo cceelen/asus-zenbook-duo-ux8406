@@ -36,20 +36,6 @@ x-check: &check
       else
         echo "keyboard package not installed: no udev-hid-bpf here"
       fi
-      if [ "$${GNOME:-no}" = yes ]; then
-        test -f /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/schemas/gschemas.compiled
-        # The files that the two extensions share are copies, not links.
-        for d in asus-zenbook-duo-ux8406-keys builtin-screen-rotation; do
-          for f in extension.js state.js display.js; do
-            test -f "/usr/share/gnome-shell/extensions/$$d@cceelen.github.io/$$f"
-            test ! -L "/usr/share/gnome-shell/extensions/$$d@cceelen.github.io/$$f"
-          done
-        done
-        gnome-shell --version
-        echo "extension files in place"
-      else
-        echo "extension package not installed here"
-      fi
       # Removal: the package manager runs the removal scripts, and no file of
       # the packages stays.
       eval "$$REMOVE"
@@ -59,9 +45,7 @@ x-check: &check
           /usr/lib/systemd/system/asus-ux8406-tcc-guard.service /etc/init.d/asus-ux8406-tcc-guard \
           /usr/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \
           /usr/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
-          /usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
-          /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io \
-          /usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io; do
+          /usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o; do
         if [ -e "$$f" ]; then echo "left after removal: $$f"; exit 1; fi
       done
       echo "packages removed, nothing left"
@@ -74,11 +58,10 @@ services:
       context: ../..
       dockerfile: dev/containers/fedora.Dockerfile
     environment:
-      VERIFY: rpm --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation
-      REMOVE: dnf remove -y asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation
+      VERIFY: rpm --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf
+      REMOVE: dnf remove -y asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf
       HELPER: /usr/libexec/asus-ux8406-second-screen
       KEYBOARD: "yes"
-      GNOME: "yes"
 
   # No udev-hid-bpf in Tumbleweed: second-screen and guard packages only.
   opensuse:
@@ -126,11 +109,10 @@ services:
       context: ../..
       dockerfile: dev/containers/arch.Dockerfile
     environment:
-      VERIFY: pacman -Qkk asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation
-      REMOVE: pacman -Rns --noconfirm asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation
+      VERIFY: pacman -Qkk asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf
+      REMOVE: pacman -Rns --noconfirm asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf
       HELPER: /usr/lib/asus-ux8406-second-screen
       KEYBOARD: "yes"
-      GNOME: "yes"
 
   # No udev-hid-bpf in Alpine: second-screen and guard packages only.
   alpine:
@@ -158,9 +140,7 @@ services:
           /keyboard-bpf/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
           /keyboard-bpf/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
           /keyboard-bpf/libexec/asus-ux8406-keyboard-state \
-          /keyboard-bpf/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules \
-          /gnome-keys/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/extension.js \
-          /gnome-rotation/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/extension.js
+          /keyboard-bpf/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules
         grep -c "RUN+=\"$$(readlink /second-screen)/libexec/asus-ux8406-second-screen " \
           /second-screen/lib/udev/rules.d/90-asus-ux8406-second-screen.rules | grep -qx 3
         /second-screen/libexec/asus-ux8406-second-screen --version

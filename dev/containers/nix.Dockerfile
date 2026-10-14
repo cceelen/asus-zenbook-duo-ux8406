@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
 # Nix: build the packages of the flake. Nix builds into its store, so there
 # are no package files to take out; the image keeps the results as links:
-# /second-screen, /tcc-guard, /keyboard-bpf, /gnome-keys and /gnome-rotation.
+# /second-screen, /tcc-guard and /keyboard-bpf.
 #
 #   docker build -f dev/containers/nix.Dockerfile -t zbd-nix .
 #
@@ -19,9 +19,7 @@ RUN set -eux; \
     id; grep -E '^(sandbox|build-users-group)' /etc/nix/nix.conf || true; \
     nix --extra-experimental-features 'nix-command flakes' show-config | grep -E '^(sandbox|build-users-group) '; \
     for p in second-screen:asus-zenbook-duo-ux8406-second-screen tcc-guard:asus-zenbook-duo-ux8406-tcc-guard \
-             keyboard-bpf:asus-zenbook-duo-ux8406-keyboard-bpf \
-             gnome-keys:gnome-shell-extension-asus-zenbook-duo-ux8406-keys \
-             gnome-rotation:gnome-shell-extension-builtin-screen-rotation; do \
+             keyboard-bpf:asus-zenbook-duo-ux8406-keyboard-bpf; do \
         nix --extra-experimental-features 'nix-command flakes' build -L \
             --print-build-logs --out-link "/${p%%:*}" "path:/build#${p#*:}"; \
     done

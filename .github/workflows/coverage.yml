@@ -1,10 +1,10 @@
-# Each night on main: the coverage of the three Rust programs and of the
-# logic of the extensions, to the summary of the run and to Codecov, which
-# shows main in its badge and graphs. Pull requests are measured in ci.yml,
-# with the same steps; a rebase merge gives main other commits, so their
-# reports are not those of main. It is measured, not a limit; the guard's
-# limit of 100 % is in ci.yml. A night without a new commit on main measures
-# nothing; a run by hand always measures.
+# Each night on main: the coverage of the three Rust programs, to the
+# summary of the run and to Codecov, which shows main in its badge and
+# graphs. Pull requests are measured in ci.yml, with the same steps; a rebase
+# merge gives main other commits, so their reports are not those of main. It
+# is measured, not a limit; the guard's limit of 100 % is in ci.yml. A night
+# without a new commit on main measures nothing; a run by hand always
+# measures.
 name: coverage
 
 on:
@@ -74,39 +74,10 @@ jobs:
           path: rust.lcov
           retention-days: 7
 
-  # Node's test runner over the logic tests of the extensions. The modules
-  # that need a GNOME Shell (extension.js, display.js, sensor.js) are not
-  # loaded by a test, so they are not in it.
-  js:
-    needs: changed
-    if: ${{ needs.changed.outputs.run == 'true' }}
-    runs-on: ubuntu-26.04
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - run: |
-          node --test --experimental-test-coverage --test-coverage-exclude='**/tests/**' \
-            --test-reporter=spec --test-reporter-destination=stdout \
-            --test-reporter=lcov --test-reporter-destination=js.lcov \
-            gnome-keys/tests/layout.test.js gnome-keys/tests/touch.test.js \
-            gnome-rotation/tests/rotation.test.js | tee js.txt
-          {
-            echo '### Coverage of the extensions'
-            echo '```text'
-            sed -n '/start of coverage report/,/end of coverage report/p' js.txt
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: coverage-js
-          path: js.lcov
-          retention-days: 7
-
   # To Codecov; a failed upload does not fail the run. Only this job has
   # the token; it runs nothing from the tree.
   upload:
-    needs: [rust, js]
+    needs: rust
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -120,6 +91,6 @@ jobs:
       - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage/rust.lcov,coverage/js.lcov
+          files: coverage/rust.lcov
           disable_search: true
           fail_ci_if_error: false

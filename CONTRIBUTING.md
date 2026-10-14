@@ -24,44 +24,30 @@ Open an issue, also when all functions operate. Include:
 - Distribution, kernel version (`uname -r`) and desktop.
 - The package versions.
 - What operates and what does not: lower screen (off with the keyboard on it,
-  brightness), special function keys (dock, cable, Bluetooth), guard, screen
-  rotation.
+  brightness), special function keys (dock, cable, Bluetooth), guard.
 
 The packages are developed on a UX8406CA. For a UX8406MA or another sub-model,
 also report the USB and Bluetooth ids of the keyboard (`udevadm info`), the USB
 port of the docked keyboard, and the size of the keyboard's report descriptors.
 
-The rotation extension is not specific to the UX8406: a report from another
-laptop, with one or two built-in screens, is useful too.
+The GNOME Shell extensions Keys and Rotation are in their own repository: report
+results and problems for them in
+[cceelen/gnome-extension](https://github.com/cceelen/gnome-extension/issues).
 
 ## Report a problem
 
 Give the data of [Report your results](#report-your-results), then the output of
 the commands for the part.
 
-Keyboard, lower screen or guard:
-
 ```sh
 journalctl -b -k | grep -i -e hid -e bpf -e asus
 journalctl -b -u asus-ux8406-tcc-guard
 ```
 
-Rotation:
-
-```sh
-journalctl -b -g builtin-screen-rotation
-gdctl show
-monitor-sensor
-```
-
-`gdctl` is part of GNOME 48 and later; its output has the serial numbers of the
-monitors. `monitor-sensor` is part of iio-sensor-proxy: turn the laptop while it
-runs, then stop it with Ctrl+C.
-
 ## Build and test
 
 Tools: `meson` 1.1 or later, `cargo` (Rust 1.85 or later), `clang`, the libbpf
-headers, the kernel headers, `glib-compile-schemas`, `python3`, `node`.
+headers, the kernel headers, `python3`.
 
 ```sh
 meson setup build
@@ -93,23 +79,6 @@ docker compose -f dev/containers/compose.yaml up --build \
     --abort-on-container-failure
 ```
 
-### An extension without a package
-
-To try an extension from the tree, install it for your user. Remove the packaged
-extension first: it has the same UUID. The options switch the other parts off;
-for the rotation extension, use `-Dgnome=false` in place of `-Drotation=false`.
-
-```sh
-meson setup build --prefix ~/.local -Dscreen=false -Dguard=false -Dkeyboard=false -Drotation=false
-meson install -C build
-```
-
-The tests of the extensions use node and need no GNOME session. The two
-extensions use the same files for the display state: `state.js` and `display.js`
-in each `extension/` directory are links to `gnome-common/`, and the build
-installs a copy in each extension. Their tests share the fixtures in
-`gnome-common/tests`.
-
 ### Coverage
 
 The tests run each region of the guard. To measure it, with
@@ -120,9 +89,9 @@ cargo llvm-cov -p asus-ux8406-tcc-guard --features failpoints \
     --ignore-filename-regex /tests/ --fail-under-regions 100
 ```
 
-CI measures the coverage of all three Rust programs and of the extensions' logic
-(Node's test runner) on each pull request (`ci.yml`) and each night on main
-(`coverage.yml`), shows it in the summary of the run and sends it to
+CI measures the coverage of all three Rust programs on each pull request
+(`ci.yml`) and each night on main (`coverage.yml`), shows it in the summary of
+the run and sends it to
 [Codecov](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406). Only the
 guard has a limit; for the others the coverage is measured, not enforced.
 
@@ -194,9 +163,6 @@ its tests examine.
 | [second-screen/](second-screen/README.md)   | Helper for the lower screen (Rust), udev rule                                                       |
 | [keyboard-bpf/](keyboard-bpf/README.md)     | HID-BPF program for the keyboard (C), hwdb entry                                                    |
 | [keyboard-state/](keyboard-state/README.md) | Helper that keeps the keyboard's light and row mode (Rust), udev rule; part of the keyboard package |
-| [gnome-keys/](gnome-keys/README.md)         | GNOME Shell extension for the display keys and the touchscreens                                     |
-| [gnome-rotation/](gnome-rotation/README.md) | GNOME Shell extension that turns the screens                                                        |
-| `gnome-common/`                             | Files that the two extensions share                                                                 |
 | `packaging/`                                | One directory of recipes for each packaging system; [OBS setup](packaging/obs/README.md)            |
 | `dev/containers/`                           | Container builds for development                                                                    |
 | `fuzz/`                                     | Fuzz targets of the guard's parsers (cargo-fuzz)                                                    |

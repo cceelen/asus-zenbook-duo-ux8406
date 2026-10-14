@@ -1,8 +1,6 @@
 # Maintainer: Christian Ceelen <christian.ceelen+ux8406@gmail.com>
 pkgbase=asus-zenbook-duo-ux8406
-pkgname=(asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf
-         gnome-shell-extension-asus-zenbook-duo-ux8406-keys
-         gnome-shell-extension-builtin-screen-rotation)
+pkgname=(asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf)
 pkgver=0.5.0
 pkgrel=1
 arch=(x86_64)
@@ -10,8 +8,7 @@ url="https://github.com/cceelen/asus-zenbook-duo-ux8406"
 license=('MIT AND GPL-2.0-only')
 # rust, not cargo: two Arch packages provide cargo (rust, rustup), and a
 # builder without a person to ask cannot choose.
-makedepends=(meson rust clang libbpf linux-api-headers python glib2 nodejs
-             systemd)
+makedepends=(meson rust clang libbpf linux-api-headers python systemd)
 options=(!debug)
 # The archive of the release, from `meson dist`: it carries the vendored
 # crates. makepkg uses the file of that name if it lies next to this one, and
@@ -88,28 +85,6 @@ package_asus-zenbook-duo-ux8406-keyboard-bpf() {
         usr/lib/asus-ux8406-keyboard-state \
         usr/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules \
         usr/share/licenses/asus-zenbook-duo-ux8406-keyboard-bpf
-}
-
-package_gnome-shell-extension-asus-zenbook-duo-ux8406-keys() {
-  pkgdesc="GNOME Shell extension for the display keys of the Zenbook Duo UX8406"
-  arch=(any)
-  license=(MIT)
-  depends=(gnome-shell)
-  optdepends=('asus-zenbook-duo-ux8406-keyboard-bpf: makes the keyboard deliver the keys')
-
-  _take usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io \
-        usr/share/licenses/gnome-shell-extension-asus-zenbook-duo-ux8406-keys
-}
-
-package_gnome-shell-extension-builtin-screen-rotation() {
-  pkgdesc="GNOME Shell extension that turns the built-in screens with the laptop"
-  arch=(any)
-  license=(MIT)
-  # iio-sensor-proxy: the orientation. namcap does not see that.
-  depends=(gnome-shell iio-sensor-proxy)
-
-  _take usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io \
-        usr/share/licenses/gnome-shell-extension-builtin-screen-rotation
 
   # The last package: whatever is left in the stage belongs to none, and a
   # new file in the build must not be dropped silently.

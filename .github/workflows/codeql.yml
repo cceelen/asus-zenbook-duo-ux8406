@@ -1,7 +1,7 @@
-# CodeQL: static analysis of the Rust programs, the GNOME Shell extensions
-# and the workflows. The findings go to code scanning (Security tab). The C of
-# the HID-BPF program is left out: it is built for the BPF target, and
-# clang-tidy checks it (pre-commit).
+# CodeQL: static analysis of the Rust programs and the workflows. The
+# findings go to code scanning (Security tab). The C of the HID-BPF program is
+# left out: it is built for the BPF target, and clang-tidy checks it
+# (pre-commit).
 name: codeql
 
 on:
@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [actions, javascript-typescript, rust]
+        language: [actions, rust]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

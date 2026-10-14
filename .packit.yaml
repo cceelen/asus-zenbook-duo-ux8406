@@ -7,9 +7,9 @@ downstream_package_name: asus-zenbook-duo-ux8406
 upstream_tag_template: v{version}
 
 # The machine is x86-64 only, which is Packit's default architecture. RHEL 10
-# with EPEL 10 has every build requirement; EPEL 9 does not (Meson 0.63,
-# Node.js 16). The target is RHEL itself, not epel-10: that one builds against
-# CentOS Stream 10, which is ahead of RHEL and its rebuilds.
+# with EPEL 10 has every build requirement; EPEL 9 does not (Meson 0.63). The
+# target is RHEL itself, not epel-10: that one builds against CentOS Stream 10,
+# which is ahead of RHEL and its rebuilds.
 targets:
   - fedora-stable
   - fedora-rawhide
@@ -19,7 +19,7 @@ actions:
   # meson dist puts the vendored crates into the archive. The last line
   # printed is the path of the archive, which Packit reads.
   create-archive:
-    - meson setup _dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false
+    - meson setup _dist -Dscreen=false -Dguard=false -Dkeyboard=false
     - meson dist -C _dist --no-tests --formats gztar --allow-dirty
     - sh -c 'ls _dist/meson-dist/*.tar.gz'
 
