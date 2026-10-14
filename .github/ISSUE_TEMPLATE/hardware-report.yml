@@ -26,6 +26,9 @@ body:
     id: works
     attributes:
       label: What operates
+      description: >-
+        For the GNOME extensions (display keys, screen rotation), report in
+        [cceelen/gnome-extension](https://github.com/cceelen/gnome-extension/issues).
       options:
         - label: Guard (the laptop stays on with the lid closed and under load)
         - label: Second screen off while the keyboard is on it
@@ -33,8 +36,6 @@ body:
         - label: Special function keys on the dock
         - label: Special function keys on the cable
         - label: Special function keys on Bluetooth
-        - label: The two display keys (GNOME extension)
-        - label: Screen rotation with the laptop on its side (GNOME extension)
   - type: textarea
     id: problem
     attributes:
