@@ -6,7 +6,7 @@
 #     --output dist/arch .
 
 # The base image, pinned by digest. Renovate updates the tag and the digest.
-FROM docker.io/library/archlinux:latest@sha256:4e77cf2ea5f410e6f8be5abf93ccf17ce2436e87a138c167208356711a405dbd AS base
+FROM docker.io/library/archlinux:latest@sha256:52dfbd5afb23a220d5ee92dafcb4c788d96c026ed04179890c23adef4c897fa0 AS base
 
 FROM base AS build
 # The makedepends of the PKGBUILD, and git for the source archive.

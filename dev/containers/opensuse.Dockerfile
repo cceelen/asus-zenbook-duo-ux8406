@@ -7,7 +7,7 @@
 #     --output dist/opensuse .
 
 # The base image, pinned by digest. Renovate updates the tag and the digest.
-FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:61e6e4bd417edca0fe79f7c9c8c7cd29e044064d049469182f1a7e783884673b AS base
+FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:c807eabd03acb6f5dfb6a23fd58ed93700d11283a255cd18184f57815e19fc55 AS base
 
 FROM base AS build
 RUN zypper -n install rpm-build git cargo clang libbpf-devel meson ninja python3 \
