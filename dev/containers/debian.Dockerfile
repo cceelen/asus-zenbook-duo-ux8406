@@ -14,8 +14,8 @@ ARG RELEASE=trixie
 
 # The base images, pinned by digest. Renovate updates the digests. BuildKit
 # builds only the stage that RELEASE selects.
-FROM docker.io/library/debian:trixie@sha256:913f6706df59a68922d1dd08f78c2476560a8d367897200a6005b00e5f67c2d5 AS base-trixie
-FROM docker.io/library/debian:testing@sha256:f35963177a0584848d5222b3d2b4f4ebcc6434d39db0a709c3088237ef619cbf AS base-testing
+FROM docker.io/library/debian:trixie@sha256:4c25275446ca371766b8b093c696782eabce06263fccacb8d5d813b3dc44b308 AS base-trixie
+FROM docker.io/library/debian:testing@sha256:fe4be93b807e7d05dccdaf54931173d9368b349f91a8170dadd787213aa3bf19 AS base-testing
 
 FROM base-${RELEASE} AS build
 RUN apt-get update -q \
