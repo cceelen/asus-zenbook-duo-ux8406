@@ -6,7 +6,7 @@
 #     --output dist/fedora .
 
 # The base image, pinned by digest. Renovate updates the tag and the digest.
-FROM registry.fedoraproject.org/fedora:44@sha256:ead52905ffe2985aed2881294b944bf225c74944f5afbbd4e2b8cb25dc2f649e AS base
+FROM registry.fedoraproject.org/fedora:44@sha256:b414c09be79dd1f32529b55b096b6bb30435d82ee16fbdbbabf8985eb5f86db0 AS base
 
 FROM base AS build
 RUN dnf install -y rpm-build git cargo clang libbpf-devel meson ninja-build python3 \
