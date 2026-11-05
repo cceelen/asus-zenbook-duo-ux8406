@@ -1,5 +1,8 @@
 # A release has one manual step: start this workflow ("Run workflow").
 #
+# That run first builds the packages of each distribution from main. If one
+# fails, the run stops before the version changes.
+#
 # That run opens the release pull request: the next version in the package
 # files and the new section of CHANGELOG.md, from the commit titles since the
 # last release. It sets the pull request to merge by itself when the checks
@@ -26,7 +29,13 @@ concurrency:
 permissions:
   contents: read
 jobs:
+  packages-first:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    uses: ./.github/workflows/packages.yml
+    permissions:
+      contents: read
   pull-request:
+    needs: packages-first
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-26.04
     env:
