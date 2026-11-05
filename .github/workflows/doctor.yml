@@ -1,7 +1,8 @@
 # Once a day: the services and credentials that the release relies on, so
 # that one of them going away shows as a red run, not as a failed release,
 # and the version that each delivery pipeline has, with its link. Each check
-# is a job of its own; the summary of the run has the details.
+# is a job of its own; the summary of the run has the details. release.yml
+# runs it too, before the release pull request.
 # A pull request that changes this file runs the checks that need no secret.
 name: doctor
 
@@ -9,12 +10,24 @@ on:
   schedule:
     - cron: "37 4 * * *"
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      RELEASE_TOKEN:
+        required: false
+      FUZZ_ADVISORY_TOKEN:
+        required: false
+      # A secret of the environment aports: the job gitlab-token reads it
+      # there, so release.yml does not pass it.
+      APORTS_TOKEN:
+        required: false
   pull_request:
     paths:
       - .github/workflows/doctor.yml
 
+# The run of a release has a group of its own (github.workflow is the name of
+# the calling workflow): a daily run does not cancel it.
 concurrency:
-  group: doctor-${{ github.ref }}
+  group: doctor-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

@@ -41,7 +41,8 @@ same crates. Their system libraries are those of Alpine, not those in the SBOMs.
 
 The other steps occur automatically:
 
-- `release.yml` builds the packages of each distribution from `main`. If one
+- `release.yml` builds the packages of each distribution from `main`, runs the
+  fuzz targets and checks the services of the release (`doctor.yml`). If one
   fails, the run stops: there is no release pull request, and the version does
   not change.
 - [Release Please](https://github.com/googleapis/release-please) opens the
