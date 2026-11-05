@@ -41,3 +41,9 @@ option('offline', type: 'feature', value: 'auto',
 # systemd, and the builders of the distributions run the tests too.
 option('unit_checks', type: 'feature', value: 'disabled',
        description: 'Check the systemd unit of the guard with systemd-analyze')
+
+# The sanitizers, the coverage and the mutants of the HID-BPF program. Off by
+# default: they need clang with its sanitizer runtimes and the C library of the
+# host, and llvm-cov, which the builders of the distributions do not all have.
+option('host_checks', type: 'feature', value: 'disabled',
+       description: 'Check the HID-BPF program on the host with sanitizers, coverage and mutants')
