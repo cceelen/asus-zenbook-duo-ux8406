@@ -12,7 +12,7 @@ FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:1cf7a3b7b68f0027e88
 FROM base AS build
 RUN zypper -n install rpm-build git cargo clang libbpf-devel meson ninja python3 \
         systemd-devel systemd-rpm-macros linux-glibc-devel gzip tar glib2-tools \
-        nodejs-default rpmlint \
+        nodejs-default dbus-1-daemon rpmlint \
     && zypper clean -a
 # The tests refuse to run as root, so everything from here on is the
 # unprivileged user's.
@@ -26,7 +26,7 @@ WORKDIR /build
 # checkout; it carries the crates in vendor/). This step needs the network.
 RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
-    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false -Dkde_shortcuts=false \
+    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false -Dkde_shortcuts=false -Dkde=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
 # The packages, from that archive, as a user without root and without network.
 RUN --network=none rpmbuild --define "_topdir /rpm" \

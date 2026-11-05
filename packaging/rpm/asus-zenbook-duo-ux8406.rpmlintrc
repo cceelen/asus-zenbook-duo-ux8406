@@ -6,5 +6,6 @@
 # differently, and the descriptions need them to tell the reader what to
 # configure or install.
 addFilter(r"spelling-error .*'(toml|bpf|iio)'")
-# Plasma and emoji are names that the descriptions need.
-addFilter(r"spelling-error .*'(plasma|emoji)'")
+# KWin, Wayland, Plasma, emoji and touchscreen are names that the descriptions
+# need.
+addFilter(r"spelling-error .*'(kwin|wayland|plasma|emoji|touchscreen)'")

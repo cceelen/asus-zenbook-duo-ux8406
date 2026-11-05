@@ -12,6 +12,10 @@
 #   gnome-keys    the GNOME Shell extension for the two display keys
 #   gnome-rotation the GNOME Shell extension that turns the built-in panels
 #   kde-shortcuts for KDE Plasma: default shortcuts for function keys
+#   kde-keys      for KDE Plasma: the program for the lower screen key and the
+#                 touchscreens, its autostart entry, and the KWin script for
+#                 the two display keys
+#   kde-common    what the KDE programs share (a crate; installs nothing)
 # This file sets the install directories and the cargo command; the parts
 # do the rest.
 #
@@ -43,6 +47,8 @@ libexecdir = prefix / get_option('libexecdir')
 sbindir = prefix / get_option('sbindir')
 datadir = prefix / get_option('datadir')
 docdir = datadir / 'doc'
+# Meson makes sysconfdir /etc for the prefix /usr.
+autostartdir = prefix / get_option('sysconfdir') / 'xdg' / 'autostart'
 
 udevdir = get_option('udevdir')
 if udevdir == ''
@@ -78,6 +84,7 @@ package_names = {
   'gnome-keys': 'gnome-shell-extension-asus-zenbook-duo-ux8406-keys',
   'gnome-rotation': 'gnome-shell-extension-builtin-screen-rotation',
   'kde-shortcuts': 'asus-zenbook-duo-ux8406-kde-shortcuts',
+  'kde-keys': 'asus-zenbook-duo-ux8406-kde-keys',
 }
 
 # What templates (*.in) are filled in with.
@@ -87,15 +94,16 @@ paths = configuration_data({
 })
 
 python = find_program('python3')
-# The tests of the two GNOME Shell extensions run on node.
-node = find_program('node', required: get_option('gnome') or get_option('rotation'))
+kde = get_option('kde')
+# The tests of the two GNOME Shell extensions and the KWin script run on node.
+node = find_program('node', required: get_option('gnome') or get_option('rotation') or kde)
 # What the two extensions share. In each extension/ directory these are links,
 # for the tests and the manual tools; each part installs the files themselves.
 gnome_common = files('gnome-common/display.js', 'gnome-common/state.js')
 
 # Cargo. One target directory inside the build directory, so that nothing is
 # written into the source tree.
-rust = get_option('screen') or get_option('guard') or get_option('keyboard')
+rust = get_option('screen') or get_option('guard') or get_option('keyboard') or kde
 cargo = find_program('cargo', required: rust)
 offline = get_option('offline').enabled() or (get_option('offline').auto() and fs.is_dir('vendor'))
 cargo_args = ['--locked', '--manifest-path', meson.project_source_root() / 'Cargo.toml']
@@ -139,6 +147,12 @@ endif
 if get_option('kde_shortcuts')
   subdir('kde-shortcuts')
 endif
+if kde
+  subdir('kde-common')
+endif
+if get_option('kde')
+  subdir('kde-keys')
+endif
 
 summary({
   'second-screen': get_option('screen'),
@@ -147,12 +161,14 @@ summary({
   'gnome-keys': get_option('gnome'),
   'gnome-rotation': get_option('rotation'),
   'kde-shortcuts': get_option('kde_shortcuts'),
+  'kde-keys': get_option('kde'),
 }, section: 'Parts', bool_yn: true)
 summary({
   'init': get_option('init'),
   'udev': udevdir,
   'systemd units': unitdir,
   'firmware': firmwaredir,
+  'autostart': autostartdir,
   'licences': install_licences ? licensedir : 'not installed',
   'cargo offline': offline,
 }, section: 'Settings', bool_yn: true)

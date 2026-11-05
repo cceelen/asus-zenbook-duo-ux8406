@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
 # Nix: build the packages of the flake. Nix builds into its store, so there
 # are no package files to take out; the image keeps the results as links:
-# /second-screen, /tcc-guard, /keyboard-bpf, /gnome-keys, /gnome-rotation and /kde-shortcuts.
+# /second-screen, /tcc-guard, /keyboard-bpf, /gnome-keys, /gnome-rotation,
+# /kde-shortcuts and /kde-keys.
 #
 #   docker build -f dev/containers/nix.Dockerfile -t zbd-nix .
 #
@@ -22,7 +23,8 @@ RUN set -eux; \
              keyboard-bpf:asus-zenbook-duo-ux8406-keyboard-bpf \
              gnome-keys:gnome-shell-extension-asus-zenbook-duo-ux8406-keys \
              gnome-rotation:gnome-shell-extension-builtin-screen-rotation \
-             kde-shortcuts:asus-zenbook-duo-ux8406-kde-shortcuts; do \
+             kde-shortcuts:asus-zenbook-duo-ux8406-kde-shortcuts \
+             kde-keys:asus-zenbook-duo-ux8406-kde-keys; do \
         nix --extra-experimental-features 'nix-command flakes' build -L \
             --print-build-logs --out-link "/${p%%:*}" "path:/build#${p#*:}"; \
     done

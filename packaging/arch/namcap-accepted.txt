@@ -19,8 +19,11 @@ gnome-shell-extension-builtin-screen-rotation W: Dependency included, but may no
 gnome-shell-extension-builtin-screen-rotation W: Dependency included, but may not be needed ('iio-sensor-proxy')
 # plasma-desktop has the emoji selector.
 asus-zenbook-duo-ux8406-kde-shortcuts W: Dependency included, but may not be needed ('plasma-desktop')
+# KWin runs the script.
+asus-zenbook-duo-ux8406-kde-keys W: Dependency included, but may not be needed ('kwin')
 # The dynamic loader is in the list of needed libraries of each Rust program,
 # as rustc links it. It is part of glibc, which the packages depend on.
 asus-zenbook-duo-ux8406-keyboard-bpf W: Unused shared library '/usr/lib64/ld-linux-x86-64.so.2' by file ('usr/lib/asus-ux8406-keyboard-state')
 asus-zenbook-duo-ux8406-second-screen W: Unused shared library '/usr/lib64/ld-linux-x86-64.so.2' by file ('usr/lib/asus-ux8406-second-screen')
 asus-zenbook-duo-ux8406-tcc-guard W: Unused shared library '/usr/lib64/ld-linux-x86-64.so.2' by file ('usr/bin/asus-ux8406-tcc-guard')
+asus-zenbook-duo-ux8406-kde-keys W: Unused shared library '/usr/lib64/ld-linux-x86-64.so.2' by file ('usr/lib/asus-ux8406-kde-keys')

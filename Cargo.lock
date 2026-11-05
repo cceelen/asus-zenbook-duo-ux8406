@@ -137,6 +137,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "asus-ux8406-kde-keys"
+version = "0.5.0"
+dependencies = [
+ "assert_fs",
+ "asus-ux8406-kde-common",
+ "asus-ux8406-kde-fakes",
+ "calloop",
+ "clap",
+ "ignore",
+ "log",
+ "rstest",
+ "rustix",
+ "thiserror 2.0.21",
+ "zbus",
+]
+
+[[package]]
 name = "asus-ux8406-keyboard-state"
 version = "0.5.0"
 dependencies = [

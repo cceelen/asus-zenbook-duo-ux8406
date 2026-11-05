@@ -12,7 +12,7 @@ FROM base AS build
 # The makedepends of the PKGBUILD, and git for the source archive.
 # udev-hid-bpf is needed at run time only.
 RUN pacman -Syu --noconfirm --needed base-devel git meson rust clang libbpf \
-        linux-api-headers python glib2 nodejs systemd namcap \
+        linux-api-headers python glib2 nodejs systemd dbus namcap \
     && pacman -Scc --noconfirm
 # makepkg refuses root, and the tests are about file permissions.
 RUN useradd -m builder && mkdir /out && chown builder /out
@@ -23,7 +23,7 @@ WORKDIR /src
 # checkout; it carries the crates in vendor/). This step needs the network.
 RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
-    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false -Dkde_shortcuts=false \
+    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false -Dkde_shortcuts=false -Dkde=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
 # The packages, from that archive, without network. --nodeps: udev-hid-bpf,
 # a run-time dependency, is not in the official repositories. namcap checks the
@@ -34,7 +34,7 @@ RUN git init -q . && git add -A \
 # and two of them cannot be: udev-hid-bpf is not in the official repositories
 # (makepkg -s would fail), and gnome-shell is a whole desktop that the build
 # does not use.
-# The same goes for plasma-desktop.
+# The same goes for kwin and plasma-desktop.
 RUN --network=none set -eu; \
     mkdir /home/builder/work; cd /home/builder/work; \
     cp /src/packaging/arch/* /tmp/dist/meson-dist/*.tar.gz .; \
@@ -63,4 +63,5 @@ RUN --mount=type=bind,from=build,source=/out,target=/pkgs \
         /pkgs/gnome-shell-extension-asus-zenbook-duo-ux8406-keys-*.pkg.tar.zst \
         /pkgs/gnome-shell-extension-builtin-screen-rotation-*.pkg.tar.zst \
         /pkgs/asus-zenbook-duo-ux8406-kde-shortcuts-*.pkg.tar.zst \
+        /pkgs/asus-zenbook-duo-ux8406-kde-keys-*.pkg.tar.zst \
     && pacman -Scc --noconfirm
