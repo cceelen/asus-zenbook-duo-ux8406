@@ -73,6 +73,7 @@ let
           (option "rotation")
           (option "kde_shortcuts")
           (option "kde")
+          (option "kde_rotation")
           # The guard goes to bin/, not sbin/ (nixpkgs has no sbin on PATH).
           "--sbindir=bin"
           "-Dudevdir=${placeholder "out"}/lib/udev"
@@ -297,6 +298,21 @@ in
         description = "KDE Plasma integration for the display keys of the Zenbook Duo UX8406";
         license = lib.licenses.mit;
         mainProgram = "asus-ux8406-kde-keys";
+      };
+    };
+  };
+  # Needs hardware.sensor.iio.enable. List it in environment.systemPackages.
+  kde-rotation = mkPart {
+    enable = [ "kde_rotation" ];
+    attrs = rustInputs // {
+      pname = "plasma-builtin-screen-rotation";
+      passthru.bombonVendoredSbom = vendoredSbom "plasma-builtin-screen-rotation";
+      nativeBuildInputs = rustInputs.nativeBuildInputs ++ [ dbus ];
+      mesonFlags = rustInputs.mesonFlags ++ [ "--sysconfdir=etc" ];
+      meta = meta // {
+        description = "Turns the built-in screens with the laptop in KDE Plasma";
+        license = lib.licenses.mit;
+        mainProgram = "plasma-builtin-screen-rotation";
       };
     };
   };

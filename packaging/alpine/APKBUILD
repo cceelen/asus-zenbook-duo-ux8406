@@ -26,6 +26,8 @@ subpackages="
 	gnome-shell-extension-builtin-screen-rotation:gnome_rotation:noarch
 	asus-zenbook-duo-ux8406-kde-shortcuts:kde_shortcuts:noarch
 	asus-zenbook-duo-ux8406-kde-keys:kde_keys
+	plasma-builtin-screen-rotation:kde_rotation
+	plasma-builtin-screen-rotation-doc:kde_rotation_doc:noarch
 	$_guard:guard
 	$_guard-openrc:guard_openrc
 	$_guard-doc:guard_doc:noarch
@@ -114,6 +116,28 @@ kde_keys() {
 	amove usr/share/licenses/asus-zenbook-duo-ux8406-kde-keys
 }
 
+kde_rotation() {
+	pkgdesc="Turns the built-in screens with the laptop in KDE Plasma"
+	license="MIT"
+	# The applet needs the D-Bus types of Plasma 6.4.
+	depends="kwin plasma-workspace>=6.4 iio-sensor-proxy"
+
+	amove usr/bin/plasma-builtin-screen-rotation
+	amove etc/xdg/autostart/plasma-builtin-screen-rotation.desktop
+	amove usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation
+	amove usr/share/licenses/plasma-builtin-screen-rotation
+}
+
+kde_rotation_doc() {
+	pkgdesc="Turns the built-in screens with the laptop in KDE Plasma (documentation)"
+	license="MIT"
+	install_if="docs plasma-builtin-screen-rotation=$pkgver-r$pkgrel"
+
+	amove usr/share/man/man1
+	# abuild refuses uncompressed man pages.
+	gzip -9n "$subpkgdir"/usr/share/man/man1/*.1
+}
+
 guard() {
 	pkgdesc="CPU thermal-offset guard for the ASUS Zenbook Duo UX8406"
 	license="MIT"
@@ -133,7 +157,7 @@ guard_doc() {
 
 	# The example configuration belongs to the guard, not to the panel.
 	amove usr/share/doc/asus-ux8406-tcc-guard
-	amove usr/share/man
+	amove usr/share/man/man8
 	# abuild refuses uncompressed man pages.
 	gzip -9n "$subpkgdir"/usr/share/man/man8/*.8
 }

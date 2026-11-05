@@ -62,6 +62,7 @@ KDE Plasma:
 
 ```sh
 journalctl --user -b -g asus-ux8406-kde-keys
+journalctl --user -b -g plasma-builtin-screen-rotation
 kscreen-doctor -o
 ```
 
@@ -108,7 +109,7 @@ extension first: it has the same UUID. The options switch the other parts off;
 for the rotation extension, use `-Dgnome=false` in place of `-Drotation=false`.
 
 ```sh
-meson setup build --prefix ~/.local -Dscreen=false -Dguard=false -Dkeyboard=false -Drotation=false -Dkde_shortcuts=false -Dkde=false
+meson setup build --prefix ~/.local -Dscreen=false -Dguard=false -Dkeyboard=false -Drotation=false -Dkde_shortcuts=false -Dkde=false -Dkde_rotation=false
 meson install -C build
 ```
 
@@ -118,7 +119,7 @@ in each `extension/` directory are links to `gnome-common/`, and the build
 installs a copy in each extension. Their tests share the fixtures in
 `gnome-common/tests`.
 
-The KDE program is tested against the fakes in `kde-fakes/`; for a test on KDE
+The KDE programs are tested against the fakes in `kde-fakes/`; for a test on KDE
 itself, refer to the [test plan](docs/kde-test-plan.md).
 
 The tests of the extensions run with Node's test runner, and CI fails the run
@@ -136,7 +137,7 @@ node --test --experimental-test-coverage --test-coverage-exclude='**/tests/**' \
 
 ### Coverage
 
-The tests run each region and each branch of the four Rust programs. To measure
+The tests run each region and each branch of the five Rust programs. To measure
 the regions, with [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov),
 in one shell:
 
@@ -145,7 +146,7 @@ eval "$(cargo llvm-cov show-env --sh)"
 cargo llvm-cov clean --workspace
 cargo test --locked -p asus-ux8406-tcc-guard --features failpoints
 cargo test --locked -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
-cargo test --locked -p asus-ux8406-kde-common -p asus-ux8406-kde-keys
+cargo test --locked -p asus-ux8406-kde-common -p asus-ux8406-kde-keys -p asus-ux8406-kde-rotation
 cargo llvm-cov report --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' --fail-under-regions 100
 ```
 
@@ -185,13 +186,13 @@ cargo llvm-cov report --branch --ignore-filename-regex '/tests/|kde-fakes/|kde-c
 jq -e '.data[0].totals.branches.notcovered == 0' branches.json
 ```
 
-CI measures the coverage of all four Rust programs and of the extensions' logic
+CI measures the coverage of all five Rust programs and of the extensions' logic
 (Node's test runner) on each pull request (`ci.yml`) and each night on main
 (`coverage.yml`), shows it in the summary of the run and sends it to
-[Codecov](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406). The four
+[Codecov](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406). The five
 Rust programs have a limit of 100 % of their regions and branches; for the
-extensions' logic the coverage is measured, not enforced. The KDE program that
-the tests start writes its coverage too: it ends at SIGTERM, not SIGKILL.
+extensions' logic the coverage is measured, not enforced. The KDE programs that
+the tests start write their coverage too: they end at SIGTERM, not SIGKILL.
 
 [![Coverage of each file](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406/graphs/tree.svg?token=CSOYWM3L9Q)](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406)
 
@@ -255,7 +256,7 @@ uses the committed files only.
   extensions) stays at 100 % of its lines, branches and functions.
 - No test code in `src/`. Tests are in `tests/`, one file for each topic. A test
   machine is a directory tree in `tests/fixtures/`.
-- The coverage of the four Rust programs stays at 100 % of their regions and of
+- The coverage of the five Rust programs stays at 100 % of their regions and of
   their branches (nightly compiler).
 - No licence or copyright header in the files. `REUSE.toml` gives the licence of
   each file.
@@ -285,6 +286,7 @@ its tests examine.
 | [gnome-rotation/](gnome-rotation/README.md) | GNOME Shell extension that turns the screens                                                        |
 | `gnome-common/`                             | Files that the two extensions share                                                                 |
 | [kde-keys/](kde-keys/README.md)             | KDE Plasma program for the lower screen key and the touchscreens (Rust), KWin script                |
+| [kde-rotation/](kde-rotation/README.md)     | KDE Plasma program that turns the screens (Rust), applet in the system tray (QML)                   |
 | [kde-common/](kde-common/README.md)         | What the two KDE programs share (Rust): the layouts, KWin's output management, the cases of GNOME   |
 | `kde-fakes/`                                | Fake KWin and sensor and a private bus for the tests of the KDE programs; not installed             |
 | [kde-shortcuts/](kde-shortcuts/README.md)   | Default KDE Plasma shortcuts for function keys                                                      |

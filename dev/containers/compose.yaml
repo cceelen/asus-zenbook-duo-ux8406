@@ -57,6 +57,11 @@ x-check: &check
         grep -qx "Exec=$${HELPER%/*}/asus-ux8406-kde-keys" /etc/xdg/autostart/asus-ux8406-kde-keys.desktop
         test -f /usr/share/kwin/scripts/asus-zenbook-duo-ux8406-keys/metadata.json
         test -f /usr/share/kwin/scripts/asus-zenbook-duo-ux8406-keys/contents/code/main.js
+        plasma-builtin-screen-rotation --version
+        grep -qx "Exec=/usr/bin/plasma-builtin-screen-rotation run" \
+          /etc/xdg/autostart/plasma-builtin-screen-rotation.desktop
+        test -f /usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/metadata.json
+        test -f /usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml
         echo "KDE Plasma files in place"
       else
         echo "KDE Plasma packages not installed here"
@@ -76,7 +81,10 @@ x-check: &check
           /usr/share/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop \
           "$${HELPER%/*}/asus-ux8406-kde-keys" \
           /etc/xdg/autostart/asus-ux8406-kde-keys.desktop \
-          /usr/share/kwin/scripts/asus-zenbook-duo-ux8406-keys; do
+          /usr/share/kwin/scripts/asus-zenbook-duo-ux8406-keys \
+          /usr/bin/plasma-builtin-screen-rotation \
+          /etc/xdg/autostart/plasma-builtin-screen-rotation.desktop \
+          /usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation; do
         if [ -e "$$f" ]; then echo "left after removal: $$f"; exit 1; fi
       done
       echo "packages removed, nothing left"
@@ -89,8 +97,8 @@ services:
       context: ../..
       dockerfile: dev/containers/fedora.Dockerfile
     environment:
-      VERIFY: rpm --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys
-      REMOVE: dnf remove -y asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys
+      VERIFY: rpm --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation
+      REMOVE: dnf remove -y asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation
       HELPER: /usr/libexec/asus-ux8406-second-screen
       KEYBOARD: "yes"
       GNOME: "yes"
@@ -142,8 +150,8 @@ services:
       context: ../..
       dockerfile: dev/containers/arch.Dockerfile
     environment:
-      VERIFY: pacman -Qkk asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys
-      REMOVE: pacman -Rns --noconfirm asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys
+      VERIFY: pacman -Qkk asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation
+      REMOVE: pacman -Rns --noconfirm asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation
       HELPER: /usr/lib/asus-ux8406-second-screen
       KEYBOARD: "yes"
       GNOME: "yes"
@@ -180,7 +188,10 @@ services:
           /gnome-rotation/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/extension.js \
           /kde-shortcuts/share/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop \
           /kde-keys/libexec/asus-ux8406-kde-keys /kde-keys/etc/xdg/autostart/asus-ux8406-kde-keys.desktop \
-          /kde-keys/share/kwin/scripts/asus-zenbook-duo-ux8406-keys/contents/code/main.js
+          /kde-keys/share/kwin/scripts/asus-zenbook-duo-ux8406-keys/contents/code/main.js \
+          /kde-rotation/bin/plasma-builtin-screen-rotation \
+          /kde-rotation/etc/xdg/autostart/plasma-builtin-screen-rotation.desktop \
+          /kde-rotation/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml
         grep -c "RUN+=\"$$(readlink /second-screen)/libexec/asus-ux8406-second-screen " \
           /second-screen/lib/udev/rules.d/90-asus-ux8406-second-screen.rules | grep -qx 3
         /second-screen/libexec/asus-ux8406-second-screen --version
@@ -195,4 +206,7 @@ services:
         grep -qx "Exec=$$(readlink /kde-keys)/libexec/asus-ux8406-kde-keys" \
           /kde-keys/etc/xdg/autostart/asus-ux8406-kde-keys.desktop
         /kde-keys/libexec/asus-ux8406-kde-keys --version
+        grep -qx "Exec=$$(readlink /kde-rotation)/bin/plasma-builtin-screen-rotation run" \
+          /kde-rotation/etc/xdg/autostart/plasma-builtin-screen-rotation.desktop
+        /kde-rotation/bin/plasma-builtin-screen-rotation --version
         echo "OK"

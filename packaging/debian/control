@@ -106,3 +106,17 @@ Description: KDE Plasma integration for the display keys of the Zenbook Duo UX84
  the next login.
  .
  Does nothing on any other model.
+
+Package: plasma-builtin-screen-rotation
+Architecture: amd64
+Depends: kwin-wayland, plasma-workspace (>= 4:6.4), iio-sensor-proxy, ${shlibs:Depends}, ${misc:Depends}
+Description: turns the built-in screens with the laptop in KDE Plasma
+ With the laptop on its left or right side, or upside down, both built-in
+ panels are turned and put side by side or one below the other. While this
+ package is installed, the setting of KWin for automatic rotation is set to
+ never on the built-in screens. The applet "Auto-rotate" in the system tray
+ turns this on and off, and turns each screen by hand to any orientation. iio-
+ sensor-proxy gives the orientation. Active after the next login.
+ .
+ Before the package is removed, run "plasma-builtin-screen-rotation restore"
+ as the user, to give KWin's setting back.

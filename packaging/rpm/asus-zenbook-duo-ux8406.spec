@@ -54,9 +54,11 @@ BuildRequires:  kernel-headers
 %if 0%{?suse_version}
 %global plasmadesktoppkg plasma6-desktop
 %global kwinpkg kwin6
+%global plasmaworkspacepkg plasma6-workspace
 %else
 %global plasmadesktoppkg plasma-desktop
 %global kwinpkg kwin
+%global plasmaworkspacepkg plasma-workspace
 %endif
 
 %global guarddocdir %{_docdir}/asus-zenbook-duo-ux8406-tcc-guard
@@ -163,6 +165,24 @@ windows of the two screens (a KWin script). Each touchscreen and pen gets its
 panel. The keyboard delivers the keys with
 asus-zenbook-duo-ux8406-keyboard-bpf. For Plasma 6 on Wayland. Active after
 the next login. Does nothing on any other model.
+
+%package -n plasma-builtin-screen-rotation
+Summary:        Turns the built-in screens with the laptop in KDE Plasma
+License:        MIT
+Requires:       %{kwinpkg}
+# The applet needs the D-Bus types of Plasma 6.4.
+Requires:       %{plasmaworkspacepkg} >= 6.4
+Requires:       iio-sensor-proxy
+
+%description -n plasma-builtin-screen-rotation
+With the laptop on its left or right side, or upside down, both built-in panels
+are turned and put side by side or one below the other. While this package is
+installed, the setting of KWin for automatic rotation is set to never on the
+built-in screens. The applet "Auto-rotate" in the system tray turns this on and
+off, and turns each screen by hand to any orientation. iio-sensor-proxy gives
+the orientation. Active after the next login.
+Before the package is removed, run "plasma-builtin-screen-rotation restore" as
+the user, to give KWin's setting back.
 
 %prep
 %autosetup
@@ -336,6 +356,18 @@ fi
 %if 0%{?suse_version}
 %dir %{_datadir}/kwin
 %dir %{_datadir}/kwin/scripts
+%endif
+
+%files -n plasma-builtin-screen-rotation
+%license %{_defaultlicensedir}/plasma-builtin-screen-rotation
+%doc README.md
+%{_bindir}/plasma-builtin-screen-rotation
+%{_mandir}/man1/plasma-builtin-screen-rotation.1*
+%config(noreplace) %{_sysconfdir}/xdg/autostart/plasma-builtin-screen-rotation.desktop
+%{_datadir}/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/
+%if 0%{?suse_version}
+%dir %{_datadir}/plasma
+%dir %{_datadir}/plasma/plasmoids
 %endif
 
 %changelog

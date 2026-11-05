@@ -4,7 +4,8 @@ pkgname=(asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard
          gnome-shell-extension-asus-zenbook-duo-ux8406-keys
          gnome-shell-extension-builtin-screen-rotation
          asus-zenbook-duo-ux8406-kde-shortcuts
-         asus-zenbook-duo-ux8406-kde-keys)
+         asus-zenbook-duo-ux8406-kde-keys
+         plasma-builtin-screen-rotation)
 pkgver=0.5.0
 pkgrel=1
 arch=(x86_64)
@@ -137,6 +138,19 @@ package_asus-zenbook-duo-ux8406-kde-keys() {
         etc/xdg/autostart/asus-ux8406-kde-keys.desktop \
         usr/share/kwin/scripts/asus-zenbook-duo-ux8406-keys \
         usr/share/licenses/asus-zenbook-duo-ux8406-kde-keys
+}
+
+package_plasma-builtin-screen-rotation() {
+  pkgdesc="Turns the built-in screens with the laptop in KDE Plasma"
+  license=(MIT)
+  # The applet needs the D-Bus types of plasma-workspace 6.4.
+  depends=(glibc libgcc_s.so kwin 'plasma-workspace>=6.4' iio-sensor-proxy)
+
+  _take usr/bin/plasma-builtin-screen-rotation \
+        usr/share/man/man1/plasma-builtin-screen-rotation.1 \
+        etc/xdg/autostart/plasma-builtin-screen-rotation.desktop \
+        usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation \
+        usr/share/licenses/plasma-builtin-screen-rotation
 
   # The last package: whatever is left in the stage belongs to none, and a
   # new file in the build must not be dropped silently.

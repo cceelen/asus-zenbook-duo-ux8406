@@ -37,6 +37,7 @@
         gnome-shell-extension-builtin-screen-rotation = parts.gnome-rotation;
         asus-zenbook-duo-ux8406-kde-shortcuts = parts.kde-shortcuts;
         asus-zenbook-duo-ux8406-kde-keys = parts.kde-keys;
+        plasma-builtin-screen-rotation = parts.kde-rotation;
         default = parts.second-screen;
       };
 

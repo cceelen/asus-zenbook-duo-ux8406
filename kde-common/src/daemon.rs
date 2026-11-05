@@ -81,7 +81,8 @@ struct Data<H> {
 }
 
 /// Run until SIGTERM or SIGINT, until the handler is done, or until the
-/// connection to KWin fails.
+/// connection to KWin fails. It logs "ready" when the signals are watched:
+/// from then on SIGTERM ends it cleanly.
 ///
 /// # Errors
 ///
@@ -102,7 +103,10 @@ pub fn run<H: Handler + 'static>(
 
     EventLoop::<Data<H>>::try_new()
         .and_then(|event_loop| watch(&event_loop, &data.session, commands).map(|()| event_loop))
-        .map(|mut event_loop| turn(&mut event_loop, &mut data))
+        .map(|mut event_loop| {
+            log::info!("ready");
+            turn(&mut event_loop, &mut data);
+        })
         .map_err(Error::from)
         .and(outcome(data))
 }

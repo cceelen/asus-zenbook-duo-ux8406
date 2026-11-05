@@ -65,8 +65,8 @@ jobs:
       # adds the crates of the fuzz targets.
       - run: cp Cargo.lock fuzz/Cargo.lock
       - run: cargo clippy --manifest-path fuzz/Cargo.toml --all-targets -- -D warnings
-      # Coverage of the four programs: one measurement, read twice. Every
-      # region of the four is run by a test (the limit), and every branch of
+      # Coverage of the five programs: one measurement, read twice. Every
+      # region of the five is run by a test (the limit), and every branch of
       # all of them is in the job rust-branches. The clean removes data from
       # an earlier run that the cache brought back.
       # One step for the whole measurement: with the environment of
@@ -79,7 +79,7 @@ jobs:
           cargo llvm-cov clean --workspace
           cargo test --locked -p asus-ux8406-tcc-guard --features failpoints
           cargo test --locked -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
-          cargo test --locked -p asus-ux8406-kde-common -p asus-ux8406-kde-keys
+          cargo test --locked -p asus-ux8406-kde-common -p asus-ux8406-kde-keys -p asus-ux8406-kde-rotation
           # The test of the state map makes a BPF map and pins it: that needs
           # root. Its binary is built as the user, and only it runs with sudo.
           bin=$(cargo test --locked -p asus-ux8406-keyboard-state --test root --no-run --message-format=json |
@@ -106,6 +106,7 @@ jobs:
       - run: cargo about generate --locked --offline -m second-screen/Cargo.toml about.hbs -o second-screen/THIRD-PARTY-NOTICES.txt
       - run: cargo about generate --locked --offline -m tcc-guard/Cargo.toml about.hbs -o tcc-guard/THIRD-PARTY-NOTICES.txt
       - run: cargo about generate --locked --offline -m kde-keys/Cargo.toml about.hbs -o kde-keys/THIRD-PARTY-NOTICES.txt
+      - run: cargo about generate --locked --offline -m kde-rotation/Cargo.toml about.hbs -o kde-rotation/THIRD-PARTY-NOTICES.txt
       - run: git diff --exit-code
 
   # The oldest Rust that a target distribution has (Debian 13). The crates of
@@ -166,7 +167,7 @@ jobs:
           cargo llvm-cov clean --workspace
           cargo test --locked -p asus-ux8406-tcc-guard --features failpoints
           cargo test --locked -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
-          cargo test --locked -p asus-ux8406-kde-common -p asus-ux8406-kde-keys
+          cargo test --locked -p asus-ux8406-kde-common -p asus-ux8406-kde-keys -p asus-ux8406-kde-rotation
           # The test of the state map makes a BPF map and pins it: that needs
           # root. Its binary is built as the user, and only it runs with sudo.
           bin=$(cargo test --locked -p asus-ux8406-keyboard-state --test root --no-run --message-format=json |
