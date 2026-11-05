@@ -112,21 +112,79 @@ installs a copy in each extension. Their tests share the fixtures in
 
 ### Coverage
 
-The tests run each region of the guard. To measure it, with
-[cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov):
+The tests run each region and each branch of the three Rust programs. To measure
+the regions, with [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov),
+in one shell:
 
 ```sh
-cargo llvm-cov -p asus-ux8406-tcc-guard --features failpoints \
-    --ignore-filename-regex /tests/ --fail-under-regions 100
+eval "$(cargo llvm-cov show-env --sh)"
+cargo llvm-cov clean --workspace
+cargo test --locked -p asus-ux8406-tcc-guard --features failpoints
+cargo test --locked -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
+cargo llvm-cov report --ignore-filename-regex /tests/ --fail-under-regions 100
+```
+
+Without the next step, three lines of `keyboard-state/src/pins.rs` are not run:
+the test `tests/root` makes a BPF array map, pins it on the BPF file system
+(`/sys/fs/bpf/asus-ux8406-test-<pid>-<test>/`, removed at the end) and reads it
+with the program's reader. That needs root. As an ordinary user the test says
+why it does nothing and passes. CI runs it with `sudo`. To run it here, in the
+same shell, before the report: build as the user, then run only the binary as
+root. Its coverage data goes to the same directory as that of the other tests.
+
+```sh
+bin=$(cargo test --locked -p asus-ux8406-keyboard-state --test root --no-run \
+    --message-format=json |
+    jq -r 'select(.target.name == "root" and .executable != null) | .executable')
+sudo env LLVM_PROFILE_FILE="$LLVM_PROFILE_FILE" "$bin" --nocapture
+```
+
+Every branch of the Rust programs is run by a test too. Stable `rustc` does not
+take the flag for the branch counters. CI uses a nightly compiler of a fixed
+date for it (the job `rust-branches` in `ci.yml`, which fails if one branch is
+not run): move that date forward on purpose, in a change of its own, when the
+job passes with the new nightly. To measure the branches with the stable
+compiler of your distribution, as a test for yourself only, run the same steps
+with:
+
+```sh
+export CARGO_TARGET_DIR=$HOME/.cache/branchcov RUSTC_BOOTSTRAP=1
+eval "$(cargo llvm-cov show-env --sh --branch)"
+```
+
+and, in place of the report above:
+
+```sh
+cargo llvm-cov report --branch --ignore-filename-regex /tests/ \
+    --json --summary-only --output-path branches.json
+jq -e '.data[0].totals.branches.notcovered == 0' branches.json
 ```
 
 CI measures the coverage of all three Rust programs and of the extensions' logic
 (Node's test runner) on each pull request (`ci.yml`) and each night on main
 (`coverage.yml`), shows it in the summary of the run and sends it to
-[Codecov](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406). Only the
-guard has a limit; for the others the coverage is measured, not enforced.
+[Codecov](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406). The three
+Rust programs have a limit of 100 % of their regions and branches; for the
+extensions' logic the coverage is measured, not enforced.
 
 [![Coverage of each file](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406/graphs/tree.svg?token=CSOYWM3L9Q)](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406)
+
+### The HID-BPF program
+
+The program in `keyboard-bpf/` runs in the kernel, so its tests compile the
+unchanged source as host C against fakes of the BPF headers and of the kernel
+functions it calls (`keyboard-bpf/tests/host/`). They need `clang`, `llvm-cov`
+and `llvm-profdata`. `meson test -C build --suite keyboard-bpf` runs them: the
+tests (`host`), the same with AddressSanitizer and UndefinedBehaviorSanitizer
+(`host-sanitize`), the coverage, which fails below 100 % of lines, functions and
+branches of the program's file (`host-coverage`), and a mutation check that
+fails if a mutant of the source survives that is not argued as equivalent in
+`tests/mutate.py` (`host-mutation`). By hand, from the tree's root:
+
+```sh
+python3 keyboard-bpf/tests/run_host.py coverage \
+    keyboard-bpf/src/ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.c ~/.cache/bpfcov
+```
 
 ### Fuzzing
 
@@ -169,7 +227,8 @@ uses the committed files only.
 - Use established crates for the command line, logging, signals and errors.
 - No test code in `src/`. Tests are in `tests/`, one file for each topic. A test
   machine is a directory tree in `tests/fixtures/`.
-- The coverage of the guard stays at 100 % of its regions.
+- The coverage of the three Rust programs stays at 100 % of their regions and of
+  their branches (nightly compiler).
 - No licence or copyright header in the files. `REUSE.toml` gives the licence of
   each file.
 - Say a fact in one document only, and link to it from the others. The

@@ -112,6 +112,14 @@ impl Sys {
         self.write(PRODUCT_NAME, OTHER_MODEL);
     }
 
+    /// A symbolic link below the root, to `target` as it is written.
+    pub fn link_to(&self, relative: &str, target: &str) {
+        let path = self.path(relative);
+
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        symlink(target, path).unwrap();
+    }
+
     /// Take the keyboard off the dock port.
     pub fn undock(&self) {
         fs::remove_file(self.path("bus/usb/devices/3-6")).unwrap();
@@ -161,6 +169,30 @@ fn link(root: &Path, device: &Path, directory: &str) {
         root.join(directory).join(device.file_name().unwrap()),
     )
     .unwrap();
+}
+
+/// Stop a test that cannot show anything as root: root writes whatever the
+/// permissions say.
+pub fn ordinary_user() {
+    use std::os::unix::fs::MetadataExt;
+
+    assert!(
+        fs::metadata("/proc/self").is_ok_and(|own| own.uid() != 0),
+        "run these tests as an ordinary user"
+    );
+}
+
+/// Forbid writing to a file below the root.
+pub fn read_only(sys: &Sys, relative: &str) {
+    use std::os::unix::fs::PermissionsExt;
+
+    ordinary_user();
+    fs::set_permissions(sys.path(relative), fs::Permissions::from_mode(0o444)).unwrap();
+}
+
+/// The file with the highest brightness next to a brightness file.
+pub fn max_of(brightness: &str) -> String {
+    brightness.replace("/brightness", "/max_brightness")
 }
 
 /// A UX8406CA with both panels, the upper one at 253 and the lower one at

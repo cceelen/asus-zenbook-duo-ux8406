@@ -4,7 +4,7 @@ use asus_ux8406_second_screen::{Detection, Error, Mode, release_panel, sync_pane
 use rstest::rstest;
 
 use crate::common::{
-    LOWER_STATUS, Sys, UNTOUCHED, UPPER_STATUS, docked, keyboard_on_cable, panels_only,
+    LOWER_STATUS, Sys, UNTOUCHED, UPPER_STATUS, docked, keyboard_on_cable, panels_only, read_only,
     upper_panel_only,
 };
 
@@ -81,4 +81,32 @@ fn a_machine_without_the_lower_panel_is_an_error(upper_panel_only: Sys) {
         Err(Error::NoLowerPanel)
     ));
     assert_eq!(upper_panel_only.read(UPPER_STATUS), UNTOUCHED);
+}
+
+#[rstest]
+fn a_connector_that_cannot_be_written_is_an_error_when_docking(docked: Sys) {
+    read_only(&docked, LOWER_STATUS);
+
+    assert!(matches!(
+        sync_panel(&docked.sysfs(), Mode::Apply),
+        Err(Error::Io { path, .. }) if path == docked.path(LOWER_STATUS)
+    ));
+}
+
+#[rstest]
+fn a_connector_that_cannot_be_written_is_an_error_when_releasing(docked: Sys) {
+    read_only(&docked, LOWER_STATUS);
+
+    assert!(matches!(
+        release_panel(&docked.sysfs(), Mode::Apply),
+        Err(Error::Io { path, .. }) if path == docked.path(LOWER_STATUS)
+    ));
+}
+
+#[rstest]
+fn releasing_needs_the_lower_panel(upper_panel_only: Sys) {
+    assert!(matches!(
+        release_panel(&upper_panel_only.sysfs(), Mode::Apply),
+        Err(Error::NoLowerPanel)
+    ));
 }

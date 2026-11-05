@@ -2,7 +2,7 @@
 
 use std::fmt;
 use std::fs::{self, File, OpenOptions};
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 
 use crate::dock::{self, Panel, UsbId};
@@ -100,15 +100,17 @@ impl Sysfs {
             path: directory.clone(),
             source,
         };
-        let mut files = Vec::new();
+        let mut files: Vec<PathBuf> = entries(&directory)
+            .map_err(io_error)?
+            .into_iter()
+            .filter(|path| {
+                path.file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(dock::is_lower_panel)
+            })
+            .map(|path| path.join("status"))
+            .collect();
 
-        for entry in fs::read_dir(&directory).map_err(io_error)? {
-            let entry = entry.map_err(io_error)?;
-
-            if entry.file_name().to_str().is_some_and(dock::is_lower_panel) {
-                files.push(entry.path().join("status"));
-            }
-        }
         if files.is_empty() {
             return Err(Error::NoLowerPanel);
         }
@@ -133,8 +135,8 @@ impl Sysfs {
         };
         let mut found = Vec::new();
 
-        for entry in fs::read_dir(&directory).map_err(io_error)? {
-            let Ok(device) = entry.map_err(io_error)?.path().canonicalize() else {
+        for path in entries(&directory).map_err(io_error)? {
+            let Ok(device) = path.canonicalize() else {
                 continue;
             };
 
@@ -149,6 +151,22 @@ impl Sysfs {
             .map(|device| Backlight { device })
             .ok_or(Error::NoBacklight(panel))
     }
+}
+
+/// The paths of the entries of a directory. An entry that cannot be read is
+/// an error, as a directory that cannot be listed is.
+fn entries(directory: &Path) -> io::Result<Vec<PathBuf>> {
+    paths(&mut fs::read_dir(directory)?.map(|entry| entry.map(|entry| entry.path())))
+}
+
+/// The paths that a listing of a directory gives, or the first entry that
+/// could not be read.
+///
+/// # Errors
+///
+/// The error of that entry.
+pub fn paths(listing: &mut dyn Iterator<Item = io::Result<PathBuf>>) -> io::Result<Vec<PathBuf>> {
+    listing.collect()
 }
 
 /// A backlight device of the kernel.
@@ -227,7 +245,7 @@ pub fn write_detection(status: &Path, detection: Detection) -> Result<(), Error>
 /// attribute can be.
 #[must_use]
 pub fn read_attribute(path: &Path) -> Option<String> {
-    let limit = u64::try_from(ATTRIBUTE_LIMIT).ok()?;
+    let limit = ATTRIBUTE_LIMIT as u64;
     let mut text = String::new();
 
     File::open(path)

@@ -37,7 +37,7 @@ pub struct Events {
 ///
 /// What the log said, unless it only said that there is nothing more for
 /// now, or that records were overwritten before they were read.
-pub fn scan<R: Read>(log: &mut R, event_text: &str) -> io::Result<(bool, usize)> {
+pub fn scan(log: &mut dyn Read, event_text: &str) -> io::Result<(bool, usize)> {
     let mut record = [0_u8; RECORD_SIZE];
     let (mut seen, mut count) = (false, 0);
 

@@ -109,6 +109,7 @@ dependencies = [
  "assert_cmd",
  "assert_fs",
  "aya",
+ "aya-obj",
  "clap",
  "ignore",
  "predicates",

@@ -5,7 +5,7 @@ use std::os::unix::fs::symlink;
 use std::path::Path;
 
 use asus_ux8406_tcc_guard::error::Error;
-use asus_ux8406_tcc_guard::trusted::{directory, read};
+use asus_ux8406_tcc_guard::trusted::{believable, directory, read};
 use rstest::rstest;
 
 use crate::common::{Machine, empty, ordinary_user};
@@ -92,4 +92,21 @@ fn directories(empty: Machine) {
     assert!(directory(&empty.join("none")).unwrap_err().is_missing());
     empty.chmod("run", 0o777);
     assert!(refused(&directory(&empty.join("run"))));
+}
+
+#[rstest]
+#[case::root_owns_it(0, 0o644, 1000, true)]
+#[case::the_user_owns_it(1000, 0o600, 1000, true)]
+#[case::root_runs_it_and_owns_it(0, 0o644, 0, true)]
+#[case::another_user_owns_it(1001, 0o600, 1000, false)]
+#[case::the_group_may_write(0, 0o664, 1000, false)]
+#[case::others_may_write(1000, 0o606, 1000, false)]
+#[case::another_user_and_others_may_write(1001, 0o666, 1000, false)]
+fn who_owns_a_file_and_who_may_write_it(
+    #[case] owner: u32,
+    #[case] mode: u32,
+    #[case] user: u32,
+    #[case] believed: bool,
+) {
+    assert_eq!(believable(owner, mode, user), believed);
 }

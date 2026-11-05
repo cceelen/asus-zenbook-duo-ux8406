@@ -18,7 +18,8 @@ use std::process::ExitCode;
 
 use asus_ux8406_second_screen::cli::USAGE;
 use asus_ux8406_second_screen::{
-    Action, Cli, Detection, Error, Mode, Outcome, Sysfs, release_panel, sync_brightness, sync_panel,
+    Action, Cli, Detection, Error, Mode, Outcome, Sysfs, release_panel, sync_brightness,
+    sync_panel, tolerate_taken_over,
 };
 use clap::Parser;
 use clap::error::ErrorKind;
@@ -34,12 +35,9 @@ fn would_write(mode: Mode, text: &dyn std::fmt::Display, file: &Path) {
 }
 
 fn brightness(sysfs: &Sysfs, mode: Mode) -> Result<(), Error> {
-    match sync_brightness(sysfs, mode) {
-        Ok(brightness) => would_write(mode, &brightness.value, &brightness.file),
-        // The compositor sets the brightness of both panels itself.
-        Err(error) if error.is_taken_over() => {}
-        Err(error) => return Err(error),
-    }
+    tolerate_taken_over(sync_brightness(sysfs, mode))?
+        .iter()
+        .for_each(|brightness| would_write(mode, &brightness.value, &brightness.file));
     Ok(())
 }
 

@@ -13,3 +13,16 @@ fn releasing_brings_a_docked_panel_back_without_touching_its_brightness(docked: 
     assert_eq!(docked.read(LOWER_STATUS), "detect");
     assert_eq!(docked.read(LOWER_BRIGHTNESS), "170\n");
 }
+
+#[rstest]
+fn a_dry_run_of_release_says_what_it_would_write_and_writes_nothing(docked: Sys) {
+    docked.program().arg("dock").assert().success();
+    docked
+        .program()
+        .args(["-n", "release"])
+        .assert()
+        .success()
+        .stderr(predicates::str::contains("would write \"detect\""));
+
+    assert_eq!(docked.read(LOWER_STATUS), "off");
+}

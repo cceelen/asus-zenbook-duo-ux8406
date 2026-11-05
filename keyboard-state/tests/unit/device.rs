@@ -53,3 +53,21 @@ fn a_directory_of_pins_names_its_device(#[case] directory: &str, #[case] name: O
 
     assert_eq!(device.map(|device| device.to_string()).as_deref(), name);
 }
+
+#[rstest]
+#[case::nothing("")]
+#[case::bus_only("0003")]
+#[case::bus_and_vendor("0003_0B05")]
+#[case::without_instance("0003_0B05_1BF2")]
+#[case::not_the_keyboard("0003_056A_0357_0007")]
+fn a_pin_directory_of_something_else_is_no_device(#[case] name: &str) {
+    assert_eq!(Device::from_pin_name(name), None);
+}
+
+#[test]
+fn a_pin_directory_names_its_device() {
+    assert_eq!(
+        Device::from_pin_name("0003_0B05_1BF2_005D"),
+        Some(USB.parse().unwrap())
+    );
+}

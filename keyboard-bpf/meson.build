@@ -124,3 +124,51 @@ if udev_hid_bpf.found()
 else
   message('keyboard-bpf: udev-hid-bpf not found, the "inspect" test is not registered')
 endif
+
+# The program's code paths, on the host. The harness (tests/run_host.py)
+# compiles the unchanged source as host C against fakes of the BPF headers and
+# of the kernel's functions (tests/host/shim/, tests/host/fake_kernel.c) and
+# runs the tests in tests/host/ against its entry points. It is not Meson's
+# C machinery either: the script builds the objects itself, with the host
+# compiler (CC, else cc) for "host", and with clang for the others.
+#   host            the tests
+#   host-sanitize   the same with AddressSanitizer and UndefinedBehaviorSanitizer
+#   host-coverage   fails unless llvm-cov shows 100 % of the program's lines,
+#                   functions and branches
+#   host-mutation   applies mutants to a copy of the source (comparisons,
+#                   && and ||, ternaries, returns, constants) and fails if
+#                   one survives that is not argued as equivalent
+host_script = files('tests/run_host.py')
+host_workdir = meson.current_build_dir() / 'host'
+test(
+  'host',
+  python,
+  args: ['-B', host_script, 'plain', bpf_source, host_workdir],
+  suite: 'keyboard-bpf',
+  timeout: 120,
+)
+test(
+  'host-sanitize',
+  python,
+  args: ['-B', host_script, 'sanitize', bpf_source, host_workdir],
+  suite: 'keyboard-bpf',
+  timeout: 120,
+)
+if find_program('llvm-cov', required: false).found() and find_program('llvm-profdata', required: false).found()
+  test(
+    'host-coverage',
+    python,
+    args: ['-B', host_script, 'coverage', bpf_source, host_workdir],
+    suite: 'keyboard-bpf',
+    timeout: 120,
+  )
+else
+  message('keyboard-bpf: llvm-cov or llvm-profdata not found, the "host-coverage" test is not registered')
+endif
+test(
+  'host-mutation',
+  python,
+  args: ['-B', files('tests/mutate.py'), bpf_source, meson.current_build_dir() / 'host-mutants'],
+  suite: 'keyboard-bpf',
+  timeout: 600,
+)

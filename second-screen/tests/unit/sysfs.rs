@@ -1,8 +1,10 @@
 //! What asus-ux8406-second-screen reads from and writes to sysfs.
 
 use std::fs;
+use std::io;
+use std::path::PathBuf;
 
-use asus_ux8406_second_screen::sysfs::{ATTRIBUTE_LIMIT, read_attribute, write_detection};
+use asus_ux8406_second_screen::sysfs::{ATTRIBUTE_LIMIT, paths, read_attribute, write_detection};
 use asus_ux8406_second_screen::{Detection, Error, Panel};
 use rstest::rstest;
 
@@ -47,6 +49,29 @@ fn another_device_on_the_dock_port_is_not_the_keyboard() {
 
     assert!(!product.sysfs().keyboard_docked());
     assert!(!vendor.sysfs().keyboard_docked());
+}
+
+#[rstest]
+fn interfaces_root_hubs_and_links_to_nothing_are_not_the_keyboard(panels_only: Sys) {
+    let keyboard = "../../../devices/pci0000:00/0000:00:14.0/usb3/3-6";
+
+    // An interface and a root hub point at a device, so that only their
+    // names tell them from one; the third link points at nothing.
+    panels_only.write(
+        "devices/pci0000:00/0000:00:14.0/usb3/3-6/idVendor",
+        "0b05\n",
+    );
+    panels_only.write(
+        "devices/pci0000:00/0000:00:14.0/usb3/3-6/idProduct",
+        "1bf2\n",
+    );
+    panels_only.link_to("bus/usb/devices/3-6:1.0", keyboard);
+    panels_only.link_to("bus/usb/devices/usb3", keyboard);
+    panels_only.link_to("bus/usb/devices/3-9", "../../nothing");
+    assert!(!panels_only.sysfs().keyboard_docked());
+
+    panels_only.link_to("bus/usb/devices/3-6", keyboard);
+    assert!(panels_only.sysfs().keyboard_docked());
 }
 
 #[rstest]
@@ -103,6 +128,13 @@ fn a_brightness_is_written_as_a_number(docked: Sys) {
     lower.set_brightness(182).unwrap();
     assert_eq!(fs::read_to_string(lower.brightness_file()).unwrap(), "182");
     assert_eq!(lower.brightness().unwrap(), 182);
+}
+
+#[rstest]
+fn a_backlight_link_to_nothing_is_passed_over(docked: Sys) {
+    docked.link_to("class/backlight/gone", "../../nothing");
+
+    assert!(docked.sysfs().backlight(Panel::Lower).is_ok());
 }
 
 #[rstest]
@@ -164,4 +196,33 @@ fn writing_to_a_missing_attribute_is_an_error(empty: Sys) {
         write_detection(&empty.path("nowhere/status"), Detection::ForcedOff),
         Err(Error::Io { .. })
     ));
+}
+
+#[test]
+fn the_default_tree_is_the_real_sysfs() {
+    assert_eq!(
+        asus_ux8406_second_screen::Sysfs::default(),
+        asus_ux8406_second_screen::Sysfs::new("/sys")
+    );
+}
+
+/// A directory entry that cannot be read is an error, not a missing entry: a
+/// listing of `class/drm` or `class/backlight` that fails is an I/O error,
+/// not "no lower panel" or "no backlight".
+#[test]
+fn an_entry_that_cannot_be_read_is_an_error() {
+    let mut listing = [
+        Ok(PathBuf::from("card1-eDP-1")),
+        Err(io::Error::other("an entry that cannot be read")),
+        Ok(PathBuf::from("card1-eDP-2")),
+    ]
+    .into_iter();
+
+    let error = paths(&mut listing).unwrap_err();
+
+    assert_eq!(error.to_string(), "an entry that cannot be read");
+
+    let mut listing = [Ok(PathBuf::from("card1-eDP-1"))].into_iter();
+
+    assert_eq!(paths(&mut listing).unwrap(), [PathBuf::from("card1-eDP-1")]);
 }
