@@ -101,7 +101,7 @@ extension first: it has the same UUID. The options switch the other parts off;
 for the rotation extension, use `-Dgnome=false` in place of `-Drotation=false`.
 
 ```sh
-meson setup build --prefix ~/.local -Dscreen=false -Dguard=false -Dkeyboard=false -Drotation=false
+meson setup build --prefix ~/.local -Dscreen=false -Dguard=false -Dkeyboard=false -Drotation=false -Dkde_shortcuts=false
 meson install -C build
 ```
 
@@ -275,6 +275,7 @@ its tests examine.
 | `gnome-common/`                             | Files that the two extensions share                                                                 |
 | [kde-common/](kde-common/README.md)         | What the two KDE programs share (Rust): the layouts, KWin's output management, the cases of GNOME   |
 | `kde-fakes/`                                | Fake KWin and sensor and a private bus for the tests of the KDE programs; not installed             |
+| [kde-shortcuts/](kde-shortcuts/README.md)   | Default KDE Plasma shortcuts for function keys                                                      |
 | `packaging/`                                | One directory of recipes for each packaging system; [OBS setup](packaging/obs/README.md)            |
 | `dev/containers/`                           | Container builds for development                                                                    |
 | `fuzz/`                                     | Fuzz targets of the guard's parsers (cargo-fuzz)                                                    |

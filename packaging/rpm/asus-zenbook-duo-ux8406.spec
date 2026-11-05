@@ -47,6 +47,13 @@ BuildRequires:  kernel-headers
 %undefine _debugsource_packages
 %endif
 
+# openSUSE puts the Plasma 6 version in the names of its Plasma packages.
+%if 0%{?suse_version}
+%global plasmadesktoppkg plasma6-desktop
+%else
+%global plasmadesktoppkg plasma-desktop
+%endif
+
 %global guarddocdir %{_docdir}/asus-zenbook-duo-ux8406-tcc-guard
 
 %description
@@ -127,6 +134,17 @@ menu turns each screen by hand to any orientation. iio-sensor-proxy gives the
 orientation.
 To be enabled per user:
 gnome-extensions enable builtin-screen-rotation@cceelen.github.io
+
+%package -n asus-zenbook-duo-ux8406-kde-shortcuts
+Summary:        Default KDE Plasma shortcuts for the function keys of the Zenbook Duo UX8406
+License:        MIT
+BuildArch:      noarch
+Requires:       %{plasmadesktoppkg}
+Recommends:     asus-zenbook-duo-ux8406-keyboard-bpf
+
+%description -n asus-zenbook-duo-ux8406-kde-shortcuts
+The emoji key (F11) opens the emoji selector of Plasma. This package is
+optional: the key works without it, but does nothing in Plasma.
 
 %prep
 %autosetup
@@ -278,6 +296,14 @@ fi
 %if 0%{?suse_version}
 %dir %{_datadir}/gnome-shell
 %dir %{_datadir}/gnome-shell/extensions
+%endif
+
+%files -n asus-zenbook-duo-ux8406-kde-shortcuts
+%license %{_defaultlicensedir}/asus-zenbook-duo-ux8406-kde-shortcuts
+%doc README.md
+%{_datadir}/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop
+%if 0%{?suse_version}
+%dir %{_datadir}/kglobalaccel
 %endif
 
 %changelog

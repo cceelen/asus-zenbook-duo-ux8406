@@ -70,6 +70,7 @@ let
           (option "keyboard")
           (option "gnome")
           (option "rotation")
+          (option "kde_shortcuts")
           # The guard goes to bin/, not sbin/ (nixpkgs has no sbin on PATH).
           "--sbindir=bin"
           "-Dudevdir=${placeholder "out"}/lib/udev"
@@ -275,6 +276,23 @@ in
       passthru.extensionUuid = "builtin-screen-rotation@cceelen.github.io";
       meta = meta // {
         description = "GNOME Shell extension that turns the built-in screens with the laptop";
+        license = lib.licenses.mit;
+      };
+    };
+  };
+  # List it in environment.systemPackages.
+  kde-shortcuts = mkPart {
+    enable = [ "kde_shortcuts" ];
+    attrs = {
+      pname = "asus-zenbook-duo-ux8406-kde-shortcuts";
+      nativeBuildInputs = [
+        meson
+        ninja
+        pkg-config
+        python3
+      ];
+      meta = meta // {
+        description = "Default KDE Plasma shortcuts for the function keys of the Zenbook Duo UX8406";
         license = lib.licenses.mit;
       };
     };

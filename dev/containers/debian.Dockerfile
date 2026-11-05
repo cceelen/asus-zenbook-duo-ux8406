@@ -33,7 +33,7 @@ WORKDIR /src
 # checkout; it carries the crates in vendor/). This step needs the network.
 RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
-    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false \
+    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false -Dkde_shortcuts=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
 # The packages, from that archive, without network, and lintian on the result
 # (source package and all binary packages, via the .changes file): every tag is

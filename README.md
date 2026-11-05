@@ -5,13 +5,13 @@
 [![codecov](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406/graph/badge.svg?token=CSOYWM3L9Q)](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406)
 [![Plumber Score](https://score.getplumber.io/github.com/cceelen/asus-zenbook-duo-ux8406.svg)](https://score.getplumber.io/github.com/cceelen/asus-zenbook-duo-ux8406)
 
-**Five packages that make the
+**Six packages that make the
 [ASUS Zenbook Duo UX8406](https://www.asus.com/us/laptops/for-home/zenbook/asus-zenbook-duo-2024-ux8406/)
 operate correctly with Linux: no power-off with the lid closed, a lower screen
 that follows the keyboard and the brightness, a function row with all its keys,
 touch on the two screens, and screen rotation. They install from the package
 manager of your distribution. They are tested on a UX8406CA with Fedora 44; the
-UX8406MA is not tested.**
+UX8406MA and KDE Plasma are not tested.**
 
 I own a UX8406CA. The community solutions that I tried gave mixed results and
 needed manual installation. The power-off problem stayed for months. These
@@ -43,6 +43,7 @@ Keyboard package.
 | More than half of the special function keys do nothing.                                | [Keyboard](keyboard-bpf/README.md)               | The keys operate on the dock, on the cable and with Bluetooth. The keyboard light and Fn+Esc operate and keep their state. |
 | The two display keys do nothing. A touch on the lower screen acts on the upper screen. | [Keys](gnome-keys/README.md), GNOME only         | The keys switch the lower screen and swap the windows. Each touchscreen has its screen.                                    |
 | The screens do not turn when the laptop stands on its side (book mode).                | [Rotation](gnome-rotation/README.md), GNOME only | The two screens turn and go side by side. Not specific to this model.                                                      |
+| The emoji key does nothing in KDE Plasma.                                              | [KDE shortcuts](kde-shortcuts/README.md)         | The emoji key opens the emoji selector. Optional.                                                                          |
 
 The names in the table are those of the columns in
 [Compatibility](#compatibility). [Installation](#installation) gives the names
@@ -68,21 +69,21 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
 | ❌     | Not available.                                           |
 | 🤖     | Tested on the hardware.                                  |
 
-| Distribution         | Guard | Second screen | Keyboard | Keys  | Rotation |
-| -------------------- | ----- | ------------- | -------- | ----- | -------- |
-| Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖 | ✅ 🤖    |
-| Fedora 43            | ✅    | ✅            | ✅       | ✅    | ✅       |
-| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹  | ✅ ¹     |
-| Arch                 | ✅    | ✅            | ✅       | ✅    | ✅       |
-| openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅    | ✅       |
-| openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ³  | ✅ ³     |
-| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ✅    | ✅       |
-| Debian 13            | ✅    | ✅            | ❌ ⁴     | ✅    | ✅       |
-| Debian testing       | ✅    | ✅            | ✅       | ✅    | ✅       |
-| Debian unstable      | ✅    | ✅            | ✅       | ✅    | ✅       |
-| Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅    | ✅       |
-| Alpine               | 🛠️ ⁵  | 🛠️ ⁵          | ❌ ⁴     | 🛠️ ⁵  | 🛠️ ⁵     |
-| Nix                  | ✅ ⁶  | ✅ ⁶          | ❌ ⁴     | ✅ ⁶  | ✅ ⁶     |
+| Distribution         | Guard | Second screen | Keyboard | Keys  | Rotation | KDE shortcuts |
+| -------------------- | ----- | ------------- | -------- | ----- | -------- | ------------- |
+| Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖 | ✅ 🤖    | 🛠️            |
+| Fedora 43            | ✅    | ✅            | ✅       | ✅    | ✅       | 🛠️            |
+| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹  | ✅ ¹     | 🛠️            |
+| Arch                 | ✅    | ✅            | ✅       | ✅    | ✅       | 🛠️            |
+| openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅    | ✅       | 🛠️            |
+| openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ³  | ✅ ³     | 🛠️            |
+| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ✅    | ✅       | 🛠️            |
+| Debian 13            | ✅    | ✅            | ❌ ⁴     | ✅    | ✅       | 🛠️            |
+| Debian testing       | ✅    | ✅            | ✅       | ✅    | ✅       | 🛠️            |
+| Debian unstable      | ✅    | ✅            | ✅       | ✅    | ✅       | 🛠️            |
+| Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅    | ✅       | 🛠️            |
+| Alpine               | 🛠️ ⁵  | 🛠️ ⁵          | ❌ ⁴     | 🛠️ ⁵  | 🛠️ ⁵     | 🛠️            |
+| Nix                  | ✅ ⁶  | ✅ ⁶          | ❌ ⁴     | ✅ ⁶  | ✅ ⁶     | 🛠️            |
 
 1. Built for RHEL 10 with EPEL 10. Installed in AlmaLinux 10 and Rocky Linux 10
    containers, not on RHEL.
@@ -112,6 +113,7 @@ Requirements:
 | Keyboard         | Linux 6.11 or later with HID-BPF and BTF, and [udev-hid-bpf]     |
 | Keys             | GNOME Shell 45 or later                                          |
 | Rotation         | GNOME Shell 45 or later, iio-sensor-proxy; a laptop of any model |
+| KDE shortcuts    | Plasma 6                                                         |
 
 Ubuntu 24.04 is not supported: its Rust is too old.
 
@@ -138,6 +140,7 @@ The packages:
 | Keyboard      | `asus-zenbook-duo-ux8406-keyboard-bpf`               |
 | Keys          | `gnome-shell-extension-asus-zenbook-duo-ux8406-keys` |
 | Rotation      | `gnome-shell-extension-builtin-screen-rotation`      |
+| KDE shortcuts | `asus-zenbook-duo-ux8406-kde-shortcuts`              |
 
 The commands below use this list. It does not have the keyboard package: the
 commands add it where the distribution has udev-hid-bpf (refer to
@@ -145,6 +148,12 @@ commands add it where the distribution has udev-hid-bpf (refer to
 
 ```sh
 pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation"
+```
+
+For KDE Plasma, use this list in its place:
+
+```sh
+pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-kde-shortcuts"
 ```
 
 ### Fedora and RHEL 10
@@ -267,6 +276,7 @@ Each package and its SBOM have an attestation; refer to
 | Second screen  | Nothing. It operates immediately.                                                   |
 | Keyboard       | Take the keyboard off the dock or put it on: the program loads at a new connection. |
 | Keys, Rotation | Log in again, then enable the extensions with the commands below.                   |
+| KDE shortcuts  | Log in again.                                                                       |
 
 GNOME Shell on Wayland finds a new extension only when it starts:
 
