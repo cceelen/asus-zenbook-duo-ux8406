@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.6.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.5.0...v0.6.0) (2026-11-05)
+
+
+### Features
+
+* **kde-keys:** add the KDE Plasma program for the display keys ([a8ca25d](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/a8ca25d7a4f8f14987a1241e5e458283c421981a))
+* **kde-rotation:** add the KDE Plasma program that turns the screens ([42d816f](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/42d816f23d3351482008a4ef70816259f570a765))
+* **kde-shortcuts:** add the default shortcuts for KDE Plasma ([64031a3](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/64031a328231780d350e624c6c6b81994cd75977))
+* **rotation:** turn each built-in screen by hand ([a0c43a7](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/a0c43a74480cb0348bb47c80c982c82b844a8da8))
+
+
+### Bug Fixes
+
+* **ci:** take the release pull request from this repository only ([b702224](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/b7022240a9b4ad9a4b7bbdcbeb16e4f00078a324))
+* **keys:** do not put back a layout of another orientation ([b005c18](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/b005c18478f27e9eee2cb8bc4589597e98b4e9ee))
+* **release:** pass the aports secrets to the called workflow ([b0987e2](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/b0987e25c415762db348a8411b7399d7de7f4e2b))
+
 ## [0.5.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.4.0...v0.5.0) (2026-10-07)
 
 
