@@ -213,6 +213,10 @@ python3 keyboard-bpf/tests/run_host.py coverage \
     keyboard-bpf/src/ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.c ~/.cache/bpfcov
 ```
 
+Meson registers `host-sanitize`, `host-coverage` and `host-mutation` only after
+`meson setup build -Dhost_checks=enabled`: the clang of a distribution can lack
+the sanitizer runtimes and the C library of the host.
+
 ### Fuzzing
 
 Fuzz targets of the guard's parsers are in `fuzz/`, with
