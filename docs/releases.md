@@ -41,6 +41,9 @@ same crates. Their system libraries are those of Alpine, not those in the SBOMs.
 
 The other steps occur automatically:
 
+- `release.yml` builds the packages of each distribution from `main`. If one
+  fails, the run stops: there is no release pull request, and the version does
+  not change.
 - [Release Please](https://github.com/googleapis/release-please) opens the
   release pull request. It has the next version in the package files and the new
   section of `CHANGELOG.md`, made from the commit titles since the last release:
