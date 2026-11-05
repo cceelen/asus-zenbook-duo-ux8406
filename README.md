@@ -73,6 +73,7 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
 
 | Distribution         | Guard | Second screen | Keyboard | Keys  | Rotation | KDE keys | KDE shortcuts |
 | -------------------- | ----- | ------------- | -------- | ----- | -------- | -------- | ------------- |
+| Fedora 45            | 🛠️ ⁷  | 🛠️ ⁷          | 🛠️ ⁷     | 🛠️ ⁷  | 🛠️ ⁷     | 🛠️       | 🛠️            |
 | Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖 | ✅ 🤖    | 🛠️       | 🛠️            |
 | Fedora 43            | ✅    | ✅            | ✅       | ✅    | ✅       | 🛠️       | 🛠️            |
 | RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹  | ✅ ¹     | 🛠️       | 🛠️            |
@@ -100,6 +101,8 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
 6. In the flake of this repository, with the binary cache
    `asus-zenbook-duo-ux8406.cachix.org`. The container builds each package of
    the flake. The NixOS modules are not tested.
+7. Not published yet: the Copr project builds for Fedora 45 from the next
+   release on. The packages install in a clean container.
 
 🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
 keyboard ids and dock port can be different. A result from your hardware adds a
@@ -162,7 +165,7 @@ pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen as
 
 ### Fedora and RHEL 10
 
-Fedora 43, Fedora 44 and Rawhide:
+Fedora 43, Fedora 44, Fedora 45 (from the next release) and Rawhide:
 
 ```sh
 sudo dnf copr enable packit/cceelen-asus-zenbook-duo-ux8406-releases
