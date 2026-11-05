@@ -11,6 +11,7 @@
 #                 its udev rule; goes with keyboard-bpf
 #   gnome-keys    the GNOME Shell extension for the two display keys
 #   gnome-rotation the GNOME Shell extension that turns the built-in panels
+#   kde-shortcuts for KDE Plasma: default shortcuts for function keys
 # This file sets the install directories and the cargo command; the parts
 # do the rest.
 #
@@ -76,6 +77,7 @@ package_names = {
   'keyboard-bpf': 'asus-zenbook-duo-ux8406-keyboard-bpf',
   'gnome-keys': 'gnome-shell-extension-asus-zenbook-duo-ux8406-keys',
   'gnome-rotation': 'gnome-shell-extension-builtin-screen-rotation',
+  'kde-shortcuts': 'asus-zenbook-duo-ux8406-kde-shortcuts',
 }
 
 # What templates (*.in) are filled in with.
@@ -134,6 +136,9 @@ endif
 if get_option('rotation')
   subdir('gnome-rotation')
 endif
+if get_option('kde_shortcuts')
+  subdir('kde-shortcuts')
+endif
 
 summary({
   'second-screen': get_option('screen'),
@@ -141,6 +146,7 @@ summary({
   'keyboard-bpf': get_option('keyboard'),
   'gnome-keys': get_option('gnome'),
   'gnome-rotation': get_option('rotation'),
+  'kde-shortcuts': get_option('kde_shortcuts'),
 }, section: 'Parts', bool_yn: true)
 summary({
   'init': get_option('init'),

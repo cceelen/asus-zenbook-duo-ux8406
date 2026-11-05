@@ -24,6 +24,7 @@ subpackages="
 	$pkgname-udev:panel_udev:noarch
 	gnome-shell-extension-asus-zenbook-duo-ux8406-keys:gnome_keys:noarch
 	gnome-shell-extension-builtin-screen-rotation:gnome_rotation:noarch
+	asus-zenbook-duo-ux8406-kde-shortcuts:kde_shortcuts:noarch
 	$_guard:guard
 	$_guard-openrc:guard_openrc
 	$_guard-doc:guard_doc:noarch
@@ -90,6 +91,15 @@ gnome_rotation() {
 
 	amove usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io
 	amove usr/share/licenses/gnome-shell-extension-builtin-screen-rotation
+}
+
+kde_shortcuts() {
+	pkgdesc="Default KDE Plasma shortcuts for the function keys of the Zenbook Duo UX8406"
+	license="MIT"
+	depends="plasma-desktop"
+
+	amove usr/share/kglobalaccel
+	amove usr/share/licenses/asus-zenbook-duo-ux8406-kde-shortcuts
 }
 
 guard() {
