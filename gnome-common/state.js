@@ -144,7 +144,8 @@ export function isValid(state, layout) {
 export function shifted(state, logical, area, [dx, dy], steps) {
     const [from, size, across, span] =
         dx !== 0 ? ['x', 'width', 'y', 'height'] : ['y', 'height', 'x', 'width'];
-    const forward = dx + dy > 0;
+    const forward = dx + dy === 1;
+    const distance = (forward ? steps : -steps) * area[size];
 
     return logical.map((monitor) => {
         const other = areaOf(state, monitor);
@@ -154,9 +155,7 @@ export function shifted(state, logical, area, [dx, dy], steps) {
             ? other[from] >= area[from]
             : other[from] + other[size] <= area[from] + area[size];
 
-        return inLine && beyond
-            ? {...monitor, [from]: monitor[from] + steps * (dx + dy) * area[size]}
-            : {...monitor};
+        return inLine && beyond ? {...monitor, [from]: monitor[from] + distance} : {...monitor};
     });
 }
 
