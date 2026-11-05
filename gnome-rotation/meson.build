@@ -6,7 +6,7 @@
 uuid = 'builtin-screen-rotation@cceelen.github.io'
 extdir = datadir / 'gnome-shell' / 'extensions' / uuid
 
-files = ['extension.js', 'rotation.js', 'sensor.js', 'metadata.json']
+files = ['extension.js', 'hold.js', 'rotation.js', 'sensor.js', 'metadata.json']
 foreach f : files
   install_data('extension' / f, install_dir: extdir, install_mode: 'rw-r--r--')
 endforeach
@@ -24,7 +24,7 @@ endif
 # The tests need no GNOME session; tests/rotate.js does and is run by hand,
 # so the files are named (a directory would pick it up). Node's test runner
 # writes nothing into the source tree.
-foreach t : ['rotation', 'package']
+foreach t : ['hold', 'rotation', 'package', 'vectors']
   test(
     t,
     node,

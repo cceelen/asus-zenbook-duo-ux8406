@@ -1,6 +1,16 @@
 {
   "uuid": "builtin-screen-rotation@cceelen.github.io",
   "name": "Built-in screen rotation",
-  "description": "With the laptop on its left or right side, the built-in panels are turned, and two panels are put side by side, also with a keyboard or a mouse connected. Made for the two panels of the ASUS Zenbook Duo UX8406. The switch \"Auto-rotate\" in the quick settings turns this on and off. Needs iio-sensor-proxy.",
-  "shell-version": ["45", "46", "47", "48", "49", "50", "51"]
+  "description": "With the laptop on its left or right side, or upside down, the built-in panels are turned, and two panels are put side by side, or one below the other, also with a keyboard or a mouse connected. Each panel can also be turned by hand, on its own, from the quick settings: for two people who sit opposite each other. Made for the two panels of the ASUS Zenbook Duo UX8406. The switch \"Auto-rotate\" in the quick settings turns the sensor on and off. The sensor needs iio-sensor-proxy; check with monitor-sensor that it gives the right orientation (the README on the project page says how to correct it).",
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51"
+  ],
+  "url": "https://github.com/cceelen/gnome-extension",
+  "version-name": "0.6.2"
 }

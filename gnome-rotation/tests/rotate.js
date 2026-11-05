@@ -1,7 +1,7 @@
 // Follows the orientation of the laptop from outside GNOME Shell, with the
 // code of the extension: for a trial on the hardware without a new login.
 // It prints each orientation and the layout it applies. The layouts are for
-// the session only. Manual tool, not part of `meson test`: it needs a running
+// the session only. Manual tool, not part of the tests (`node --test`): it needs a running
 // GNOME session and iio-sensor-proxy. Disable the extension first, or the two
 // act at the same time. It is not the extension in two points: it follows an
 // orientation at once, not after the time that the extension waits, and it

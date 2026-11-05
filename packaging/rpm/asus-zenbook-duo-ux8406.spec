@@ -118,11 +118,13 @@ Requires:       gnome-shell >= 45
 Requires:       iio-sensor-proxy
 
 %description -n gnome-shell-extension-builtin-screen-rotation
-With the laptop on its left or right side, the built-in panels are turned,
-and two panels are put side by side. GNOME does this by itself only without a
-pointer device and for one panel. Made for the two panels of the Zenbook Duo
-UX8406; it does the same on other laptops. The switch "Auto-rotate" in the
-quick settings turns this on and off. iio-sensor-proxy gives the orientation.
+With the laptop on its left or right side, or upside down, the built-in panels
+are turned, and two panels are put side by side or one below the other. GNOME
+does this by itself only without a pointer device and for one panel. Made for
+the two panels of the Zenbook Duo UX8406; it does the same on other laptops.
+The switch "Auto-rotate" in the quick settings turns this on and off, and its
+menu turns each screen by hand to any orientation. iio-sensor-proxy gives the
+orientation.
 To be enabled per user:
 gnome-extensions enable builtin-screen-rotation@cceelen.github.io
 

@@ -47,7 +47,7 @@ endif
 # The tests need no GNOME session; tests/verify.js does and is run by hand,
 # so the files are named (a directory would pick it up). Node's test runner
 # writes nothing into the source tree.
-foreach t : ['layout', 'package', 'touch']
+foreach t : ['layout', 'package', 'touch', 'vectors']
   test(
     t,
     node,

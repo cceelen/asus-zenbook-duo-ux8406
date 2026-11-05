@@ -1,6 +1,6 @@
 // Has the running compositor check the current layout and the layout the key
 // would ask for. It uses Method.VERIFY, so nothing is applied. Manual tool, not
-// part of `meson test`: it needs a running GNOME session (D-Bus session bus and
+// part of the tests (`node --test`): it needs a running GNOME session (D-Bus session bus and
 // Mutter). Run it from the gnome-keys directory:
 //   gjs -m tests/verify.js
 import GLib from 'gi://GLib';

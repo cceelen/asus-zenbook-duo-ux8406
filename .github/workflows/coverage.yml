@@ -85,9 +85,10 @@ jobs:
           path: rust.lcov
           retention-days: 7
 
-  # Node's test runner over the logic tests of the extensions. The modules
-  # that need a GNOME Shell (extension.js, display.js, sensor.js) are not
-  # loaded by a test, so they are not in it.
+  # Node's test runner over the logic tests of the extensions; the run fails
+  # below 100 % of lines, branches or functions. The modules that need a GNOME
+  # Shell (extension.js, display.js, sensor.js) are not loaded by a test, so
+  # they are not in it.
   js:
     needs: changed
     if: ${{ needs.changed.outputs.run == 'true' }}
@@ -96,12 +97,17 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - run: |
+      # `shell: bash` gives pipefail: without it, the step has the exit
+      # status of tee, and a test or the limit that fails passes.
+      - shell: bash
+        run: |
           node --test --experimental-test-coverage --test-coverage-exclude='**/tests/**' \
+            --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \
             --test-reporter=spec --test-reporter-destination=stdout \
             --test-reporter=lcov --test-reporter-destination=js.lcov \
             gnome-keys/tests/layout.test.js gnome-keys/tests/touch.test.js \
-            gnome-rotation/tests/rotation.test.js | tee js.txt
+            gnome-keys/tests/vectors.test.js gnome-rotation/tests/hold.test.js gnome-rotation/tests/rotation.test.js \
+            gnome-rotation/tests/vectors.test.js | tee js.txt
           {
             echo '### Coverage of the extensions'
             echo '```text'

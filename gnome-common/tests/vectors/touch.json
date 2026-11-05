@@ -1,0 +1,937 @@
+[
+  {
+    "name": "the two touch controllers are found with their ids in small letters",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-0",
+        [
+          "name",
+          "subsystem"
+        ]
+      ],
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447.0006",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ELAN9009:00",
+        [
+          "0018:04F3:4448.0005",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ASUE1234:00",
+        [
+          "0018:0B05:1234.0001",
+          "driver"
+        ]
+      ]
+    ],
+    "expect": [
+      {
+        "controller": "ELAN9008",
+        "id": "04f3:4447"
+      },
+      {
+        "controller": "ELAN9009",
+        "id": "04f3:4448"
+      }
+    ]
+  },
+  {
+    "name": "the ids are read from the machine, not written down",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:425B.0007"
+        ]
+      ],
+      [
+        "i2c-ELAN9009:00",
+        [
+          "0018:04F3:425A.0008"
+        ]
+      ]
+    ],
+    "expect": [
+      {
+        "controller": "ELAN9008",
+        "id": "04f3:425b"
+      },
+      {
+        "controller": "ELAN9009",
+        "id": "04f3:425a"
+      }
+    ]
+  },
+  {
+    "name": "a controller without a HID device is left out",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "driver"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "a controller with two HID devices is left out",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9009:00",
+        [
+          "0018:04F3:4448.0005",
+          "0018:04F3:4449.0006"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "a machine without these controllers has none",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-SYNA0001:00",
+        [
+          "0018:06CB:0001.0001"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "no devices",
+    "call": "controllersOf",
+    "devices": [],
+    "expect": []
+  },
+  {
+    "name": "the case of the hex digits does not matter",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04f3:44Ab.0006"
+        ]
+      ]
+    ],
+    "expect": [
+      {
+        "controller": "ELAN9008",
+        "id": "04f3:44ab"
+      }
+    ]
+  },
+  {
+    "name": "a name in small letters is not a controller",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-elan9008:00",
+        [
+          "0018:04F3:4447.0006"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "a name without a colon is not a controller",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008",
+        [
+          "0018:04F3:4447.0006"
+        ]
+      ],
+      [
+        "ELAN9009:00",
+        [
+          "0018:04F3:4448.0005"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "a name with more after the colon is a controller",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00:more",
+        [
+          "0018:04F3:4447.0006"
+        ]
+      ]
+    ],
+    "expect": [
+      {
+        "controller": "ELAN9008",
+        "id": "04f3:4447"
+      }
+    ]
+  },
+  {
+    "name": "a name with something before the controller is not one",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-x-ELAN9008:00",
+        [
+          "0018:04F3:4447.0006"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "a name that holds the name of a controller after something else is not one",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "x-i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447.0006"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"0018:04F3:4447.\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447."
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"0018:04F3:4447\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"0018:04F3:4447:0006\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447:0006"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"0018-04F3-4447.0006\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018-04F3-4447.0006"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"018:04F3:4447.0006\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "018:04F3:4447.0006"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"0018:04F3:447.0006\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:447.0006"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"0018:04F3:44470.0006\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:44470.0006"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"0018:04F3:4447.000G\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447.000G"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"0018:04F3:4447.0006\\n\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447.0006\n"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \" 0018:04F3:4447.0006\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          " 0018:04F3:4447.0006"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"0018:04F3:4447.00.06\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447.00.06"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"0018:04F3:444é.0006\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:444é.0006"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"00G8:04F3:4447.0006\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "00G8:04F3:4447.0006"
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "the HID name \"0018:04F3:4447.0\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447.0"
+        ]
+      ]
+    ],
+    "expect": [
+      {
+        "controller": "ELAN9008",
+        "id": "04f3:4447"
+      }
+    ]
+  },
+  {
+    "name": "the HID name \"\"",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          ""
+        ]
+      ]
+    ],
+    "expect": []
+  },
+  {
+    "name": "a HID device among other names with the same shape of none",
+    "call": "controllersOf",
+    "devices": [
+      [
+        "i2c-ELAN9008:00",
+        [
+          "driver",
+          "0018:04F3:4447.0006",
+          "power"
+        ]
+      ]
+    ],
+    "expect": [
+      {
+        "controller": "ELAN9008",
+        "id": "04f3:4447"
+      }
+    ]
+  },
+  {
+    "name": "each controller gets its panel, named with the connector",
+    "call": "assignments",
+    "devices": [
+      [
+        "i2c-0",
+        [
+          "name",
+          "subsystem"
+        ]
+      ],
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447.0006",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ELAN9009:00",
+        [
+          "0018:04F3:4448.0005",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ASUE1234:00",
+        [
+          "0018:0B05:1234.0001",
+          "driver"
+        ]
+      ]
+    ],
+    "state": {
+      "logicalMode": true,
+      "connected": {
+        "eDP-1": {
+          "width": 2880,
+          "height": 1800
+        },
+        "eDP-2": {
+          "width": 2880,
+          "height": 1800
+        }
+      },
+      "builtin": [
+        "eDP-1",
+        "eDP-2"
+      ],
+      "logical": [
+        {
+          "x": 0,
+          "y": 0,
+          "scale": 1.25,
+          "transform": 0,
+          "primary": false,
+          "connectors": [
+            "eDP-1"
+          ]
+        },
+        {
+          "x": 0,
+          "y": 1440,
+          "scale": 1.25,
+          "transform": 0,
+          "primary": true,
+          "connectors": [
+            "eDP-2"
+          ]
+        }
+      ]
+    },
+    "upper": "eDP-1",
+    "lower": "eDP-2",
+    "expect": [
+      {
+        "id": "04f3:4447",
+        "connector": "eDP-1"
+      },
+      {
+        "id": "04f3:4448",
+        "connector": "eDP-2"
+      }
+    ]
+  },
+  {
+    "name": "with the keyboard on the lower panel, only the upper one is assigned",
+    "call": "assignments",
+    "devices": [
+      [
+        "i2c-0",
+        [
+          "name",
+          "subsystem"
+        ]
+      ],
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447.0006",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ELAN9009:00",
+        [
+          "0018:04F3:4448.0005",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ASUE1234:00",
+        [
+          "0018:0B05:1234.0001",
+          "driver"
+        ]
+      ]
+    ],
+    "state": {
+      "logicalMode": true,
+      "connected": {
+        "eDP-1": {
+          "width": 2880,
+          "height": 1800
+        }
+      },
+      "builtin": [
+        "eDP-1"
+      ],
+      "logical": [
+        {
+          "x": 0,
+          "y": 0,
+          "scale": 1.25,
+          "transform": 0,
+          "primary": true,
+          "connectors": [
+            "eDP-1"
+          ]
+        }
+      ]
+    },
+    "upper": "eDP-1",
+    "lower": "eDP-2",
+    "expect": [
+      {
+        "id": "04f3:4447",
+        "connector": "eDP-1"
+      }
+    ]
+  },
+  {
+    "name": "a panel that is connected but switched off is assigned too",
+    "call": "assignments",
+    "devices": [
+      [
+        "i2c-0",
+        [
+          "name",
+          "subsystem"
+        ]
+      ],
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447.0006",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ELAN9009:00",
+        [
+          "0018:04F3:4448.0005",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ASUE1234:00",
+        [
+          "0018:0B05:1234.0001",
+          "driver"
+        ]
+      ]
+    ],
+    "state": {
+      "logicalMode": true,
+      "connected": {
+        "eDP-1": {
+          "width": 2880,
+          "height": 1800
+        },
+        "eDP-2": {
+          "width": 2880,
+          "height": 1800
+        }
+      },
+      "builtin": [
+        "eDP-1",
+        "eDP-2"
+      ],
+      "logical": [
+        {
+          "x": 0,
+          "y": 0,
+          "scale": 1.25,
+          "transform": 0,
+          "primary": true,
+          "connectors": [
+            "eDP-1"
+          ]
+        }
+      ]
+    },
+    "upper": "eDP-1",
+    "lower": "eDP-2",
+    "expect": [
+      {
+        "id": "04f3:4447",
+        "connector": "eDP-1"
+      },
+      {
+        "id": "04f3:4448",
+        "connector": "eDP-2"
+      }
+    ]
+  },
+  {
+    "name": "no panel is connected",
+    "call": "assignments",
+    "devices": [
+      [
+        "i2c-0",
+        [
+          "name",
+          "subsystem"
+        ]
+      ],
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447.0006",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ELAN9009:00",
+        [
+          "0018:04F3:4448.0005",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ASUE1234:00",
+        [
+          "0018:0B05:1234.0001",
+          "driver"
+        ]
+      ]
+    ],
+    "state": {
+      "logicalMode": true,
+      "connected": {
+        "DP-7": {
+          "width": 2880,
+          "height": 1800
+        }
+      },
+      "builtin": [],
+      "logical": [
+        {
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "transform": 0,
+          "primary": true,
+          "connectors": [
+            "DP-7"
+          ]
+        }
+      ]
+    },
+    "upper": "eDP-1",
+    "lower": "eDP-2",
+    "expect": []
+  },
+  {
+    "name": "a panel without a mode is known",
+    "call": "assignments",
+    "devices": [
+      [
+        "i2c-0",
+        [
+          "name",
+          "subsystem"
+        ]
+      ],
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447.0006",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ELAN9009:00",
+        [
+          "0018:04F3:4448.0005",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ASUE1234:00",
+        [
+          "0018:0B05:1234.0001",
+          "driver"
+        ]
+      ]
+    ],
+    "state": {
+      "logicalMode": true,
+      "connected": {
+        "eDP-1": null,
+        "eDP-2": {
+          "width": 2880,
+          "height": 1800
+        }
+      },
+      "builtin": [
+        "eDP-2"
+      ],
+      "logical": [
+        {
+          "x": 0,
+          "y": 0,
+          "scale": 1.25,
+          "transform": 0,
+          "primary": true,
+          "connectors": [
+            "eDP-2"
+          ]
+        }
+      ]
+    },
+    "upper": "eDP-1",
+    "lower": "eDP-2",
+    "expect": [
+      {
+        "id": "04f3:4447",
+        "connector": "eDP-1"
+      },
+      {
+        "id": "04f3:4448",
+        "connector": "eDP-2"
+      }
+    ]
+  },
+  {
+    "name": "no controllers",
+    "call": "assignments",
+    "devices": [],
+    "state": {
+      "logicalMode": true,
+      "connected": {
+        "eDP-1": {
+          "width": 2880,
+          "height": 1800
+        },
+        "eDP-2": {
+          "width": 2880,
+          "height": 1800
+        }
+      },
+      "builtin": [
+        "eDP-1",
+        "eDP-2"
+      ],
+      "logical": [
+        {
+          "x": 0,
+          "y": 0,
+          "scale": 1.25,
+          "transform": 0,
+          "primary": false,
+          "connectors": [
+            "eDP-1"
+          ]
+        },
+        {
+          "x": 0,
+          "y": 1440,
+          "scale": 1.25,
+          "transform": 0,
+          "primary": true,
+          "connectors": [
+            "eDP-2"
+          ]
+        }
+      ]
+    },
+    "upper": "eDP-1",
+    "lower": "eDP-2",
+    "expect": []
+  },
+  {
+    "name": "other connector names",
+    "call": "assignments",
+    "devices": [
+      [
+        "i2c-0",
+        [
+          "name",
+          "subsystem"
+        ]
+      ],
+      [
+        "i2c-ELAN9008:00",
+        [
+          "0018:04F3:4447.0006",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ELAN9009:00",
+        [
+          "0018:04F3:4448.0005",
+          "driver",
+          "modalias",
+          "power"
+        ]
+      ],
+      [
+        "i2c-ASUE1234:00",
+        [
+          "0018:0B05:1234.0001",
+          "driver"
+        ]
+      ]
+    ],
+    "state": {
+      "logicalMode": true,
+      "connected": {
+        "DP-1": {
+          "width": 2880,
+          "height": 1800
+        },
+        "DP-2": {
+          "width": 2880,
+          "height": 1800
+        }
+      },
+      "builtin": [],
+      "logical": [
+        {
+          "x": 0,
+          "y": 0,
+          "scale": 1.25,
+          "transform": 0,
+          "primary": true,
+          "connectors": [
+            "DP-1"
+          ]
+        }
+      ]
+    },
+    "upper": "DP-2",
+    "lower": "DP-1",
+    "expect": [
+      {
+        "id": "04f3:4447",
+        "connector": "DP-2"
+      },
+      {
+        "id": "04f3:4448",
+        "connector": "DP-1"
+      }
+    ]
+  }
+]

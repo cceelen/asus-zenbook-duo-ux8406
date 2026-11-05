@@ -13,7 +13,6 @@
 // It also tells the compositor which panel each touchscreen and pen belongs
 // to, where the user has set nothing: refer to touch.js.
 import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 
@@ -26,6 +25,7 @@ import {find} from './state.js';
 import {assignments, controllersOf} from './touch.js';
 
 const MODEL = 'UX8406';
+const PRODUCT_NAME = '/sys/class/dmi/id/product_name';
 const UPPER = 'eDP-1';
 const LOWER = 'eDP-2';
 const KEYS = ['toggle-lower-panel', 'swap-windows'];
@@ -36,9 +36,13 @@ const TOUCH_SETTINGS = [
     ['org.gnome.desktop.peripherals.tablet', 'tablets'],
 ];
 
-function isModel() {
+Gio._promisify(Gio.File.prototype, 'load_contents_async');
+
+/** Whether the machine is the UX8406, from its DMI product name. */
+async function isModel(cancellable) {
     try {
-        const [, contents] = GLib.file_get_contents('/sys/class/dmi/id/product_name');
+        const [contents] =
+            await Gio.File.new_for_path(PRODUCT_NAME).load_contents_async(cancellable);
 
         return new TextDecoder().decode(contents).includes(MODEL);
     } catch {
@@ -92,8 +96,17 @@ export default class ZenbookDuoKeys extends Extension {
         // The layout saved when the key switched the lower panel off.
         this._saved = null;
         this._bound = false;
-        if (!isModel()) return;
+        // The model is read without blocking the Shell; disable() before the
+        // answer cancels the read, and nothing is bound.
+        const cancellable = new Gio.Cancellable();
 
+        this._cancellable = cancellable;
+        isModel(cancellable).then((model) => {
+            if (model && !cancellable.is_cancelled()) this._start();
+        });
+    }
+
+    _start() {
         this._settings = this.getSettings();
         this._bind('toggle-lower-panel', () => this._toggleLowerPanel());
         this._bind('swap-windows', () => this._swapWindows());
@@ -112,6 +125,8 @@ export default class ZenbookDuoKeys extends Extension {
     }
 
     disable() {
+        this._cancellable?.cancel();
+        this._cancellable = null;
         if (this._bound) for (const key of KEYS) Main.wm.removeKeybinding(key);
         this._bound = false;
         if (this._monitorsChanged) Main.layoutManager.disconnect(this._monitorsChanged);
