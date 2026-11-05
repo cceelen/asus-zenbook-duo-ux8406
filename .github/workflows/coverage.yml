@@ -54,6 +54,8 @@ jobs:
       - uses: ./.github/actions/rust
         with:
           components: llvm-tools-preview
+      # The tests of the KDE crates start a private bus with dbus-daemon.
+      - run: sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends dbus-daemon
       - uses: taiki-e/install-action@f7e5d7c961414b23f5b25b2da9294395d08513ad # v2.87.26
         with:
           tool: cargo-llvm-cov
@@ -67,16 +69,17 @@ jobs:
           cargo llvm-cov clean --workspace
           cargo test --locked -p asus-ux8406-tcc-guard --features failpoints
           cargo test --locked -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
+          cargo test --locked -p asus-ux8406-kde-common
           # The test of the state map makes a BPF map and pins it: that needs
           # root. Its binary is built as the user, and only it runs with sudo.
           bin=$(cargo test --locked -p asus-ux8406-keyboard-state --test root --no-run --message-format=json |
             jq -r 'select(.target.name == "root" and .executable != null) | .executable')
           sudo env LLVM_PROFILE_FILE="$LLVM_PROFILE_FILE" "$bin" --nocapture
-          cargo llvm-cov report --ignore-filename-regex /tests/ --lcov --output-path rust.lcov
+          cargo llvm-cov report --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' --lcov --output-path rust.lcov
           {
             echo '### Rust coverage'
             echo '```text'
-            cargo llvm-cov report --ignore-filename-regex /tests/ --summary-only
+            cargo llvm-cov report --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' --summary-only
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

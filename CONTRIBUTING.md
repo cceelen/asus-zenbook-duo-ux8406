@@ -61,7 +61,8 @@ runs, then stop it with Ctrl+C.
 ## Build and test
 
 Tools: `meson` 1.1 or later, `cargo` (Rust 1.85 or later), `clang`, the libbpf
-headers, the kernel headers, `glib-compile-schemas`, `python3`, `node`.
+headers, the kernel headers, `glib-compile-schemas`, `python3`, `node`, and
+`dbus-daemon` (the tests of the KDE programs start a private bus).
 
 ```sh
 meson setup build
@@ -134,7 +135,8 @@ eval "$(cargo llvm-cov show-env --sh)"
 cargo llvm-cov clean --workspace
 cargo test --locked -p asus-ux8406-tcc-guard --features failpoints
 cargo test --locked -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
-cargo llvm-cov report --ignore-filename-regex /tests/ --fail-under-regions 100
+cargo test --locked -p asus-ux8406-kde-common
+cargo llvm-cov report --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' --fail-under-regions 100
 ```
 
 Without the next step, three lines of `keyboard-state/src/pins.rs` are not run:
@@ -168,7 +170,7 @@ eval "$(cargo llvm-cov show-env --sh --branch)"
 and, in place of the report above:
 
 ```sh
-cargo llvm-cov report --branch --ignore-filename-regex /tests/ \
+cargo llvm-cov report --branch --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' \
     --json --summary-only --output-path branches.json
 jq -e '.data[0].totals.branches.notcovered == 0' branches.json
 ```
@@ -271,6 +273,8 @@ its tests examine.
 | [gnome-keys/](gnome-keys/README.md)         | GNOME Shell extension for the display keys and the touchscreens                                     |
 | [gnome-rotation/](gnome-rotation/README.md) | GNOME Shell extension that turns the screens                                                        |
 | `gnome-common/`                             | Files that the two extensions share                                                                 |
+| [kde-common/](kde-common/README.md)         | What the two KDE programs share (Rust): the layouts, KWin's output management, the cases of GNOME   |
+| `kde-fakes/`                                | Fake KWin and sensor and a private bus for the tests of the KDE programs; not installed             |
 | `packaging/`                                | One directory of recipes for each packaging system; [OBS setup](packaging/obs/README.md)            |
 | `dev/containers/`                           | Container builds for development                                                                    |
 | `fuzz/`                                     | Fuzz targets of the guard's parsers (cargo-fuzz)                                                    |
