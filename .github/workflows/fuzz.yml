@@ -1,18 +1,25 @@
 # Each night on main: the fuzz targets of the guard's parsers (fuzz/), five
 # minutes each, from the corpus of the night before. Each input that makes a
 # target fail gets a private draft security advisory, with the input and the
-# steps to reproduce it. Pull requests and releases do not run the fuzz
-# targets; ci.yml checks their format and lints.
+# steps to reproduce it. release.yml runs them too, before the release pull
+# request. Pull requests do not run the fuzz targets; ci.yml checks their
+# format and lints.
 name: fuzz
 
 on:
   schedule:
     - cron: "41 2 * * *"
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      FUZZ_ADVISORY_TOKEN:
+        required: false
 
 # One run at a time: a run that starts while another runs waits for it.
+# The run of a release has a group of its own (github.workflow is the name of
+# the calling workflow): a nightly run that waits does not cancel it.
 concurrency:
-  group: fuzz
+  group: fuzz-${{ github.workflow }}
   cancel-in-progress: false
 
 permissions:
@@ -115,7 +122,7 @@ jobs:
               continue
             fi
             {
-              echo "The nightly fuzz run of main found an input that makes the target \`$target\` fail: $RUN_URL"
+              echo "A fuzz run of main found an input that makes the target \`$target\` fail: $RUN_URL"
               echo
               echo "To reproduce:"
               echo
