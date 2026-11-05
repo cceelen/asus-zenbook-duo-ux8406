@@ -13,6 +13,8 @@ option('kde_shortcuts', type: 'boolean', value: true,
        description: 'kde-shortcuts: default KDE Plasma shortcuts for function keys')
 option('kde', type: 'boolean', value: true,
        description: 'kde-keys: KDE Plasma program and KWin script for the two display keys and the touchscreens')
+option('kde_rotation', type: 'boolean', value: true,
+       description: 'kde-rotation: KDE Plasma program and tray applet that turn the built-in panels')
 
 # How the guard is started.
 option('init', type: 'combo', choices: ['systemd', 'openrc'], value: 'systemd',

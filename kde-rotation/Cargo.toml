@@ -1,0 +1,33 @@
+[package]
+name = "asus-ux8406-kde-rotation"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Turns the built-in screens with the laptop in KDE Plasma"
+publish = false
+
+[[bin]]
+name = "plasma-builtin-screen-rotation"
+path = "src/main.rs"
+
+[dependencies]
+asus-ux8406-kde-common = { path = "../kde-common" }
+calloop = "0.14"
+clap = { version = "4", features = ["derive"] }
+log = "0.4"
+rustix = { version = "1", features = ["event", "process"] }
+serde = { version = "1", features = ["derive"] }
+tempfile = "3"
+thiserror = "2"
+toml = "1"
+zbus = "5"
+
+[dev-dependencies]
+serde = "1"
+asus-ux8406-kde-fakes = { path = "../kde-fakes" }
+rstest = "0.28"
+tempfile = "3"
+
+[lints]
+workspace = true

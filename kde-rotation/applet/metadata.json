@@ -1,0 +1,17 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [{"Name": "Christian Ceelen"}],
+        "Category": "System Information",
+        "Description": "Turns the built-in screens with the laptop, on and off; turns them by hand where no sensor gives the orientation",
+        "EnabledByDefault": true,
+        "Icon": "rotation-allowed-symbolic",
+        "Id": "io.github.cceelen.builtin-screen-rotation",
+        "License": "MIT",
+        "Name": "Auto-rotate",
+        "Website": "https://github.com/cceelen/asus-zenbook-duo-ux8406"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-DBusActivationService": "io.github.cceelen.BuiltinScreenRotation",
+    "X-Plasma-NotificationAreaCategory": "Hardware"
+}

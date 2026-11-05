@@ -154,6 +154,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "asus-ux8406-kde-rotation"
+version = "0.5.0"
+dependencies = [
+ "asus-ux8406-kde-common",
+ "asus-ux8406-kde-fakes",
+ "calloop",
+ "clap",
+ "log",
+ "rstest",
+ "rustix",
+ "serde",
+ "tempfile",
+ "thiserror 2.0.21",
+ "toml",
+ "zbus",
+]
+
+[[package]]
 name = "asus-ux8406-keyboard-state"
 version = "0.5.0"
 dependencies = [

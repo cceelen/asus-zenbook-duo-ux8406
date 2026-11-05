@@ -15,6 +15,8 @@
 #   kde-keys      for KDE Plasma: the program for the lower screen key and the
 #                 touchscreens, its autostart entry, and the KWin script for
 #                 the two display keys
+#   kde-rotation  for KDE Plasma: the program that turns the built-in panels,
+#                 its autostart entry, and its applet in the system tray
 #   kde-common    what the KDE programs share (a crate; installs nothing)
 # This file sets the install directories and the cargo command; the parts
 # do the rest.
@@ -44,6 +46,7 @@ fs = import('fs')
 
 prefix = get_option('prefix')
 libexecdir = prefix / get_option('libexecdir')
+bindir = prefix / get_option('bindir')
 sbindir = prefix / get_option('sbindir')
 datadir = prefix / get_option('datadir')
 docdir = datadir / 'doc'
@@ -85,17 +88,20 @@ package_names = {
   'gnome-rotation': 'gnome-shell-extension-builtin-screen-rotation',
   'kde-shortcuts': 'asus-zenbook-duo-ux8406-kde-shortcuts',
   'kde-keys': 'asus-zenbook-duo-ux8406-kde-keys',
+  'kde-rotation': 'plasma-builtin-screen-rotation',
 }
 
 # What templates (*.in) are filled in with.
 paths = configuration_data({
+  'BINDIR': bindir,
   'LIBEXECDIR': libexecdir,
   'SBINDIR': sbindir,
 })
 
 python = find_program('python3')
-kde = get_option('kde')
-# The tests of the two GNOME Shell extensions and the KWin script run on node.
+kde = get_option('kde') or get_option('kde_rotation')
+# The tests of the two GNOME Shell extensions, the KWin script and the applet
+# run on node.
 node = find_program('node', required: get_option('gnome') or get_option('rotation') or kde)
 # What the two extensions share. In each extension/ directory these are links,
 # for the tests and the manual tools; each part installs the files themselves.
@@ -153,6 +159,9 @@ endif
 if get_option('kde')
   subdir('kde-keys')
 endif
+if get_option('kde_rotation')
+  subdir('kde-rotation')
+endif
 
 summary({
   'second-screen': get_option('screen'),
@@ -162,6 +171,7 @@ summary({
   'gnome-rotation': get_option('rotation'),
   'kde-shortcuts': get_option('kde_shortcuts'),
   'kde-keys': get_option('kde'),
+  'kde-rotation': get_option('kde_rotation'),
 }, section: 'Parts', bool_yn: true)
 summary({
   'init': get_option('init'),

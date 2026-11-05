@@ -1,0 +1,5 @@
+usr/bin/plasma-builtin-screen-rotation
+usr/share/man/man1/plasma-builtin-screen-rotation.1
+etc/xdg/autostart/plasma-builtin-screen-rotation.desktop
+usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation
+usr/share/licenses/plasma-builtin-screen-rotation/THIRD-PARTY-NOTICES.txt usr/share/doc/plasma-builtin-screen-rotation

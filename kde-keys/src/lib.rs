@@ -71,7 +71,6 @@ pub fn run(cli: &Cli) -> Result<(), Error> {
     let keys = Keys::new(bus, controllers);
 
     keys.assign(&session.outputs.state());
-    info!("ready");
     daemon::run(session, keys, commands)?;
     Ok(())
 }
