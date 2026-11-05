@@ -11,6 +11,15 @@
 #                 its udev rule; goes with keyboard-bpf
 #   gnome-keys    the GNOME Shell extension for the two display keys
 #   gnome-rotation the GNOME Shell extension that turns the built-in panels
+#   kde-keys      for KDE Plasma: the program for the lower screen key and the
+#                 touchscreens, its autostart entry, and the KWin script for
+#                 the two display keys
+#   kde-rotation  for KDE Plasma: the program that turns the built-in panels,
+#                 its autostart entry, and its applet in the system tray
+#   kde-shortcuts for KDE Plasma: default shortcuts for function keys
+#   kde-common    what the two KDE programs share (a crate; installs nothing)
+#   dev/kde-live-test  the live-session test tool for the KDE packages (a
+#                 development tool; only its tests run, with -Dlive_test=true)
 # This file sets the install directories and the cargo command; the parts
 # do the rest.
 #
@@ -39,9 +48,13 @@ fs = import('fs')
 
 prefix = get_option('prefix')
 libexecdir = prefix / get_option('libexecdir')
+bindir = prefix / get_option('bindir')
 sbindir = prefix / get_option('sbindir')
 datadir = prefix / get_option('datadir')
 docdir = datadir / 'doc'
+# XDG autostart entries: Plasma starts the KDE programs from there in each
+# session. Meson makes sysconfdir /etc for the prefix /usr.
+autostartdir = prefix / get_option('sysconfdir') / 'xdg' / 'autostart'
 
 udevdir = get_option('udevdir')
 if udevdir == ''
@@ -76,24 +89,30 @@ package_names = {
   'keyboard-bpf': 'asus-zenbook-duo-ux8406-keyboard-bpf',
   'gnome-keys': 'gnome-shell-extension-asus-zenbook-duo-ux8406-keys',
   'gnome-rotation': 'gnome-shell-extension-builtin-screen-rotation',
+  'kde-keys': 'asus-zenbook-duo-ux8406-kde-keys',
+  'kde-rotation': 'plasma-builtin-screen-rotation',
+  'kde-shortcuts': 'asus-zenbook-duo-ux8406-kde-shortcuts',
 }
 
 # What templates (*.in) are filled in with.
 paths = configuration_data({
+  'BINDIR': bindir,
   'LIBEXECDIR': libexecdir,
   'SBINDIR': sbindir,
 })
 
 python = find_program('python3')
-# The tests of the two GNOME Shell extensions run on node.
-node = find_program('node', required: get_option('gnome') or get_option('rotation'))
+kde = get_option('kde') or get_option('kde_rotation')
+# The tests of the two GNOME Shell extensions and of the KWin script run on
+# node.
+node = find_program('node', required: get_option('gnome') or get_option('rotation') or kde)
 # What the two extensions share. In each extension/ directory these are links,
 # for the tests and the manual tools; each part installs the files themselves.
 gnome_common = files('gnome-common/display.js', 'gnome-common/state.js')
 
 # Cargo. One target directory inside the build directory, so that nothing is
 # written into the source tree.
-rust = get_option('screen') or get_option('guard') or get_option('keyboard')
+rust = get_option('screen') or get_option('guard') or get_option('keyboard') or kde or get_option('live_test')
 cargo = find_program('cargo', required: rust)
 offline = get_option('offline').enabled() or (get_option('offline').auto() and fs.is_dir('vendor'))
 cargo_args = ['--locked', '--manifest-path', meson.project_source_root() / 'Cargo.toml']
@@ -134,6 +153,21 @@ endif
 if get_option('rotation')
   subdir('gnome-rotation')
 endif
+if kde
+  subdir('kde-common')
+endif
+if get_option('kde')
+  subdir('kde-keys')
+endif
+if get_option('kde_rotation')
+  subdir('kde-rotation')
+endif
+if get_option('kde_shortcuts')
+  subdir('kde-shortcuts')
+endif
+if get_option('live_test')
+  subdir('dev' / 'kde-live-test')
+endif
 
 summary({
   'second-screen': get_option('screen'),
@@ -141,12 +175,17 @@ summary({
   'keyboard-bpf': get_option('keyboard'),
   'gnome-keys': get_option('gnome'),
   'gnome-rotation': get_option('rotation'),
+  'kde-keys': get_option('kde'),
+  'kde-rotation': get_option('kde_rotation'),
+  'kde-shortcuts': get_option('kde_shortcuts'),
+  'kde-live-test (tests only)': get_option('live_test'),
 }, section: 'Parts', bool_yn: true)
 summary({
   'init': get_option('init'),
   'udev': udevdir,
   'systemd units': unitdir,
   'firmware': firmwaredir,
+  'autostart': autostartdir,
   'licences': install_licences ? licensedir : 'not installed',
   'cargo offline': offline,
 }, section: 'Settings', bool_yn: true)

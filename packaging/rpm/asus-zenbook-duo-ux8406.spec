@@ -23,10 +23,12 @@ BuildRequires:  python3
 BuildRequires:  systemd-rpm-macros
 %if 0%{?suse_version}
 BuildRequires:  ninja
+BuildRequires:  dbus-1-daemon
 BuildRequires:  glib2-tools
 BuildRequires:  linux-glibc-devel
 %else
 BuildRequires:  ninja-build
+BuildRequires:  dbus-daemon
 BuildRequires:  glib2
 BuildRequires:  kernel-headers
 %endif
@@ -45,6 +47,19 @@ BuildRequires:  kernel-headers
 # would be empty.
 %if 0%{?suse_version} || 0%{?rhel}
 %undefine _debugsource_packages
+%endif
+
+# The names of the packages that the KDE parts need at run time differ: KWin
+# is kwin6 on openSUSE, and its Plasma packages carry the Plasma 6 version
+# in their names.
+%if 0%{?suse_version}
+%global kwinpkg kwin6
+%global plasmaworkspacepkg plasma6-workspace
+%global plasmadesktoppkg plasma6-desktop
+%else
+%global kwinpkg kwin
+%global plasmaworkspacepkg plasma-workspace
+%global plasmadesktoppkg plasma-desktop
 %endif
 
 %global guarddocdir %{_docdir}/asus-zenbook-duo-ux8406-tcc-guard
@@ -118,13 +133,56 @@ Requires:       gnome-shell >= 45
 Requires:       iio-sensor-proxy
 
 %description -n gnome-shell-extension-builtin-screen-rotation
-With the laptop on its left or right side, the built-in panels are turned,
-and two panels are put side by side. GNOME does this by itself only without a
-pointer device and for one panel. Made for the two panels of the Zenbook Duo
-UX8406; it does the same on other laptops. The switch "Auto-rotate" in the
-quick settings turns this on and off. iio-sensor-proxy gives the orientation.
+With the laptop on its left or right side, or upside down, the built-in panels
+are turned, and two panels are put side by side or one below the other. GNOME
+does this by itself only without a pointer device and for one panel. Made for
+the two panels of the Zenbook Duo UX8406; it does the same on other laptops.
+The switch "Auto-rotate" in the quick settings turns this on and off, and its
+menu turns each screen by hand to any orientation. iio-sensor-proxy gives the
+orientation.
 To be enabled per user:
 gnome-extensions enable builtin-screen-rotation@cceelen.github.io
+
+%package -n asus-zenbook-duo-ux8406-kde-keys
+Summary:        KDE Plasma integration for the display keys of the Zenbook Duo UX8406
+License:        MIT
+Requires:       %{kwinpkg}
+Recommends:     asus-zenbook-duo-ux8406-keyboard-bpf
+
+%description -n asus-zenbook-duo-ux8406-kde-keys
+The key right of F12 switches the lower screen on and off, and F8 swaps the
+windows of the two screens (a KWin script). Each touchscreen and pen gets its
+panel. The keyboard delivers the keys with
+asus-zenbook-duo-ux8406-keyboard-bpf. For Plasma 6 on Wayland. Active after
+the next login. Does nothing on any other model.
+
+%package -n plasma-builtin-screen-rotation
+Summary:        Turns the built-in screens with the laptop in KDE Plasma
+License:        MIT
+Requires:       %{kwinpkg}
+Requires:       %{plasmaworkspacepkg}
+Requires:       iio-sensor-proxy
+
+%description -n plasma-builtin-screen-rotation
+With the laptop on its left or right side, or upside down, both built-in panels
+are turned and put side by side or one below the other. While this package is
+installed, the setting of KWin for automatic rotation is set to never on the
+built-in screens. The applet "Auto-rotate" in the system tray turns this on and
+off, and turns each screen by hand to any orientation. iio-sensor-proxy gives
+the orientation. Active after the next login.
+Before the package is removed, run "plasma-builtin-screen-rotation restore" as
+the user, to give KWin's setting back.
+
+%package -n asus-zenbook-duo-ux8406-kde-shortcuts
+Summary:        Default KDE Plasma shortcuts for the function keys of the Zenbook Duo UX8406
+License:        MIT
+BuildArch:      noarch
+Requires:       %{plasmadesktoppkg}
+Recommends:     asus-zenbook-duo-ux8406-keyboard-bpf
+
+%description -n asus-zenbook-duo-ux8406-kde-shortcuts
+The emoji key (F11) opens the emoji selector of Plasma. This package is
+optional: the key works without it, but does nothing in Plasma.
 
 %prep
 %autosetup
@@ -276,6 +334,40 @@ fi
 %if 0%{?suse_version}
 %dir %{_datadir}/gnome-shell
 %dir %{_datadir}/gnome-shell/extensions
+%endif
+
+# Autostart entries are %%config(noreplace) although Fedora does not demand
+# it: they are files below /etc, rpmlint warns of any file there that is not
+# one, and an administrator who edits an entry keeps the change.
+%files -n asus-zenbook-duo-ux8406-kde-keys
+%license %{_defaultlicensedir}/asus-zenbook-duo-ux8406-kde-keys
+%doc README.md
+%{_libexecdir}/asus-ux8406-kde-keys
+%config(noreplace) %{_sysconfdir}/xdg/autostart/asus-ux8406-kde-keys.desktop
+%{_datadir}/kwin/scripts/asus-zenbook-duo-ux8406-keys/
+%if 0%{?suse_version}
+%dir %{_datadir}/kwin
+%dir %{_datadir}/kwin/scripts
+%endif
+
+%files -n plasma-builtin-screen-rotation
+%license %{_defaultlicensedir}/plasma-builtin-screen-rotation
+%doc README.md
+%{_bindir}/plasma-builtin-screen-rotation
+%{_mandir}/man1/plasma-builtin-screen-rotation.1*
+%config(noreplace) %{_sysconfdir}/xdg/autostart/plasma-builtin-screen-rotation.desktop
+%{_datadir}/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/
+%if 0%{?suse_version}
+%dir %{_datadir}/plasma
+%dir %{_datadir}/plasma/plasmoids
+%endif
+
+%files -n asus-zenbook-duo-ux8406-kde-shortcuts
+%license %{_defaultlicensedir}/asus-zenbook-duo-ux8406-kde-shortcuts
+%doc README.md
+%{_datadir}/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop
+%if 0%{?suse_version}
+%dir %{_datadir}/kglobalaccel
 %endif
 
 %changelog

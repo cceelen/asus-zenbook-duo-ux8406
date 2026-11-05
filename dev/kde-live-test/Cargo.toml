@@ -1,0 +1,28 @@
+[package]
+name = "asus-ux8406-kde-live-test"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Tests the KDE packages in a Fedora KDE live session on the Zenbook Duo UX8406; a development tool, not installed"
+publish = false
+
+[[bin]]
+name = "ux8406-kde-live-test"
+path = "src/main.rs"
+
+[dependencies]
+asus-ux8406-kde-common = { path = "../../kde-common" }
+asus-ux8406-kde-keys = { path = "../../kde-keys" }
+clap = { version = "4", features = ["derive"] }
+thiserror = "2"
+wayland-client = "0.31"
+zbus = "5"
+
+[dev-dependencies]
+asus-ux8406-kde-fakes = { path = "../../kde-fakes" }
+rstest = "0.28"
+tempfile = "3"
+
+[lints]
+workspace = true

@@ -29,9 +29,10 @@ impl Device {
     /// is one of the keyboard.
     #[must_use]
     pub fn from_pin_name(name: &str) -> Option<Self> {
-        let mut parts = name.splitn(4, '_');
-        let (bus, vendor, product, instance) =
-            (parts.next()?, parts.next()?, parts.next()?, parts.next()?);
+        let parts: Vec<&str> = name.splitn(4, '_').collect();
+        let [bus, vendor, product, instance] = parts.as_slice() else {
+            return None;
+        };
 
         format!("{bus}:{vendor}:{product}.{instance}").parse().ok()
     }

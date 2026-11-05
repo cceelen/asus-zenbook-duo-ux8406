@@ -90,15 +90,12 @@ pub fn load(
 /// Replace `file` by one with `text`, in one step: a reader sees the old text
 /// or the new one, never a part.
 fn write(file: &Path, text: &str) -> Result<(), Error> {
-    let directory = file
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty())
-        .unwrap_or_else(|| Path::new("."));
+    // The parent of a name without a directory is empty, which `new_in`
+    // takes for the current directory; a path without a parent is the root.
+    let directory = file.parent().unwrap_or(Path::new("/"));
     let mut new = NamedTempFile::new_in(directory).map_err(|source| Error::io(file, source))?;
 
     new.write_all(text.as_bytes())
-        .map_err(|source| Error::io(file, source))?;
-    new.persist(file)
-        .map_err(|error| Error::io(file, error.error))?;
-    Ok(())
+        .and_then(|()| new.persist(file).map(drop).map_err(|error| error.error))
+        .map_err(|source| Error::io(file, source))
 }

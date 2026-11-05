@@ -93,14 +93,12 @@ pub struct PinnedMap;
 
 impl MapReader for PinnedMap {
     fn read(&self, map: &Path) -> Result<MapValue, Error> {
-        let failed = |reason: String| Error::Map {
-            path: map.to_path_buf(),
-            reason,
-        };
-        let data = MapData::from_pin(map).map_err(|error| failed(error.to_string()))?;
-        let array: Array<MapData, MapValue> =
-            Array::try_from(Map::Array(data)).map_err(|error| failed(error.to_string()))?;
-
-        array.get(&0, 0).map_err(|error| failed(error.to_string()))
+        MapData::from_pin(map)
+            .and_then(|data| Array::<MapData, MapValue>::try_from(Map::Array(data)))
+            .and_then(|array| array.get(&0, 0))
+            .map_err(|error| Error::Map {
+                path: map.to_path_buf(),
+                reason: error.to_string(),
+            })
     }
 }

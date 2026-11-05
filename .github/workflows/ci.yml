@@ -45,6 +45,8 @@ jobs:
           cache-workspaces: |
             .
             fuzz
+      # The tests of the KDE crates start a private bus with dbus-daemon.
+      - run: sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends dbus-daemon
       # Prebuilt binaries: building the two from source took longer than the
       # checks.
       - uses: taiki-e/install-action@f7e5d7c961414b23f5b25b2da9294395d08513ad # v2.87.26
@@ -63,22 +65,34 @@ jobs:
       # adds the crates of the fuzz targets.
       - run: cp Cargo.lock fuzz/Cargo.lock
       - run: cargo clippy --manifest-path fuzz/Cargo.toml --all-targets -- -D warnings
-      # Coverage of the three programs: one measurement, read twice. Every
-      # region of the guard is run by a test (the limit); second-screen and
-      # keyboard-state are measured for the report only. The clean removes
-      # data from an earlier run that the cache brought back.
+      # Coverage of the five programs and the live-test tool: one measurement,
+      # read twice. Every region of all programs and of the tool is run by a
+      # test (the limit), and every branch of all of them is in the job
+      # rust-branches. The fake KWin and sensor of kde-fakes are test code, and
+      # kde-common/src/protocol.rs is code that wayland-scanner makes from the
+      # protocol files: neither is in any report. The clean removes data from
+      # an earlier run that the cache brought back.
       - run: cargo llvm-cov clean --workspace
       - run: cargo llvm-cov --locked --no-report -p asus-ux8406-tcc-guard --features failpoints
       - run: cargo llvm-cov --locked --no-report -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
+      - run: cargo llvm-cov --locked --no-report -p asus-ux8406-kde-common -p asus-ux8406-kde-keys -p asus-ux8406-kde-rotation -p asus-ux8406-kde-live-test
+      # The test of the state map makes a BPF map and pins it: that needs
+      # root. The binary is built as the user, as in the run before, and only
+      # it runs with sudo, writing its coverage data to the same directory.
+      - run: |
+          source <(cargo llvm-cov show-env --export-prefix)
+          bin=$(cargo test --locked -p asus-ux8406-keyboard-state --test root --no-run --message-format=json | jq -r 'select(.executable != null) | .executable')
+          sudo -E "$bin" --nocapture
       - run: >-
-          cargo llvm-cov report --ignore-filename-regex '/tests/|second-screen/|keyboard-state/'
+          cargo llvm-cov report
+          --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs'
           --fail-under-regions 100
       - run: |
-          cargo llvm-cov report --ignore-filename-regex /tests/ --lcov --output-path rust.lcov
+          cargo llvm-cov report --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' --lcov --output-path rust.lcov
           {
             echo '### Rust coverage'
             echo '```text'
-            cargo llvm-cov report --ignore-filename-regex /tests/ --summary-only
+            cargo llvm-cov report --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' --summary-only
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -87,11 +101,14 @@ jobs:
           path: rust.lcov
           retention-days: 7
       # The committed notices are those of Cargo.lock. cargo-about reads the
-      # crates of all programs, and the steps before got those of the guard.
+      # crates of all programs, and the steps before got those of the guard
+      # and of the KDE crates.
       - run: cargo fetch --locked
       - run: cargo about generate --locked --offline -m keyboard-state/Cargo.toml about.hbs -o keyboard-state/THIRD-PARTY-NOTICES.txt
       - run: cargo about generate --locked --offline -m second-screen/Cargo.toml about.hbs -o second-screen/THIRD-PARTY-NOTICES.txt
       - run: cargo about generate --locked --offline -m tcc-guard/Cargo.toml about.hbs -o tcc-guard/THIRD-PARTY-NOTICES.txt
+      - run: cargo about generate --locked --offline -m kde-keys/Cargo.toml about.hbs -o kde-keys/THIRD-PARTY-NOTICES.txt
+      - run: cargo about generate --locked --offline -m kde-rotation/Cargo.toml about.hbs -o kde-rotation/THIRD-PARTY-NOTICES.txt
       - run: git diff --exit-code
 
   # The oldest Rust that a target distribution has (Debian 13). The crates of
@@ -115,6 +132,48 @@ jobs:
           toolchain: "1.85"
       - run: cargo check --locked --workspace --all-targets
       - run: cargo check --locked -p asus-ux8406-tcc-guard --all-targets --features failpoints
+
+  # Every branch of the Rust programs is run by a test (the limit). Stable
+  # rustc does not take the flag for the branch counters, so this job uses the
+  # nightly compiler; the regions of the other measurement stay on stable. The
+  # same three runs as in the job rust, and the same files out of the report.
+  rust-branches:
+    runs-on: ubuntu-26.04
+    env:
+      # A new lint of the nightly compiler is no reason to fail this job.
+      CARGO_BUILD_WARNINGS: allow
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/rust
+        with:
+          toolchain: nightly
+          components: llvm-tools-preview
+      # The tests of the KDE crates start a private bus with dbus-daemon.
+      - run: sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends dbus-daemon
+      - uses: taiki-e/install-action@f7e5d7c961414b23f5b25b2da9294395d08513ad # v2.87.26
+        with:
+          tool: cargo-llvm-cov
+      - run: cargo llvm-cov clean --workspace
+      - run: cargo llvm-cov --branch --locked --no-report -p asus-ux8406-tcc-guard --features failpoints
+      - run: cargo llvm-cov --branch --locked --no-report -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
+      - run: cargo llvm-cov --branch --locked --no-report -p asus-ux8406-kde-common -p asus-ux8406-kde-keys -p asus-ux8406-kde-rotation -p asus-ux8406-kde-live-test
+      # The test of the state map makes a BPF map and pins it: that needs
+      # root. The binary is built as the user, as in the run before, and only
+      # it runs with sudo, writing its coverage data to the same directory.
+      - run: |
+          source <(cargo llvm-cov show-env --export-prefix --branch)
+          bin=$(cargo test --locked -p asus-ux8406-keyboard-state --test root --no-run --message-format=json | jq -r 'select(.executable != null) | .executable')
+          sudo -E "$bin" --nocapture
+      # cargo-llvm-cov has no limit for branches: the summary says how many
+      # are not run.
+      - run: |
+          cargo llvm-cov report --branch \
+            --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' \
+            --json --summary-only --output-path branches.json
+          jq '.data[0].totals.branches' branches.json
+          jq -e '.data[0].totals.branches.notcovered == 0' branches.json
 
   # The weekly run on main also catches the advisories that appear without a
   # commit.
@@ -200,20 +259,28 @@ jobs:
           workspaces: . -> build/cargo
       - run: >-
           sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends
-          meson ninja-build pkgconf clang libbpf-dev linux-libc-dev
-          libglib2.0-bin systemd-dev udev
-      - run: meson setup build -Dunit_checks=enabled
+          meson ninja-build pkgconf clang llvm libbpf-dev linux-libc-dev
+          libglib2.0-bin systemd-dev udev dbus-daemon
+      - run: meson setup build -Dunit_checks=enabled -Dlive_test=true
       - run: meson compile -C build
       - run: meson test -C build --print-errorlogs --no-suite failpoints
-      # Coverage of the extensions' logic, for the report only. The modules
-      # that need a GNOME Shell (extension.js, display.js, sensor.js) are not
-      # loaded by a test, so they are not in it.
+      # The HID-BPF program's host harness: 100 % of its lines, functions and
+      # branches (llvm-cov), the sanitizers, and the mutants. The full run
+      # above includes them; naming them here fails the job if llvm is missing
+      # and the coverage test was not registered.
+      - run: meson test -C build --print-errorlogs host host-sanitize host-coverage host-mutation
+      # Coverage of the extensions' logic and of the KWin script, with a
+      # limit of 100 % of lines, branches and functions. The modules that need
+      # a GNOME Shell (extension.js, display.js, sensor.js) are not loaded by a
+      # test, so they are not in it.
       - run: |
           node --test --experimental-test-coverage --test-coverage-exclude='**/tests/**' \
+            --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \
             --test-reporter=spec --test-reporter-destination=stdout \
             --test-reporter=lcov --test-reporter-destination=js.lcov \
             gnome-keys/tests/layout.test.js gnome-keys/tests/touch.test.js \
-            gnome-rotation/tests/rotation.test.js | tee js.txt
+            gnome-keys/tests/vectors.test.js gnome-rotation/tests/hold.test.js gnome-rotation/tests/rotation.test.js \
+            gnome-rotation/tests/vectors.test.js kde-keys/tests/script.test.js | tee js.txt
           {
             echo '### Coverage of the extensions'
             echo '```text'
@@ -227,7 +294,8 @@ jobs:
           retention-days: 7
 
   # The coverage of the rust and meson jobs goes to Codecov. It is measured,
-  # not a limit (the guard's 100 % is in the rust job), and a failed upload
+  # not a limit (the 100 % of the guard and of the KDE crates is in the rust job,
+  # that of the JavaScript logic in the meson job), and a failed upload
   # does not fail the run. Only this job has the token; it runs nothing from
   # the tree.
   coverage:

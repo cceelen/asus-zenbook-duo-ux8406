@@ -110,3 +110,33 @@ fn nothing_but_the_state_file_is_left_behind(tree: Tree) {
         .collect();
     assert_eq!(names.len(), 2, "{names:?}");
 }
+
+#[rstest]
+fn a_state_file_that_is_a_directory_is_reported(tree: Tree) {
+    tree.pin(USB, &[0, 3]);
+
+    let directory = tree.state_file().parent().unwrap().to_path_buf();
+    let error = save(&tree.bpffs(), &FileMaps, &device(USB), &directory).unwrap_err();
+
+    assert!(matches!(error, Error::Io { path, .. } if path == directory));
+}
+
+/// A name without a directory is a file of the current directory.
+#[rstest]
+fn a_state_file_without_a_directory_is_written_in_the_current_one(tree: Tree) {
+    struct Removed(std::path::PathBuf);
+
+    impl Drop for Removed {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_file(&self.0);
+        }
+    }
+
+    tree.pin(USB, &[0, 3]);
+
+    let file = std::path::PathBuf::from(format!("state-file-test-{}", std::process::id()));
+    let _removed = Removed(file.clone());
+
+    save(&tree.bpffs(), &FileMaps, &device(USB), &file).unwrap();
+    assert_eq!(std::fs::read_to_string(&file).unwrap(), BRIGHT_HOTKEYS);
+}

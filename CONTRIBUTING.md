@@ -54,6 +54,13 @@ gdctl show
 monitor-sensor
 ```
 
+KDE Plasma:
+
+```sh
+journalctl --user -b -g asus-ux8406-kde-keys -g plasma-builtin-screen-rotation
+kscreen-doctor -o
+```
+
 `gdctl` is part of GNOME 48 and later; its output has the serial numbers of the
 monitors. `monitor-sensor` is part of iio-sensor-proxy: turn the laptop while it
 runs, then stop it with Ctrl+C.
@@ -61,7 +68,8 @@ runs, then stop it with Ctrl+C.
 ## Build and test
 
 Tools: `meson` 1.1 or later, `cargo` (Rust 1.85 or later), `clang`, the libbpf
-headers, the kernel headers, `glib-compile-schemas`, `python3`, `node`.
+headers, the kernel headers, `glib-compile-schemas`, `python3`, `node`, and
+`dbus-daemon` (the tests of the KDE programs start a private bus).
 
 ```sh
 meson setup build
@@ -104,7 +112,11 @@ meson setup build --prefix ~/.local -Dscreen=false -Dguard=false -Dkeyboard=fals
 meson install -C build
 ```
 
-The tests of the extensions use node and need no GNOME session. The two
+The tests of the extensions and of the KWin script use node and need no GNOME or
+KDE session. The KDE programs are tested against the fakes in `kde-fakes/`; for
+a test on KDE itself, refer to the [test plan](docs/kde-test-plan.md). The tool
+for that test, `dev/kde-live-test/`, is not a part of any package: its tests run
+with `-Dlive_test=true` (`meson setup build -Dlive_test=true`). The two
 extensions use the same files for the display state: `state.js` and `display.js`
 in each `extension/` directory are links to `gnome-common/`, and the build
 installs a copy in each extension. Their tests share the fixtures in
@@ -112,21 +124,93 @@ installs a copy in each extension. Their tests share the fixtures in
 
 ### Coverage
 
-The tests run each region of the guard. To measure it, with
+The tests run each region of all Rust programs and of the live-test tool, and
+each line, branch and function of the JavaScript that they load (the logic of
+the two extensions and the KWin script). To measure them, with
 [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov):
 
 ```sh
-cargo llvm-cov -p asus-ux8406-tcc-guard --features failpoints \
-    --ignore-filename-regex /tests/ --fail-under-regions 100
+cargo llvm-cov clean --workspace
+cargo llvm-cov --no-report -p asus-ux8406-tcc-guard --features failpoints
+cargo llvm-cov --no-report -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
+cargo llvm-cov --no-report -p asus-ux8406-kde-common -p asus-ux8406-kde-keys \
+    -p asus-ux8406-kde-rotation -p asus-ux8406-kde-live-test
+cargo llvm-cov report --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' \
+    --fail-under-regions 100
 ```
 
-CI measures the coverage of all three Rust programs and of the extensions' logic
+Without the next step, three lines of `keyboard-state/src/pins.rs` are not run:
+the test `tests/root` makes a BPF array map, pins it on the BPF file system
+(`/sys/fs/bpf/asus-ux8406-test-<pid>/`, removed at the end) and reads it with
+the program's reader. That needs root. As an ordinary user the test says why it
+does nothing and passes. CI runs it with `sudo`. To run it here, build as the
+user, then run only the binary as root, after the runs above:
+
+```sh
+source <(cargo llvm-cov show-env --export-prefix)
+bin=$(cargo test --locked -p asus-ux8406-keyboard-state --test root --no-run \
+    --message-format=json | jq -r 'select(.executable != null) | .executable')
+sudo -E "$bin" --nocapture
+```
+
+Every branch of the Rust programs is run by a test too. Stable `rustc` does not
+take the flag for the branch counters; CI uses the nightly compiler for it (the
+job `rust-branches`, which fails if one branch is not run). To measure it with
+the stable compiler of your distribution, as a test for yourself only:
+
+```sh
+export CARGO_TARGET_DIR=$HOME/.cache/branchcov RUSTC_BOOTSTRAP=1
+cargo llvm-cov clean --workspace
+cargo llvm-cov --branch --locked --no-report -p asus-ux8406-tcc-guard --features failpoints
+cargo llvm-cov --branch --locked --no-report -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
+cargo llvm-cov --branch --locked --no-report -p asus-ux8406-kde-common -p asus-ux8406-kde-keys \
+    -p asus-ux8406-kde-rotation -p asus-ux8406-kde-live-test
+cargo llvm-cov report --branch --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' \
+    --json --summary-only --output-path branches.json
+jq -e '.data[0].totals.branches.notcovered == 0' branches.json
+```
+
+The KDE programs that the tests start write their coverage too: they end at
+SIGTERM, not SIGKILL. `protocol.rs` is code that wayland-scanner makes, and
+`kde-fakes/` is test code.
+
+The JavaScript, with Node's test runner; the run fails below 100 % of lines,
+branches or functions. The modules that need a GNOME Shell (`extension.js`,
+`display.js`, `sensor.js`) are not loaded by a test, so they are not in it:
+
+```sh
+node --test --experimental-test-coverage --test-coverage-exclude='**/tests/**' \
+    --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \
+    gnome-keys/tests/layout.test.js gnome-keys/tests/touch.test.js \
+    gnome-keys/tests/vectors.test.js gnome-rotation/tests/hold.test.js gnome-rotation/tests/rotation.test.js \
+    gnome-rotation/tests/vectors.test.js kde-keys/tests/script.test.js
+```
+
+CI measures the coverage of all Rust programs and of the extensions' logic
 (Node's test runner) on each pull request (`ci.yml`) and each night on main
 (`coverage.yml`), shows it in the summary of the run and sends it to
-[Codecov](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406). Only the
-guard has a limit; for the others the coverage is measured, not enforced.
+[Codecov](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406). All Rust
+programs, the live-test tool and the JavaScript that the tests load have a limit
+of 100 %.
 
 [![Coverage of each file](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406/graphs/tree.svg?token=CSOYWM3L9Q)](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406)
+
+### The HID-BPF program
+
+The program in `keyboard-bpf/` runs in the kernel, so its tests compile the
+unchanged source as host C against fakes of the BPF headers and of the kernel
+functions it calls (`keyboard-bpf/tests/host/`). They need `clang`, `llvm-cov`
+and `llvm-profdata`. `meson test -C build --suite keyboard-bpf` runs them: the
+tests (`host`), the same with AddressSanitizer and UndefinedBehaviorSanitizer
+(`host-sanitize`), the coverage, which fails below 100 % of lines, functions and
+branches of the program's file (`host-coverage`), and a mutation check that
+fails if a mutant of the source survives that is not argued as equivalent in
+`tests/mutate.py` (`host-mutation`). By hand, from the tree's root:
+
+```sh
+python3 keyboard-bpf/tests/run_host.py coverage \
+    keyboard-bpf/src/ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.c ~/.cache/bpfcov
+```
 
 ### Fuzzing
 
@@ -169,7 +253,10 @@ uses the committed files only.
 - Use established crates for the command line, logging, signals and errors.
 - No test code in `src/`. Tests are in `tests/`, one file for each topic. A test
   machine is a directory tree in `tests/fixtures/`.
-- The coverage of the guard stays at 100 % of its regions.
+- The coverage of all Rust programs stays at 100 % of their regions; the
+  branches of all Rust programs at 100 % (nightly compiler); that of the
+  JavaScript that the tests load (the logic of the extensions and the KWin
+  script) at 100 % of its lines, branches and functions.
 - No licence or copyright header in the files. `REUSE.toml` gives the licence of
   each file.
 - Say a fact in one document only, and link to it from the others. The
@@ -188,16 +275,23 @@ another contributor it writes a comment; the owner reviews and approves it.
 Each part has a README that tells what the part does, how it operates and what
 its tests examine.
 
-| Directory                                   | Contents                                                                                            |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| [tcc-guard/](tcc-guard/README.md)           | Thermal guard (Rust), systemd unit, OpenRC script                                                   |
-| [second-screen/](second-screen/README.md)   | Helper for the lower screen (Rust), udev rule                                                       |
-| [keyboard-bpf/](keyboard-bpf/README.md)     | HID-BPF program for the keyboard (C), hwdb entry                                                    |
-| [keyboard-state/](keyboard-state/README.md) | Helper that keeps the keyboard's light and row mode (Rust), udev rule; part of the keyboard package |
-| [gnome-keys/](gnome-keys/README.md)         | GNOME Shell extension for the display keys and the touchscreens                                     |
-| [gnome-rotation/](gnome-rotation/README.md) | GNOME Shell extension that turns the screens                                                        |
-| `gnome-common/`                             | Files that the two extensions share                                                                 |
-| `packaging/`                                | One directory of recipes for each packaging system; [OBS setup](packaging/obs/README.md)            |
-| `dev/containers/`                           | Container builds for development                                                                    |
-| `fuzz/`                                     | Fuzz targets of the guard's parsers (cargo-fuzz)                                                    |
-| `docs/releases.md`                          | How to make a release                                                                               |
+| Directory                                         | Contents                                                                                                      |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| [tcc-guard/](tcc-guard/README.md)                 | Thermal guard (Rust), systemd unit, OpenRC script                                                             |
+| [second-screen/](second-screen/README.md)         | Helper for the lower screen (Rust), udev rule                                                                 |
+| [keyboard-bpf/](keyboard-bpf/README.md)           | HID-BPF program for the keyboard (C), hwdb entry                                                              |
+| [keyboard-state/](keyboard-state/README.md)       | Helper that keeps the keyboard's light and row mode (Rust), udev rule; part of the keyboard package           |
+| [gnome-keys/](gnome-keys/README.md)               | GNOME Shell extension for the display keys and the touchscreens                                               |
+| [gnome-rotation/](gnome-rotation/README.md)       | GNOME Shell extension that turns the screens                                                                  |
+| `gnome-common/`                                   | Files that the two extensions share; the cases that the GNOME and KDE logic share                             |
+| [kde-keys/](kde-keys/README.md)                   | KDE Plasma program for the lower screen key and the touchscreens (Rust), KWin script                          |
+| [kde-rotation/](kde-rotation/README.md)           | KDE Plasma program that turns the screens (Rust), applet in the system tray (QML)                             |
+| [kde-shortcuts/](kde-shortcuts/README.md)         | Default KDE Plasma shortcuts for function keys                                                                |
+| [kde-common/](kde-common/README.md)               | What the two KDE programs share (Rust): the layouts, KWin's output management                                 |
+| `kde-fakes/`                                      | Fake KWin, fake iio-sensor-proxy and a private bus for the tests of the KDE programs; not installed           |
+| [dev/kde-live-test/](dev/kde-live-test/README.md) | Test tool for the KDE packages in a Fedora KDE live session on the laptop (Rust); not packaged, not installed |
+| `packaging/`                                      | One directory of recipes for each packaging system; [OBS setup](packaging/obs/README.md)                      |
+| `dev/containers/`                                 | Container builds for development                                                                              |
+| `fuzz/`                                           | Fuzz targets of the guard's parsers (cargo-fuzz)                                                              |
+| `docs/releases.md`                                | How to make a release                                                                                         |
+| [docs/kde-test-plan.md](docs/kde-test-plan.md)    | How to try the KDE packages on KDE                                                                            |

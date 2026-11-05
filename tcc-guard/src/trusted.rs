@@ -18,9 +18,15 @@ use crate::fault;
 const OTHERS_MAY_WRITE: u32 = 0o022;
 const ROOT: u32 = 0;
 
+/// Whether an entry of this owner and mode is one the guard believes when it
+/// runs as `user`: owned by root or by `user`, and not writable by others.
+#[must_use]
+pub fn believable(owner: u32, mode: u32, user: u32) -> bool {
+    (owner == ROOT || owner == user) && mode & OTHERS_MAY_WRITE == 0
+}
+
 fn owned(entry: &Metadata) -> bool {
-    (entry.uid() == ROOT || entry.uid() == geteuid().as_raw())
-        && entry.mode() & OTHERS_MAY_WRITE == 0
+    believable(entry.uid(), entry.mode(), geteuid().as_raw())
 }
 
 /// Read a file of at most `max` bytes.

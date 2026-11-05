@@ -2,6 +2,7 @@
 
 use std::path::PathBuf;
 
+use asus_ux8406_keyboard_state::{Error, MapReader, PinnedMap};
 use rstest::rstest;
 
 use crate::common::{BLUETOOTH, TABLET, Tree, USB, USB_OTHER_INTERFACE, device, tree};
@@ -50,4 +51,12 @@ fn the_maps_of_others_are_those_of_the_keyboard_only(tree: Tree) {
     tree.pin_other_program(BLUETOOTH);
 
     assert_eq!(tree.bpffs().maps_of_others(&device(USB)), NONE);
+}
+
+#[rstest]
+fn a_pin_that_is_not_there_is_a_map_error(tree: Tree) {
+    let pin = tree.pin_path("nothing");
+    let error = PinnedMap.read(&pin).unwrap_err();
+
+    assert!(matches!(error, Error::Map { path, .. } if path == pin));
 }

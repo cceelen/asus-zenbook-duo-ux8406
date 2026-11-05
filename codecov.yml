@@ -1,5 +1,6 @@
-# Coverage is measured and reported; it is not a limit yet (the guard's
-# 100 % is in ci.yml). The checks of Codecov only inform.
+# Coverage is measured and reported; it is not a limit here (the 100 % of the
+# guard, the KDE crates and the KWin script is in ci.yml). The checks of
+# Codecov only inform.
 coverage:
   status:
     project:

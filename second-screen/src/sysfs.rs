@@ -102,9 +102,12 @@ impl Sysfs {
         };
         let mut files = Vec::new();
 
-        for entry in fs::read_dir(&directory).map_err(io_error)? {
-            let entry = entry.map_err(io_error)?;
-
+        // An entry that cannot be read is passed over, as in
+        // `keyboard_docked`.
+        for entry in fs::read_dir(&directory)
+            .map_err(io_error)?
+            .filter_map(Result::ok)
+        {
             if entry.file_name().to_str().is_some_and(dock::is_lower_panel) {
                 files.push(entry.path().join("status"));
             }
@@ -133,8 +136,11 @@ impl Sysfs {
         };
         let mut found = Vec::new();
 
-        for entry in fs::read_dir(&directory).map_err(io_error)? {
-            let Ok(device) = entry.map_err(io_error)?.path().canonicalize() else {
+        for entry in fs::read_dir(&directory)
+            .map_err(io_error)?
+            .filter_map(Result::ok)
+        {
+            let Ok(device) = entry.path().canonicalize() else {
                 continue;
             };
 
@@ -227,7 +233,7 @@ pub fn write_detection(status: &Path, detection: Detection) -> Result<(), Error>
 /// attribute can be.
 #[must_use]
 pub fn read_attribute(path: &Path) -> Option<String> {
-    let limit = u64::try_from(ATTRIBUTE_LIMIT).ok()?;
+    let limit = ATTRIBUTE_LIMIT as u64;
     let mut text = String::new();
 
     File::open(path)

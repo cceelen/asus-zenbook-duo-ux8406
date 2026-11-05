@@ -1,0 +1,21 @@
+[package]
+name = "asus-ux8406-kde-fakes"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Fake KWin, fake iio-sensor-proxy and a private D-Bus for the tests of the KDE parts; not installed"
+publish = false
+
+[dependencies]
+async-io = "2"
+bitflags = "2"
+rustix = { version = "1", features = ["process"] }
+tempfile = "3"
+wayland-backend = "0.3"
+wayland-scanner = "0.31"
+wayland-server = "0.31"
+zbus = "5"
+
+[lints]
+workspace = true

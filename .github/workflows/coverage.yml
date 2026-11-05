@@ -1,10 +1,11 @@
-# Each night on main: the coverage of the three Rust programs and of the
+# Each night on main: the coverage of the five Rust programs and of the
 # logic of the extensions, to the summary of the run and to Codecov, which
 # shows main in its badge and graphs. Pull requests are measured in ci.yml,
 # with the same steps; a rebase merge gives main other commits, so their
-# reports are not those of main. It is measured, not a limit; the guard's
-# limit of 100 % is in ci.yml. A night without a new commit on main measures
-# nothing; a run by hand always measures.
+# reports are not those of main. It is measured, not a limit, except for the
+# JavaScript: the logic of the extensions and the KWin script fail the run
+# below 100 % of lines, branches and functions, as in ci.yml. A night without
+# a new commit on main measures nothing; a run by hand always measures.
 name: coverage
 
 on:
@@ -41,7 +42,7 @@ jobs:
             echo "No commit on main since the last night: nothing to measure."
           fi
 
-  # One measurement of the three programs, the guard with its fail points.
+  # One measurement of the five programs, the guard with its fail points.
   # The clean removes data from an earlier run that the cache brought back.
   rust:
     needs: changed
@@ -54,18 +55,31 @@ jobs:
       - uses: ./.github/actions/rust
         with:
           components: llvm-tools-preview
+      # The tests of the KDE crates start a private bus with dbus-daemon.
+      - run: sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends dbus-daemon
       - uses: taiki-e/install-action@f7e5d7c961414b23f5b25b2da9294395d08513ad # v2.87.26
         with:
           tool: cargo-llvm-cov
       - run: cargo llvm-cov clean --workspace
       - run: cargo llvm-cov --locked --no-report -p asus-ux8406-tcc-guard --features failpoints
       - run: cargo llvm-cov --locked --no-report -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
+      - run: cargo llvm-cov --locked --no-report -p asus-ux8406-kde-common -p asus-ux8406-kde-keys -p asus-ux8406-kde-rotation -p asus-ux8406-kde-live-test
+      # The test of the state map makes a BPF map and pins it: that needs
+      # root. The binary is built as the user, as in the run before, and only
+      # it runs with sudo, writing its coverage data to the same directory.
       - run: |
-          cargo llvm-cov report --ignore-filename-regex /tests/ --lcov --output-path rust.lcov
+          source <(cargo llvm-cov show-env --export-prefix)
+          bin=$(cargo test --locked -p asus-ux8406-keyboard-state --test root --no-run --message-format=json | jq -r 'select(.executable != null) | .executable')
+          sudo -E "$bin" --nocapture
+      # The fake KWin and sensor (kde-fakes) are test code, and
+      # kde-common/src/protocol.rs is made by wayland-scanner: neither is in
+      # the report.
+      - run: |
+          cargo llvm-cov report --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' --lcov --output-path rust.lcov
           {
             echo '### Rust coverage'
             echo '```text'
-            cargo llvm-cov report --ignore-filename-regex /tests/ --summary-only
+            cargo llvm-cov report --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' --summary-only
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -87,10 +101,12 @@ jobs:
           persist-credentials: false
       - run: |
           node --test --experimental-test-coverage --test-coverage-exclude='**/tests/**' \
+            --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \
             --test-reporter=spec --test-reporter-destination=stdout \
             --test-reporter=lcov --test-reporter-destination=js.lcov \
             gnome-keys/tests/layout.test.js gnome-keys/tests/touch.test.js \
-            gnome-rotation/tests/rotation.test.js | tee js.txt
+            gnome-keys/tests/vectors.test.js gnome-rotation/tests/hold.test.js gnome-rotation/tests/rotation.test.js \
+            gnome-rotation/tests/vectors.test.js kde-keys/tests/script.test.js | tee js.txt
           {
             echo '### Coverage of the extensions'
             echo '```text'

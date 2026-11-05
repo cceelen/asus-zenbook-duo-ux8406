@@ -132,6 +132,10 @@ fn a_pipe_nobody_writes_to_opens_and_stays_quiet(machine: Machine) {
 
     assert!(!events.wait(Duration::from_millis(300)).unwrap());
     assert!(start.elapsed() >= Duration::from_millis(300), "waited");
+    assert!(
+        start.elapsed() < Duration::from_millis(480),
+        "a wait that ran out does not sleep on"
+    );
 
     let mut writer = OpenOptions::new()
         .write(true)

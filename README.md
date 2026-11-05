@@ -5,13 +5,13 @@
 [![codecov](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406/graph/badge.svg?token=CSOYWM3L9Q)](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406)
 [![Plumber Score](https://score.getplumber.io/github.com/cceelen/asus-zenbook-duo-ux8406.svg)](https://score.getplumber.io/github.com/cceelen/asus-zenbook-duo-ux8406)
 
-**Five packages that make the
+**Packages that make the
 [ASUS Zenbook Duo UX8406](https://www.asus.com/us/laptops/for-home/zenbook/asus-zenbook-duo-2024-ux8406/)
 operate correctly with Linux: no power-off with the lid closed, a lower screen
 that follows the keyboard and the brightness, a function row with all its keys,
-touch on the two screens, and screen rotation. They install from the package
-manager of your distribution. They are tested on a UX8406CA with Fedora 44; the
-UX8406MA is not tested.**
+touch on the two screens, and screen rotation, in GNOME and in KDE Plasma. They
+install from the package manager of your distribution. They are tested on a
+UX8406CA with Fedora 44 and GNOME; the UX8406MA and KDE Plasma are not tested.**
 
 I own a UX8406CA. The community solutions that I tried gave mixed results and
 needed manual installation. The power-off problem stayed for months. These
@@ -20,16 +20,17 @@ BIOS) supply the fix.
 
 ## Where to start
 
-| You want to                                           | Go to                                                  |
-| ----------------------------------------------------- | ------------------------------------------------------ |
-| Know what is fixed and what is not                    | [What the packages fix](#what-the-packages-fix)        |
-| Know if your distribution has the packages            | [Compatibility](#compatibility)                        |
-| Install the packages                                  | [Installation](#installation)                          |
-| Turn the screens of a laptop that is not a UX8406     | [Rotation extension](gnome-rotation/README.md)         |
-| Report a result or a problem on your hardware         | [CONTRIBUTING.md](CONTRIBUTING.md#report-your-results) |
-| Build, test or change the code                        | [CONTRIBUTING.md](CONTRIBUTING.md#build-and-test)      |
-| Make a release, or check the origin of a release file | [docs/releases.md](docs/releases.md)                   |
-| Report a vulnerability                                | [SECURITY.md](SECURITY.md)                             |
+| You want to                                           | Go to                                                                                  |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Know what is fixed and what is not                    | [What the packages fix](#what-the-packages-fix)                                        |
+| Know if your distribution has the packages            | [Compatibility](#compatibility)                                                        |
+| Install the packages                                  | [Installation](#installation)                                                          |
+| Turn the screens of a laptop that is not a UX8406     | [Rotation extension](gnome-rotation/README.md), [KDE rotation](kde-rotation/README.md) |
+| Try the KDE packages                                  | [Test plan](docs/kde-test-plan.md)                                                     |
+| Report a result or a problem on your hardware         | [CONTRIBUTING.md](CONTRIBUTING.md#report-your-results)                                 |
+| Build, test or change the code                        | [CONTRIBUTING.md](CONTRIBUTING.md#build-and-test)                                      |
+| Make a release, or check the origin of a release file | [docs/releases.md](docs/releases.md)                                                   |
+| Report a vulnerability                                | [SECURITY.md](SECURITY.md)                                                             |
 
 ## What the packages fix
 
@@ -43,10 +44,13 @@ Keyboard package.
 | More than half of the special function keys do nothing.                                | [Keyboard](keyboard-bpf/README.md)               | The keys operate on the dock, on the cable and with Bluetooth. The keyboard light and Fn+Esc operate and keep their state. |
 | The two display keys do nothing. A touch on the lower screen acts on the upper screen. | [Keys](gnome-keys/README.md), GNOME only         | The keys switch the lower screen and swap the windows. Each touchscreen has its screen.                                    |
 | The screens do not turn when the laptop stands on its side (book mode).                | [Rotation](gnome-rotation/README.md), GNOME only | The two screens turn and go side by side. Not specific to this model.                                                      |
+| As Keys, in KDE Plasma.                                                                | [KDE keys](kde-keys/README.md)                   | As Keys. KWin keeps the state of the lower screen.                                                                         |
+| As Rotation, in KDE Plasma. KWin turns only the upper screen.                          | [KDE rotation](kde-rotation/README.md)           | As Rotation, with the switch "Auto-rotate" in the system tray. Not specific to this model.                                 |
+| The emoji key does nothing in KDE Plasma.                                              | [KDE shortcuts](kde-shortcuts/README.md)         | The emoji key opens the emoji selector. Optional.                                                                          |
 
 The names in the table are those of the columns in
 [Compatibility](#compatibility). [Installation](#installation) gives the names
-of the packages.
+of the packages. The KDE packages need the Keyboard package for their keys too.
 
 No fix in this project:
 
@@ -98,20 +102,27 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
    `asus-zenbook-duo-ux8406.cachix.org`. The container builds each package of
    the flake. The NixOS modules are not tested.
 
+KDE keys, KDE rotation and KDE shortcuts: 🛠️ for each distribution with KDE
+Plasma 6.6 or later. They are not published yet and not tested on the hardware;
+refer to the [test plan](docs/kde-test-plan.md).
+
 🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
 keyboard ids and dock port can be different. A result from your hardware adds a
 test mark: refer to [CONTRIBUTING.md](CONTRIBUTING.md#report-your-results).
 
 Requirements:
 
-| Part             | Requirement                                                      |
-| ---------------- | ---------------------------------------------------------------- |
-| All but Rotation | A Zenbook Duo UX8406. On other machines the programs do nothing. |
-| Guard            | systemd or OpenRC                                                |
-| Second screen    | udev                                                             |
-| Keyboard         | Linux 6.11 or later with HID-BPF and BTF, and [udev-hid-bpf]     |
-| Keys             | GNOME Shell 45 or later                                          |
-| Rotation         | GNOME Shell 45 or later, iio-sensor-proxy; a laptop of any model |
+| Part                       | Requirement                                                                 |
+| -------------------------- | --------------------------------------------------------------------------- |
+| All but the rotation parts | A Zenbook Duo UX8406. On other machines the programs do nothing.            |
+| Guard                      | systemd or OpenRC                                                           |
+| Second screen              | udev                                                                        |
+| Keyboard                   | Linux 6.11 or later with HID-BPF and BTF, and [udev-hid-bpf]                |
+| Keys                       | GNOME Shell 45 or later                                                     |
+| Rotation                   | GNOME Shell 45 or later, iio-sensor-proxy; a laptop of any model            |
+| KDE keys                   | KDE Plasma 6.6 or later on Wayland                                          |
+| KDE rotation               | KDE Plasma 6.6 or later on Wayland, iio-sensor-proxy; a laptop of any model |
+| KDE shortcuts              | KDE Plasma 6                                                                |
 
 Ubuntu 24.04 is not supported: its Rust is too old.
 
@@ -138,6 +149,9 @@ The packages:
 | Keyboard      | `asus-zenbook-duo-ux8406-keyboard-bpf`               |
 | Keys          | `gnome-shell-extension-asus-zenbook-duo-ux8406-keys` |
 | Rotation      | `gnome-shell-extension-builtin-screen-rotation`      |
+| KDE keys      | `asus-zenbook-duo-ux8406-kde-keys`                   |
+| KDE rotation  | `plasma-builtin-screen-rotation`                     |
+| KDE shortcuts | `asus-zenbook-duo-ux8406-kde-shortcuts`              |
 
 The commands below use this list. It does not have the keyboard package: the
 commands add it where the distribution has udev-hid-bpf (refer to
@@ -145,6 +159,12 @@ commands add it where the distribution has udev-hid-bpf (refer to
 
 ```sh
 pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation"
+```
+
+For KDE Plasma, use this list in its place:
+
+```sh
+pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts"
 ```
 
 ### Fedora and RHEL 10
@@ -261,12 +281,13 @@ Each package and its SBOM have an attestation; refer to
 
 ### After the installation
 
-| Part           | What you do                                                                         |
-| -------------- | ----------------------------------------------------------------------------------- |
-| Guard          | Nothing. The package enables and starts the service.                                |
-| Second screen  | Nothing. It operates immediately.                                                   |
-| Keyboard       | Take the keyboard off the dock or put it on: the program loads at a new connection. |
-| Keys, Rotation | Log in again, then enable the extensions with the commands below.                   |
+| Part           | What you do                                                                                 |
+| -------------- | ------------------------------------------------------------------------------------------- |
+| Guard          | Nothing. The package enables and starts the service.                                        |
+| Second screen  | Nothing. It operates immediately.                                                           |
+| Keyboard       | Take the keyboard off the dock or put it on: the program loads at a new connection.         |
+| Keys, Rotation | Log in again, then enable the extensions with the commands below.                           |
+| KDE parts      | Log in again. Before you remove KDE rotation, run `plasma-builtin-screen-rotation restore`. |
 
 GNOME Shell on Wayland finds a new extension only when it starts:
 

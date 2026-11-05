@@ -1,0 +1,3 @@
+# Names that are words in the documentation, not code: clippy's doc_markdown
+# asks for backticks around them otherwise. ".." keeps clippy's own list.
+doc-valid-idents = ["KWin", ".."]

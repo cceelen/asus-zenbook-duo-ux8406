@@ -9,6 +9,16 @@ option('gnome', type: 'boolean', value: true,
        description: 'gnome-keys: GNOME Shell extension for the two display keys')
 option('rotation', type: 'boolean', value: true,
        description: 'gnome-rotation: GNOME Shell extension that turns the built-in panels')
+option('kde', type: 'boolean', value: true,
+       description: 'kde-keys: KDE Plasma program and KWin script for the two display keys and the touchscreens')
+option('kde_rotation', type: 'boolean', value: true,
+       description: 'kde-rotation: KDE Plasma program and tray applet that turn the built-in panels')
+option('kde_shortcuts', type: 'boolean', value: true,
+       description: 'kde-shortcuts: default KDE Plasma shortcuts for function keys')
+
+# A development tool, not a part of any package: it is never installed.
+option('live_test', type: 'boolean', value: false,
+       description: 'kde-live-test: run the tests of the live-session test tool for the KDE packages (dev/kde-live-test; installs nothing)')
 
 # How the guard is started.
 option('init', type: 'combo', choices: ['systemd', 'openrc'], value: 'systemd',

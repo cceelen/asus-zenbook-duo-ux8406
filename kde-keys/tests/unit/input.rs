@@ -1,0 +1,60 @@
+//! Which input devices get which panel.
+
+use asus_ux8406_kde_common::touch::Assignment;
+use asus_ux8406_kde_keys::input::{Device, plan};
+
+fn device(sys_name: &str, product: u32, touch: bool, output_name: &str) -> Device {
+    Device {
+        sys_name: sys_name.to_owned(),
+        vendor: 0x04f3,
+        product,
+        touch,
+        output_name: output_name.to_owned(),
+    }
+}
+
+fn panels() -> Vec<Assignment> {
+    [("04f3:4447", "eDP-1"), ("04f3:4448", "eDP-2")]
+        .map(|(id, connector)| Assignment {
+            id: id.to_owned(),
+            connector: connector.to_owned(),
+        })
+        .into()
+}
+
+#[test]
+fn the_id_is_that_of_the_controllers_in_small_letters() {
+    assert_eq!(device("event1", 0x425b, true, "").id(), "04f3:425b");
+}
+
+#[test]
+fn each_touch_device_without_an_output_gets_its_panel() {
+    let devices = [
+        device("event10", 0x4447, true, ""),
+        device("event12", 0x4448, true, ""),
+    ];
+
+    assert_eq!(
+        plan(&devices, &panels()),
+        [
+            ("event10".to_owned(), "eDP-1".to_owned()),
+            ("event12".to_owned(), "eDP-2".to_owned()),
+        ]
+    );
+}
+
+#[test]
+fn a_device_with_an_output_another_device_and_no_panel_get_nothing() {
+    let devices = [
+        device("event10", 0x4447, true, "DP-1"),
+        device("event1", 0x4447, false, ""),
+        device("event2", 0x1234, true, ""),
+    ];
+
+    assert_eq!(plan(&devices, &panels()), []);
+    // The keyboard lies on the lower panel: it has no assignment.
+    assert_eq!(
+        plan(&[device("event12", 0x4448, true, "")], &panels()[..1]),
+        []
+    );
+}

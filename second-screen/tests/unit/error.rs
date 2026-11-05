@@ -59,3 +59,27 @@ fn a_missing_upper_backlight_is_named_as_such() {
         "no backlight for the upper panel"
     );
 }
+
+#[test]
+fn only_a_brightness_taken_over_is_no_failure() {
+    use asus_ux8406_second_screen::{Brightness, tolerate_taken_over};
+
+    let brightness = Brightness {
+        value: 7,
+        file: PathBuf::from("/sys/x/brightness"),
+    };
+    let busy = Error::Io {
+        path: PathBuf::from("/sys/x/brightness"),
+        source: io::Error::from_raw_os_error(16),
+    };
+
+    assert_eq!(
+        tolerate_taken_over(Ok(brightness.clone())).unwrap(),
+        Some(brightness)
+    );
+    assert_eq!(tolerate_taken_over(Err(busy)).unwrap(), None);
+    assert!(matches!(
+        tolerate_taken_over(Err(Error::NoLowerPanel)),
+        Err(Error::NoLowerPanel)
+    ));
+}
