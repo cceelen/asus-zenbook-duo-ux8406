@@ -32,7 +32,7 @@ export function controllersOf(devices) {
             .map((child) => /^[0-9A-F]{4}:([0-9A-F]{4}):([0-9A-F]{4})\.[0-9A-F]+$/i.exec(child))
             .filter(Boolean);
 
-        if (Object.hasOwn(PANEL, controller ?? '') && ids.length === 1)
+        if (Object.hasOwn(PANEL, controller) && ids.length === 1)
             found.push({controller, id: `${ids[0][1]}:${ids[0][2]}`.toLowerCase()});
     }
     return found;
