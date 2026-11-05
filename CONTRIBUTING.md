@@ -54,6 +54,13 @@ gdctl show
 monitor-sensor
 ```
 
+KDE Plasma:
+
+```sh
+journalctl --user -b -g asus-ux8406-kde-keys -g plasma-builtin-screen-rotation
+kscreen-doctor -o
+```
+
 `gdctl` is part of GNOME 48 and later; its output has the serial numbers of the
 monitors. `monitor-sensor` is part of iio-sensor-proxy: turn the laptop while it
 runs, then stop it with Ctrl+C.
@@ -61,7 +68,8 @@ runs, then stop it with Ctrl+C.
 ## Build and test
 
 Tools: `meson` 1.1 or later, `cargo` (Rust 1.85 or later), `clang`, the libbpf
-headers, the kernel headers, `glib-compile-schemas`, `python3`, `node`.
+headers, the kernel headers, `glib-compile-schemas`, `python3`, `node`, and
+`dbus-daemon` (the tests of the KDE programs start a private bus).
 
 ```sh
 meson setup build
@@ -96,48 +104,63 @@ docker compose -f dev/containers/compose.yaml up --build \
 ### An extension without a package
 
 To try an extension from the tree, install it for your user. Remove the packaged
-extension first: it has the same UUID. The options switch the other parts off;
-for the rotation extension, use `-Dgnome=false` in place of `-Drotation=false`.
+extension first: it has the same UUID. The options switch the other parts off,
+the KDE parts too; for the rotation extension, use `-Dgnome=false` in place of
+`-Drotation=false`.
 
 ```sh
-meson setup build --prefix ~/.local -Dscreen=false -Dguard=false -Dkeyboard=false -Drotation=false
+meson setup build --prefix ~/.local -Dscreen=false -Dguard=false -Dkeyboard=false \
+    -Dkde=false -Dkde_rotation=false -Dkde_shortcuts=false -Drotation=false
 meson install -C build
 ```
 
-The tests of the extensions use node and need no GNOME session. The two
+The tests of the extensions and of the KWin script use node and need no GNOME or
+KDE session. The KDE programs are tested against the fakes in `kde-fakes/`; for
+a test on KDE itself, refer to the [test plan](docs/kde-test-plan.md). The two
 extensions use the same files for the display state: `state.js` and `display.js`
 in each `extension/` directory are links to `gnome-common/`, and the build
 installs a copy in each extension. Their tests share the fixtures in
 `gnome-common/tests`.
 
-The tests of the extensions run with Node's test runner, and CI fails the run
-below 100 % of lines, branches or functions of the modules that they load. The
-modules that need a GNOME Shell (`extension.js`, `display.js`, `sensor.js`) are
-not loaded by a test, so they are not in it. The same check here:
+The tests of the extensions and of the KWin script run with Node's test runner,
+and CI fails the run below 100 % of lines, branches or functions of the modules
+that they load. The modules that need a GNOME Shell (`extension.js`,
+`display.js`, `sensor.js`) are not loaded by a test, so they are not in it. The
+same check here:
 
 ```sh
 node --test --experimental-test-coverage --test-coverage-exclude='**/tests/**' \
     --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \
     gnome-keys/tests/layout.test.js gnome-keys/tests/touch.test.js \
     gnome-keys/tests/vectors.test.js gnome-rotation/tests/hold.test.js gnome-rotation/tests/rotation.test.js \
-    gnome-rotation/tests/vectors.test.js
+    gnome-rotation/tests/vectors.test.js kde-keys/tests/script.test.js
 ```
 
 ### Coverage
 
-The tests run each region of the guard. To measure it, with
-[cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov):
+The tests run each region of the guard and of the KDE programs. To measure them,
+with [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov):
 
 ```sh
-cargo llvm-cov -p asus-ux8406-tcc-guard --features failpoints \
-    --ignore-filename-regex /tests/ --fail-under-regions 100
+cargo llvm-cov clean --workspace
+cargo llvm-cov --no-report -p asus-ux8406-tcc-guard --features failpoints
+cargo llvm-cov --no-report -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
+cargo llvm-cov --no-report -p asus-ux8406-kde-common -p asus-ux8406-kde-keys \
+    -p asus-ux8406-kde-rotation
+cargo llvm-cov report \
+    --ignore-filename-regex '/tests/|second-screen/|keyboard-state/|kde-fakes/|kde-common/src/protocol\.rs' \
+    --fail-under-regions 100
 ```
 
-CI measures the coverage of all three Rust programs and of the extensions' logic
+CI measures the coverage of all five Rust programs and of the extensions' logic
 (Node's test runner) on each pull request (`ci.yml`) and each night on main
 (`coverage.yml`), shows it in the summary of the run and sends it to
-[Codecov](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406). Only the
-guard has a limit; for the others the coverage is measured, not enforced.
+[Codecov](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406). The guard,
+the KDE programs and the JavaScript that the tests load have a limit of 100 %;
+for the helpers of the keyboard and the lower screen the coverage is measured,
+not enforced. The KDE programs that the tests start write their coverage too:
+they end at SIGTERM, not SIGKILL. `protocol.rs` is code that wayland-scanner
+makes, and `kde-fakes/` is test code.
 
 [![Coverage of each file](https://codecov.io/github/cceelen/asus-zenbook-duo-ux8406/graphs/tree.svg?token=CSOYWM3L9Q)](https://app.codecov.io/gh/cceelen/asus-zenbook-duo-ux8406)
 
@@ -181,10 +204,12 @@ uses the committed files only.
   workflow are not a script.
 - Use established crates for the command line, logging, signals and errors.
 - The coverage of the JavaScript that the tests load (the logic of the
-  extensions) stays at 100 % of its lines, branches and functions.
+  extensions and the KWin script) stays at 100 % of its lines, branches and
+  functions.
 - No test code in `src/`. Tests are in `tests/`, one file for each topic. A test
   machine is a directory tree in `tests/fixtures/`.
-- The coverage of the guard stays at 100 % of its regions.
+- The coverage of the guard and of the KDE programs stays at 100 % of their
+  regions.
 - No licence or copyright header in the files. `REUSE.toml` gives the licence of
   each file.
 - Say a fact in one document only, and link to it from the others. The
@@ -203,16 +228,22 @@ another contributor it writes a comment; the owner reviews and approves it.
 Each part has a README that tells what the part does, how it operates and what
 its tests examine.
 
-| Directory                                   | Contents                                                                                            |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| [tcc-guard/](tcc-guard/README.md)           | Thermal guard (Rust), systemd unit, OpenRC script                                                   |
-| [second-screen/](second-screen/README.md)   | Helper for the lower screen (Rust), udev rule                                                       |
-| [keyboard-bpf/](keyboard-bpf/README.md)     | HID-BPF program for the keyboard (C), hwdb entry                                                    |
-| [keyboard-state/](keyboard-state/README.md) | Helper that keeps the keyboard's light and row mode (Rust), udev rule; part of the keyboard package |
-| [gnome-keys/](gnome-keys/README.md)         | GNOME Shell extension for the display keys and the touchscreens                                     |
-| [gnome-rotation/](gnome-rotation/README.md) | GNOME Shell extension that turns the screens                                                        |
-| `gnome-common/`                             | Files that the two extensions share                                                                 |
-| `packaging/`                                | One directory of recipes for each packaging system; [OBS setup](packaging/obs/README.md)            |
-| `dev/containers/`                           | Container builds for development                                                                    |
-| `fuzz/`                                     | Fuzz targets of the guard's parsers (cargo-fuzz)                                                    |
-| `docs/releases.md`                          | How to make a release                                                                               |
+| Directory                                      | Contents                                                                                            |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [tcc-guard/](tcc-guard/README.md)              | Thermal guard (Rust), systemd unit, OpenRC script                                                   |
+| [second-screen/](second-screen/README.md)      | Helper for the lower screen (Rust), udev rule                                                       |
+| [keyboard-bpf/](keyboard-bpf/README.md)        | HID-BPF program for the keyboard (C), hwdb entry                                                    |
+| [keyboard-state/](keyboard-state/README.md)    | Helper that keeps the keyboard's light and row mode (Rust), udev rule; part of the keyboard package |
+| [gnome-keys/](gnome-keys/README.md)            | GNOME Shell extension for the display keys and the touchscreens                                     |
+| [gnome-rotation/](gnome-rotation/README.md)    | GNOME Shell extension that turns the screens                                                        |
+| `gnome-common/`                                | Files that the two extensions share; the cases that the GNOME and KDE logic share                   |
+| [kde-keys/](kde-keys/README.md)                | KDE Plasma program for the lower screen key and the touchscreens (Rust), KWin script                |
+| [kde-rotation/](kde-rotation/README.md)        | KDE Plasma program that turns the screens (Rust), applet in the system tray (QML)                   |
+| [kde-shortcuts/](kde-shortcuts/README.md)      | Default KDE Plasma shortcuts for function keys                                                      |
+| [kde-common/](kde-common/README.md)            | What the two KDE programs share (Rust): the layouts, KWin's output management                       |
+| `kde-fakes/`                                   | Fake KWin, fake iio-sensor-proxy and a private bus for the tests of the KDE programs; not installed |
+| `packaging/`                                   | One directory of recipes for each packaging system; [OBS setup](packaging/obs/README.md)            |
+| `dev/containers/`                              | Container builds for development                                                                    |
+| `fuzz/`                                        | Fuzz targets of the guard's parsers (cargo-fuzz)                                                    |
+| `docs/releases.md`                             | How to make a release                                                                               |
+| [docs/kde-test-plan.md](docs/kde-test-plan.md) | How to try the KDE packages on KDE                                                                  |

@@ -21,6 +21,7 @@
   python3,
   glib,
   nodejs,
+  dbus,
   cargo-cyclonedx,
 }:
 let
@@ -70,6 +71,9 @@ let
           (option "keyboard")
           (option "gnome")
           (option "rotation")
+          (option "kde")
+          (option "kde_rotation")
+          (option "kde_shortcuts")
           # The guard goes to bin/, not sbin/ (nixpkgs has no sbin on PATH).
           "--sbindir=bin"
           "-Dudevdir=${placeholder "out"}/lib/udev"
@@ -275,6 +279,61 @@ in
       passthru.extensionUuid = "builtin-screen-rotation@cceelen.github.io";
       meta = meta // {
         description = "GNOME Shell extension that turns the built-in screens with the laptop";
+        license = lib.licenses.mit;
+      };
+    };
+  };
+
+  # The KDE Plasma program and KWin script for the display keys and the
+  # touchscreens; list it in environment.systemPackages. The autostart entry
+  # is in etc/xdg/autostart of the package.
+  kde-keys = mkPart {
+    enable = [ "kde" ];
+    attrs = rustInputs // {
+      pname = "asus-zenbook-duo-ux8406-kde-keys";
+      passthru.bombonVendoredSbom = vendoredSbom "asus-ux8406-kde-keys";
+      # dbus-daemon: the tests start a private bus.
+      nativeBuildInputs = rustInputs.nativeBuildInputs ++ [ dbus ];
+      # Below the prefix: Nix has no /etc to install into.
+      mesonFlags = rustInputs.mesonFlags ++ [ "--sysconfdir=etc" ];
+      meta = meta // {
+        description = "KDE Plasma integration for the display keys of the Zenbook Duo UX8406";
+        license = lib.licenses.mit;
+        mainProgram = "asus-ux8406-kde-keys";
+      };
+    };
+  };
+
+  # The KDE Plasma program and applet that turn the panels; it needs
+  # hardware.sensor.iio.enable. List it in environment.systemPackages.
+  kde-rotation = mkPart {
+    enable = [ "kde_rotation" ];
+    attrs = rustInputs // {
+      pname = "plasma-builtin-screen-rotation";
+      passthru.bombonVendoredSbom = vendoredSbom "plasma-builtin-screen-rotation";
+      nativeBuildInputs = rustInputs.nativeBuildInputs ++ [ dbus ];
+      mesonFlags = rustInputs.mesonFlags ++ [ "--sysconfdir=etc" ];
+      meta = meta // {
+        description = "Turns the built-in screens with the laptop in KDE Plasma";
+        license = lib.licenses.mit;
+        mainProgram = "plasma-builtin-screen-rotation";
+      };
+    };
+  };
+
+  # The default KDE Plasma shortcuts; list it in environment.systemPackages.
+  kde-shortcuts = mkPart {
+    enable = [ "kde_shortcuts" ];
+    attrs = {
+      pname = "asus-zenbook-duo-ux8406-kde-shortcuts";
+      nativeBuildInputs = [
+        meson
+        ninja
+        pkg-config
+        python3
+      ];
+      meta = meta // {
+        description = "Default KDE Plasma shortcuts for the function keys of the Zenbook Duo UX8406";
         license = lib.licenses.mit;
       };
     };

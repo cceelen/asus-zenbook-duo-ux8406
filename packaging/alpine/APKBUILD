@@ -9,7 +9,7 @@ pkgdesc="Lower panel of the Zenbook Duo UX8406 off while the keyboard lies on it
 url="https://github.com/cceelen/asus-zenbook-duo-ux8406"
 arch="x86_64"
 license="MIT"
-makedepends="abuild-meson cargo glib-dev meson nodejs python3 samurai"
+makedepends="abuild-meson cargo dbus glib-dev meson nodejs python3 samurai"
 # The scripts of the -openrc subpackage are named here as well: abuild reads
 # the install scripts of all subpackages from this list, by the name of the
 # package each belongs to. They start the guard, and stop it, which puts the
@@ -24,6 +24,10 @@ subpackages="
 	$pkgname-udev:panel_udev:noarch
 	gnome-shell-extension-asus-zenbook-duo-ux8406-keys:gnome_keys:noarch
 	gnome-shell-extension-builtin-screen-rotation:gnome_rotation:noarch
+	asus-zenbook-duo-ux8406-kde-keys:kde_keys
+	plasma-builtin-screen-rotation:kde_rotation
+	plasma-builtin-screen-rotation-doc:kde_rotation_doc:noarch
+	asus-zenbook-duo-ux8406-kde-shortcuts:kde_shortcuts:noarch
 	$_guard:guard
 	$_guard-openrc:guard_openrc
 	$_guard-doc:guard_doc:noarch
@@ -43,7 +47,7 @@ builddir="$srcdir/asus-zenbook-duo-ux8406-$pkgver"
 # The keyboard part (the HID-BPF program and its state helper) is not built:
 # Alpine has no udev-hid-bpf, which loads the program. The GNOME extension
 # still gives each touchscreen its panel; only its two display keys need the
-# keyboard program. Refer to issue 43.
+# keyboard program. The same holds for the KDE Plasma program and its script. Refer to issue 43.
 build() {
 	abuild-meson \
 		-Dinit=openrc \
@@ -92,6 +96,47 @@ gnome_rotation() {
 	amove usr/share/licenses/gnome-shell-extension-builtin-screen-rotation
 }
 
+kde_keys() {
+	pkgdesc="KDE Plasma integration for the display keys of the Zenbook Duo UX8406"
+	license="MIT"
+	depends="kwin"
+
+	amove usr/libexec/asus-ux8406-kde-keys
+	amove etc/xdg/autostart/asus-ux8406-kde-keys.desktop
+	amove usr/share/kwin/scripts/asus-zenbook-duo-ux8406-keys
+	amove usr/share/licenses/asus-zenbook-duo-ux8406-kde-keys
+}
+
+kde_rotation() {
+	pkgdesc="Turns the built-in screens with the laptop in KDE Plasma"
+	license="MIT"
+	depends="kwin plasma-workspace iio-sensor-proxy"
+
+	amove usr/bin/plasma-builtin-screen-rotation
+	amove etc/xdg/autostart/plasma-builtin-screen-rotation.desktop
+	amove usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation
+	amove usr/share/licenses/plasma-builtin-screen-rotation
+}
+
+kde_rotation_doc() {
+	pkgdesc="Turns the built-in screens with the laptop in KDE Plasma (documentation)"
+	license="MIT"
+	install_if="docs plasma-builtin-screen-rotation=$pkgver-r$pkgrel"
+
+	amove usr/share/man/man1
+	# abuild refuses uncompressed man pages.
+	gzip -9n "$subpkgdir"/usr/share/man/man1/*.1
+}
+
+kde_shortcuts() {
+	pkgdesc="Default KDE Plasma shortcuts for the function keys of the Zenbook Duo UX8406"
+	license="MIT"
+	depends="plasma-desktop"
+
+	amove usr/share/kglobalaccel
+	amove usr/share/licenses/asus-zenbook-duo-ux8406-kde-shortcuts
+}
+
 guard() {
 	pkgdesc="CPU thermal-offset guard for the ASUS Zenbook Duo UX8406"
 	license="MIT"
@@ -111,7 +156,7 @@ guard_doc() {
 
 	# The example configuration belongs to the guard, not to the panel.
 	amove usr/share/doc/asus-ux8406-tcc-guard
-	amove usr/share/man
+	amove usr/share/man/man8
 	# abuild refuses uncompressed man pages.
 	gzip -9n "$subpkgdir"/usr/share/man/man8/*.8
 }

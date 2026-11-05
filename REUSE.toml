@@ -28,3 +28,18 @@ path = [
 precedence = "closest"
 SPDX-FileCopyrightText = "Benjamin Tissoires"
 SPDX-License-Identifier = "GPL-2.0-only"
+
+# The protocol descriptions of KWin, as KDE publishes them: the copyright is
+# that of their authors, as each file says.
+[[annotations]]
+path = "kde-common/protocols/*.xml"
+precedence = "closest"
+SPDX-FileCopyrightText = [
+  "2008-2011 Kristian Høgsberg",
+  "2010-2011 Intel Corporation",
+  "2012-2013 Collabora, Ltd.",
+  "2015 Sebastian Kügler",
+  "2021 Méven Car",
+  "2023 Xaver Hugl",
+]
+SPDX-License-Identifier = "MIT-CMU"

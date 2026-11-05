@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Built-in screen rotation
+Comment=Turns the built-in screens with the laptop
+Exec=@BINDIR@/plasma-builtin-screen-rotation run
+OnlyShowIn=KDE;
+NoDisplay=true

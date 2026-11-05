@@ -2,7 +2,9 @@
 pkgbase=asus-zenbook-duo-ux8406
 pkgname=(asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf
          gnome-shell-extension-asus-zenbook-duo-ux8406-keys
-         gnome-shell-extension-builtin-screen-rotation)
+         gnome-shell-extension-builtin-screen-rotation
+         asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation
+         asus-zenbook-duo-ux8406-kde-shortcuts)
 pkgver=0.5.0
 pkgrel=1
 arch=(x86_64)
@@ -11,7 +13,7 @@ license=('MIT AND GPL-2.0-only')
 # rust, not cargo: two Arch packages provide cargo (rust, rustup), and a
 # builder without a person to ask cannot choose.
 makedepends=(meson rust clang libbpf linux-api-headers python glib2 nodejs
-             systemd)
+             systemd dbus)
 options=(!debug)
 # The archive of the release, from `meson dist`: it carries the vendored
 # crates. makepkg uses the file of that name if it lies next to this one, and
@@ -25,7 +27,8 @@ build() {
   # arch-meson: prefix /usr, sbindir bin, libexecdir lib. The helpers are
   # therefore /usr/lib/asus-ux8406-second-screen and
   # /usr/lib/asus-ux8406-keyboard-state, and the udev rules, generated from
-  # the same directory, name them so.
+  # the same directory, name them so. The same goes for
+  # /usr/lib/asus-ux8406-kde-keys.
   arch-meson "$pkgbase-$pkgver" build -Dlicensedir=share/licenses
   meson compile -C build
   # One install; the package functions take their files from it.
@@ -110,6 +113,44 @@ package_gnome-shell-extension-builtin-screen-rotation() {
 
   _take usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io \
         usr/share/licenses/gnome-shell-extension-builtin-screen-rotation
+}
+
+package_asus-zenbook-duo-ux8406-kde-keys() {
+  pkgdesc="KDE Plasma integration for the display keys of the Zenbook Duo UX8406"
+  license=(MIT)
+  depends=(glibc libgcc_s.so kwin)
+  optdepends=('asus-zenbook-duo-ux8406-keyboard-bpf: makes the keyboard deliver the keys')
+
+  _take usr/lib/asus-ux8406-kde-keys \
+        etc/xdg/autostart/asus-ux8406-kde-keys.desktop \
+        usr/share/kwin/scripts/asus-zenbook-duo-ux8406-keys \
+        usr/share/licenses/asus-zenbook-duo-ux8406-kde-keys
+}
+
+package_plasma-builtin-screen-rotation() {
+  pkgdesc="Turns the built-in screens with the laptop in KDE Plasma"
+  license=(MIT)
+  # kwin, plasma-workspace (the applet's D-Bus module) and iio-sensor-proxy
+  # (the orientation) are used at run time. namcap does not see that.
+  depends=(glibc libgcc_s.so kwin plasma-workspace iio-sensor-proxy)
+
+  _take usr/bin/plasma-builtin-screen-rotation \
+        usr/share/man/man1/plasma-builtin-screen-rotation.1 \
+        etc/xdg/autostart/plasma-builtin-screen-rotation.desktop \
+        usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation \
+        usr/share/licenses/plasma-builtin-screen-rotation
+}
+
+package_asus-zenbook-duo-ux8406-kde-shortcuts() {
+  pkgdesc="Default KDE Plasma shortcuts for the function keys of the Zenbook Duo UX8406"
+  arch=(any)
+  license=(MIT)
+  # plasma-desktop has the emoji selector.
+  depends=(plasma-desktop)
+  optdepends=('asus-zenbook-duo-ux8406-keyboard-bpf: makes the keyboard deliver the keys')
+
+  _take usr/share/kglobalaccel \
+        usr/share/licenses/asus-zenbook-duo-ux8406-kde-shortcuts
 
   # The last package: whatever is left in the stage belongs to none, and a
   # new file in the build must not be dropped silently.

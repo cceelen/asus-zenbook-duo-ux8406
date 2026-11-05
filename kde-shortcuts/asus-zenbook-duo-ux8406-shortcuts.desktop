@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=ASUS Zenbook Duo UX8406
+Comment=Default shortcuts for the function keys of the ASUS Zenbook Duo UX8406
+Exec=plasma-emojier
+Icon=input-keyboard
+Actions=EmojiSelector;
+StartupNotify=false
+X-KDE-GlobalShortcutType=Service
+
+[Desktop Action EmojiSelector]
+Name=Emoji Selector
+Exec=plasma-emojier
+X-KDE-Shortcuts=Launch (1)

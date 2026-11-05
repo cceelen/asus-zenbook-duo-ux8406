@@ -1,0 +1,29 @@
+[package]
+name = "asus-ux8406-kde-common"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Display layouts of the built-in panels, and the output management of KWin, for the KDE parts"
+publish = false
+
+[dependencies]
+bitflags = "2"
+calloop = "0.14"
+env_logger = { version = "0.11", default-features = false }
+log = "0.4"
+signal-hook = "0.4"
+thiserror = "2"
+wayland-backend = "0.3"
+wayland-client = "0.31"
+wayland-scanner = "0.31"
+
+[dev-dependencies]
+asus-ux8406-kde-fakes = { path = "../kde-fakes" }
+rstest = "0.28"
+serde_json = "1"
+tempfile = "3"
+wayland-server = "0.31"
+
+[lints]
+workspace = true

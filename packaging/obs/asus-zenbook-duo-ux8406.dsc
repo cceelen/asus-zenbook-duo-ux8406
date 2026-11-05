@@ -1,6 +1,6 @@
 Format: 3.0 (quilt)
 Source: asus-zenbook-duo-ux8406
-Binary: asus-zenbook-duo-ux8406-second-screen, asus-zenbook-duo-ux8406-tcc-guard, asus-zenbook-duo-ux8406-keyboard-bpf, gnome-shell-extension-asus-zenbook-duo-ux8406-keys, gnome-shell-extension-builtin-screen-rotation
+Binary: asus-zenbook-duo-ux8406-second-screen, asus-zenbook-duo-ux8406-tcc-guard, asus-zenbook-duo-ux8406-keyboard-bpf, gnome-shell-extension-asus-zenbook-duo-ux8406-keys, gnome-shell-extension-builtin-screen-rotation, asus-zenbook-duo-ux8406-kde-keys, plasma-builtin-screen-rotation, asus-zenbook-duo-ux8406-kde-shortcuts
 Architecture: amd64
 Version: 0.5.0-1
 Build-Depends: debhelper-compat (= 13),
@@ -16,4 +16,5 @@ Build-Depends: debhelper-compat (= 13),
  linux-libc-dev (>= 6.10),
  python3,
  libglib2.0-bin,
+ dbus-daemon,
  nodejs

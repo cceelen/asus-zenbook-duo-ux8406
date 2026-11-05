@@ -1,0 +1,146 @@
+.TH PLASMA\-BUILTIN\-SCREEN\-ROTATION 1 "2026" "asus\-zenbook\-duo\-ux8406" "User Commands"
+.SH NAME
+plasma\-builtin\-screen\-rotation \- turn the built\-in screens with the laptop in KDE Plasma
+.SH SYNOPSIS
+.B plasma\-builtin\-screen\-rotation
+.RB [ run | restore ]
+.br
+.B plasma\-builtin\-screen\-rotation
+.BR \-h " | " \-V
+.SH DESCRIPTION
+.B plasma\-builtin\-screen\-rotation
+turns the built\-in screens of a laptop when the laptop stands on its left or
+right side or upside down, also with a keyboard, a touchpad or a mouse
+connected. On its side, two built\-in screens go side by side, in the order in
+which they lie. When the laptop is upright again, the layout from before comes
+back. Upside down, the screens are turned by 180 degrees and go one below the
+other, the bottom one on top.
+.PP
+Each built\-in screen can also be turned by hand, on its own, to any of the four
+orientations (method
+.BR TurnScreen ).
+That puts Auto\-rotate off for the session: the sensor is not followed, so that
+it cannot undo the turn, and the property
+.B Enabled
+is false. The saved setting does not change, so that after a new login the
+screens follow the sensor again. The methods
+.B SetEnabled
+(with true) and
+.B Toggle
+switch Auto\-rotate on again: all screens go back under the sensor and turn to
+the orientation of the laptop at once. The screens stay as they lie, one below
+the other or side by side, in the same order. When the monitors change (the
+keyboard goes on or off the lower screen), each held screen that is shown is
+turned to its orientation again; if KWin does not take that, the screen is not
+held any more.
+.PP
+The program is made for the two screens of the ASUS Zenbook Duo UX8406, but it
+operates on a laptop of any model. It needs KDE Plasma 6.6 or later on Wayland,
+and
+.BR iio\-sensor\-proxy (8)
+for the orientation.
+.PP
+An XDG autostart entry starts the program in each Plasma session. The applet
+\(lqAuto\-rotate\(rq in the system tray turns the rotation on and off with a middle click,
+and a left click opens its popup. The program also registers the global shortcut
+\(lqToggle auto\-rotate\(rq with kglobalacceld, in the component
+\(lqAuto\-rotate screens\(rq, with no default key; set a key in System Settings,
+Shortcuts. The journal says who switched the rotation, for example
+\(lqrotation off (shortcut)\(rq. When no sensor
+gives the orientation, the applet shows two buttons that turn the
+screens by 90 degrees.
+.PP
+KWin turns only the first built\-in screen by itself. While the program runs, it
+sets KWin's setting \(lqAutomatic orientation\(rq to \(lqNever\(rq on each
+built\-in screen, and keeps the value from before in its configuration file.
+.SH COMMANDS
+.TP
+.B run
+Follow the orientation of the laptop until the session ends. This is the
+default.
+.TP
+.B restore
+Stop the program of this session and give each built\-in screen KWin's
+\(lqAutomatic orientation\(rq setting from before. Run it as the user, in the
+session, before the package is removed. A screen that is not connected keeps
+its saved value in the file until the next
+.BR restore .
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Print the help.
+.TP
+.BR \-V ", " \-\-version
+Print the version.
+.SH FILES
+.TP
+.I $XDG_CONFIG_HOME/plasma\-builtin\-screen\-rotation.toml
+Whether the rotation is on, and KWin's setting from before for each built\-in
+screen. Without
+.BR XDG_CONFIG_HOME ,
+the file is in
+.IR ~/.config .
+.TP
+.I /etc/xdg/autostart/plasma\-builtin\-screen\-rotation.desktop
+The entry that starts the program in each session.
+.TP
+.I ~/.config/kwinoutputconfig.json
+KWin's saved layouts. A turned layout stays there until the next login; the
+program then puts the screens as the laptop stands.
+.SH D\-BUS
+The program owns the name
+.B io.github.cceelen.BuiltinScreenRotation
+on the session bus. It has the properties
+.BR Enabled ,
+.B Control
+.RB ( switch ", " buttons " or " none ),
+.B CanTurnClockwise
+and
+.BR CanTurnCounterclockwise ,
+and the methods
+.BR SetEnabled ,
+.BR Toggle ,
+.BR TurnScreen ,
+.B Turn
+and
+.BR Quit .
+.B Enabled
+is false while a screen is held, whatever the saved setting says.
+.B Screens
+is an array of structures (connector, name, orientation) of the built\-in
+screens that are on, in the order of the compositor's list:
+.I Upper screen
+and
+.I Lower screen
+for two screens,
+.I Built\-in screen
+for one. The orientation is
+.BR normal ,
+.BR left\-up ,
+.BR right\-up
+or
+.BR bottom\-up ,
+and empty for a mirrored screen. The property signals its changes.
+.BI TurnScreen( connector , orientation )
+turns one screen, and the call fails with an error for an unknown orientation.
+.B Turn
+turns all screens by 90 degrees and ends the hold.
+.B Toggle
+switches the rotation on when it is off, and off when it is on: the program
+holds the state. Each change of the state is one line in the journal, with the
+method that asked. After
+.BR Quit ,
+the program changes no setting and no layout of KWin, and ends.
+.SH EXIT STATUS
+0 when the session ends, or when
+.B restore
+is done. 1 when the program cannot use the session bus or KWin's outputs, when
+an instance runs already, when the configuration file cannot be read or
+written, or when KWin does not take the settings back. The journal gives the
+cause.
+.SH SEE ALSO
+.BR kscreen\-doctor (1),
+.BR iio\-sensor\-proxy (8),
+.BR journalctl (1)
+.PP
+https://github.com/cceelen/asus\-zenbook\-duo\-ux8406

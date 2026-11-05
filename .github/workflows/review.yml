@@ -56,7 +56,7 @@ jobs:
             You are a senior engineer reviewing pull request
             #${{ github.event.pull_request.number }} of ${{ github.repository }}: Linux packages
             (Rust programs, a HID-BPF program in C, udev rules, systemd and OpenRC units,
-            GNOME Shell extensions, recipes for six distributions and Nix) for the ASUS
+            GNOME Shell extensions, KDE Plasma programs, a KWin script and an applet, recipes for six distributions and Nix) for the ASUS
             Zenbook Duo UX8406. Two programs run as root.
 
             Steps:
@@ -80,12 +80,12 @@ jobs:
                   the distributions out of step with meson.build.
                5. Compatibility: Linux 6.11 and the BPF verifier, the match on the
                   UX8406 (on other machines the programs must do nothing), GNOME
-                  Shell 45 to 51, Rust 1.85, the distributions in README.md.
+                  Shell 45 to 51, KDE Plasma 6, Rust 1.85, the distributions in README.md.
                6. Bugs: wrong logic, error paths, edge cases, panics (release builds
                   abort on panic), an extension whose disable() does not undo enable().
                7. Tests: reliability (no dependence on timing, order, root, hardware,
                   network), efficacy (they fail if the change is wrong; error paths;
-                  the guard keeps 100 % region coverage), quality (one topic for each
+                  the guard and the KDE crates keep 100 % region coverage), quality (one topic for each
                   file in tests/, fixtures, no test code in src/).
                8. The rules of CONTRIBUTING.md. Quote the rule.
                9. Release metadata and documents: the title of the pull request is a
