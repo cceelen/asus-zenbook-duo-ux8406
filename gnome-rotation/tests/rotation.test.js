@@ -12,7 +12,17 @@ import {
     twoPanels,
     UPPER,
 } from '../../gnome-common/tests/fixtures.js';
-import {control, orientationOf, rotate, turned, uprightAfter} from '../extension/rotation.js';
+import {
+    buttonsFrom,
+    control,
+    orientationOf,
+    rotate,
+    screens,
+    turned,
+    turnMany,
+    turnOne,
+    uprightAfter,
+} from '../extension/rotation.js';
 import {find, isValid, readState} from '../extension/state.js';
 
 // The laptop on its side. A panel of 2880x1800 at scale 1.25 takes 2304x1440
@@ -60,6 +70,40 @@ test('from one side to the other', () => {
     assert.deepEqual(place(layout, LOWER), [1440, 0, 3]);
 });
 
+test('upside down: both panels turned by 180 degrees, the lower one on top', () => {
+    const layout = rotate(twoPanels(), 'bottom-up');
+
+    assert.deepEqual(place(layout, LOWER), [0, 0, 2]);
+    assert.deepEqual(place(layout, UPPER), [0, 1440, 2]);
+});
+
+test('upright again after upside down: the layout from before', () => {
+    const upright = twoPanels();
+    const turned = {...upright, logical: rotate(upright, 'bottom-up')};
+    const layout = rotate(turned, 'normal', uprightAfter(upright, 'bottom-up', null));
+
+    assert.deepEqual(place(layout, UPPER), [0, 0, 0]);
+    assert.deepEqual(place(layout, LOWER), [0, 1440, 0]);
+});
+
+test('from a side to upside down', () => {
+    const turned = twoPanels();
+
+    turned.logical = rotate(turned, 'left-up');
+
+    const layout = rotate(turned, 'bottom-up');
+
+    assert.deepEqual(place(layout, LOWER), [0, 0, 2]);
+    assert.deepEqual(place(layout, UPPER), [0, 1440, 2]);
+});
+
+test('upside down with the lower panel off: only the upper one is turned', () => {
+    const layout = rotate(lowerOff(), 'bottom-up');
+
+    assert.equal(layout.length, 1);
+    assert.deepEqual(place(layout, UPPER), [0, 0, 2]);
+});
+
 test('with the lower panel off, only the upper one is turned', () => {
     const layout = rotate(lowerOff(), 'left-up');
 
@@ -76,8 +120,7 @@ test('nothing to do when the layout is that one already', () => {
     assert.equal(rotate(turned, 'right-up'), null);
 });
 
-test('upside down and an unknown orientation change nothing', () => {
-    assert.equal(rotate(twoPanels(), 'bottom-up'), null);
+test('an unknown orientation changes nothing', () => {
     assert.equal(rotate(twoPanels(), 'undefined'), null);
     // Not an orientation, but the name of something that each object has.
     assert.equal(rotate(twoPanels(), 'constructor'), null);
@@ -447,18 +490,29 @@ test('the buttons turn by 90 degrees, from left side up to right side up', () =>
     assert.equal(turned('bottom-up', 'clockwise'), null);
 });
 
+test('after a turn upside down, both buttons turn the panels again', () => {
+    // The menu turned the panels upside down; the buttons start from upright.
+    assert.equal(buttonsFrom('bottom-up'), 'normal');
+    assert.equal(turned(buttonsFrom('bottom-up'), 'clockwise'), 'right-up');
+    assert.equal(turned(buttonsFrom('bottom-up'), 'counterclockwise'), 'left-up');
+    // Panels turned differently, or not known: from upright as well.
+    assert.equal(buttonsFrom(null), 'normal');
+    // A position of the buttons stays as it is.
+    for (const orientation of ['left-up', 'normal', 'right-up'])
+        assert.equal(buttonsFrom(orientation), orientation);
+});
+
 test('the orientation comes from the turn of the built-in panels', () => {
     const upright = twoPanels();
 
     assert.equal(orientationOf(upright), 'normal');
     assert.equal(orientationOf(lowerOff()), 'normal');
-    for (const orientation of ['left-up', 'right-up'])
+    for (const orientation of ['left-up', 'right-up', 'bottom-up'])
         assert.equal(
             orientationOf({...upright, logical: rotate(upright, orientation)}),
             orientation,
         );
-    // The panels turned differently, or upside down: no position of the
-    // buttons.
+    // The panels turned differently: no orientation.
     const [upper, lower] = upright.logical;
 
     assert.equal(orientationOf({...upright, logical: [{...upper, transform: 1}, lower]}), null);
@@ -467,9 +521,290 @@ test('the orientation comes from the turn of the built-in panels', () => {
             ...upright,
             logical: [
                 {...upper, transform: 2},
-                {...lower, transform: 2},
+                {...lower, transform: 0},
             ],
         }),
         null,
+    );
+});
+
+// One panel turned by itself.
+const withTurn = (state, connector, orientation) => ({
+    ...state,
+    logical: turnOne(state, connector, orientation),
+});
+
+test('one panel by 180 degrees: the panels face each other, nothing else moves', () => {
+    const layout = turnOne(twoPanels(), LOWER, 'bottom-up');
+
+    assert.deepEqual(place(layout, UPPER), [0, 0, 0]);
+    assert.deepEqual(place(layout, LOWER), [0, 1440, 2]);
+});
+
+test('one panel by 90 degrees: the other one is placed below it, from the same corner', () => {
+    const layout = turnOne(twoPanels(), UPPER, 'left-up');
+
+    assert.deepEqual(place(layout, UPPER), [0, 0, 1]);
+    assert.deepEqual(place(layout, LOWER), [0, 2304, 0]);
+});
+
+test('each panel in its own orientation, one after the other', () => {
+    const one = withTurn(twoPanels(), LOWER, 'bottom-up');
+    const layout = turnOne(one, UPPER, 'right-up');
+
+    assert.deepEqual(place(layout, UPPER), [0, 0, 3]);
+    assert.deepEqual(place(layout, LOWER), [0, 2304, 2]);
+    assert.deepEqual(
+        orientationOf({...one, logical: layout}),
+        null,
+        'two orientations are no orientation of the laptop',
+    );
+});
+
+test('side by side stays side by side, in the same order', () => {
+    const side = {...twoPanels(), logical: rotate(twoPanels(), 'right-up')};
+    const layout = turnOne(side, UPPER, 'normal');
+
+    assert.deepEqual(place(layout, UPPER), [0, 0, 0]);
+    assert.deepEqual(place(layout, LOWER), [2304, 0, 3]);
+});
+
+test('the order of the panels is the order in the layout, not the names', () => {
+    const state = readState([
+        10,
+        [monitor(UPPER), monitor(LOWER)],
+        [logical(LOWER, 0, 0, false), logical(UPPER, 0, 1440, true)],
+        properties,
+    ]);
+    const layout = turnOne(state, LOWER, 'left-up');
+
+    assert.deepEqual(place(layout, LOWER), [0, 0, 1]);
+    assert.deepEqual(place(layout, UPPER), [0, 2304, 0]);
+});
+
+test('a monitor below the panels moves by as much as they grow', () => {
+    const state = readState([
+        4,
+        [monitor(UPPER), monitor(LOWER), monitor('DP-7')],
+        [
+            logical(UPPER, 0, 0, false),
+            logical(LOWER, 0, 1440, true),
+            logical('DP-7', 300, 2880, false, 1),
+        ],
+        properties,
+    ]);
+
+    assert.deepEqual(place(turnOne(state, UPPER, 'left-up'), 'DP-7'), [300, 3744, 0]);
+});
+
+test('a monitor below panels that shrink slides to the nearest of two panels', () => {
+    const state = readState([
+        41,
+        [
+            monitor(UPPER),
+            monitor(LOWER),
+            [['DP-7', 'X', 'y', 'z'], [['m', 100, 50, 60, 1, [1], {'is-current': true}]], {}],
+        ],
+        [
+            logical(UPPER, 0, 0, false),
+            logical(LOWER, 2304, 0, true),
+            logical('DP-7', 4000, 1440, false, 1),
+        ],
+        properties,
+    ]);
+    const layout = turnMany(state, {[UPPER]: 'left-up', [LOWER]: 'left-up'});
+
+    // The panels are 1440 wide each and 2304 high: the monitor ends at the
+    // right edge of the right one.
+    assert.ok(isValid(state, layout));
+    assert.deepEqual(place(layout, 'DP-7'), [2780, 2304, 0]);
+});
+
+test('one panel alone is turned', () => {
+    const layout = turnOne(lowerOff(), UPPER, 'bottom-up');
+
+    assert.equal(layout.length, 1);
+    assert.deepEqual(place(layout, UPPER), [0, 0, 2]);
+});
+
+test('turning one panel changes nothing where it cannot be done', () => {
+    const state = twoPanels();
+    const mirrored = twoPanels();
+
+    mirrored.logical[1].transform = 4;
+
+    const noMode = readState([
+        16,
+        [monitor(UPPER), [['DP-7', 'X', 'y', 'z'], [], {}]],
+        [logical(UPPER, 0, 0, true), logical('DP-7', 2304, 0, false, 1)],
+        properties,
+    ]);
+
+    assert.equal(turnOne(state, UPPER, 'undefined'), null);
+    assert.equal(turnOne(state, UPPER, 'constructor'), null);
+    assert.equal(turnOne(state, 'DP-9', 'left-up'), null);
+    assert.equal(turnOne(lowerOff(), LOWER, 'left-up'), null);
+    assert.equal(turnOne(state, UPPER, 'normal'), null);
+    assert.equal(turnOne(mirrored, UPPER, 'left-up'), null);
+    assert.equal(turnOne(mirrored, LOWER, 'normal'), null);
+    assert.equal(turnOne(noMode, UPPER, 'left-up'), null);
+});
+
+test('a monitor that is not a built-in panel is not turned', () => {
+    const state = readState([
+        4,
+        [monitor(UPPER), monitor('DP-7')],
+        [logical(UPPER, 0, 0, true), logical('DP-7', 2304, 0, false, 1)],
+        properties,
+    ]);
+
+    assert.equal(turnOne(state, 'DP-7', 'left-up'), null);
+});
+
+test('auto-rotate again after panels were turned by hand: the layout from before', () => {
+    const upright = twoPanels();
+    const byHand = withTurn(upright, LOWER, 'bottom-up');
+    const layout = rotate(byHand, 'normal', upright.logical);
+
+    assert.deepEqual(place(layout, UPPER), [0, 0, 0]);
+    assert.deepEqual(place(layout, LOWER), [0, 1440, 0]);
+});
+
+test('auto-rotate again: the panels keep the order of the list of built-in panels', () => {
+    const upright = twoPanels();
+    const byHand = withTurn(upright, LOWER, 'bottom-up');
+    const top = [UPPER, LOWER];
+    const side = rotate(byHand, 'left-up', null, top);
+
+    // Left side up: the lower panel is on the left.
+    assert.deepEqual(place(side, LOWER), [0, 0, 1]);
+    assert.deepEqual(place(side, UPPER), [1440, 0, 1]);
+
+    const flat = rotate(byHand, 'normal', null, top);
+
+    assert.deepEqual(place(flat, UPPER), [0, 0, 0]);
+    assert.deepEqual(place(flat, LOWER), [0, 1440, 0]);
+    // The other way round in the list: the other panel is on top.
+    assert.deepEqual(place(rotate(byHand, 'normal', null, [LOWER, UPPER]), LOWER), [0, 0, 0]);
+});
+
+test('a list of panels that misses one is not used; panels turned alike ignore it', () => {
+    const byHand = withTurn(twoPanels(), LOWER, 'bottom-up');
+
+    assert.deepEqual(rotate(byHand, 'normal', null, [UPPER]), rotate(byHand, 'normal'));
+    assert.deepEqual(
+        rotate(twoPanels(), 'left-up', null, [LOWER, UPPER]),
+        rotate(twoPanels(), 'left-up'),
+    );
+});
+
+test('panels put back to their orientations, also after the compositor made them upright', () => {
+    const layout = turnMany(twoPanels(), {[UPPER]: 'normal', [LOWER]: 'bottom-up'});
+
+    assert.deepEqual(place(layout, LOWER), [0, 1440, 2]);
+
+    const both = turnMany(twoPanels(), {[UPPER]: 'left-up', [LOWER]: 'right-up'});
+
+    assert.deepEqual(place(both, UPPER), [0, 0, 1]);
+    assert.deepEqual(place(both, LOWER), [0, 2304, 3]);
+});
+
+test('panels put back: a panel that is gone is left out; nothing to do gives null', () => {
+    const layout = turnMany(lowerOff(), {[UPPER]: 'bottom-up', [LOWER]: 'left-up'});
+
+    assert.equal(layout.length, 1);
+    assert.deepEqual(place(layout, UPPER), [0, 0, 2]);
+    assert.equal(turnMany(twoPanels(), {}), null);
+    assert.equal(turnMany(twoPanels(), {[UPPER]: 'normal'}), null);
+    assert.equal(turnMany(twoPanels(), {[UPPER]: 'undefined'}), null);
+});
+
+test('a monitor right of the panels slides to the panel that reaches the new edge', () => {
+    const state = readState([
+        4,
+        [monitor(UPPER), monitor(LOWER), monitor('DP-7')],
+        [
+            logical(UPPER, 0, 0, false),
+            logical(LOWER, 0, 1440, true),
+            logical('DP-7', 2304, 200, false, 1),
+        ],
+        properties,
+    ]);
+
+    // The widest edge is the lower panel's, 2304 down: the monitor is level
+    // with its top.
+    assert.deepEqual(place(turnOne(state, UPPER, 'left-up'), 'DP-7'), [2304, 2304, 0]);
+});
+
+test('a monitor below side by side panels slides to the panel that reaches the new edge', () => {
+    const side = readState([
+        40,
+        [
+            monitor(UPPER),
+            monitor(LOWER),
+            [['DP-7', 'X', 'y', 'z'], [['m', 1000, 500, 60, 1, [1], {'is-current': true}]], {}],
+        ],
+        [
+            logical(UPPER, 0, 0, false),
+            logical(LOWER, 1440, 0, true),
+            logical('DP-7', 100, 2304, false, 1),
+        ],
+        properties,
+    ]);
+
+    side.logical[0].transform = 3;
+    side.logical[1].transform = 3;
+
+    const layout = turnOne(side, UPPER, 'normal');
+
+    assert.ok(isValid(side, layout));
+    assert.deepEqual(place(layout, 'DP-7'), [2304, 2304, 0]);
+});
+
+test('the screens: two panels are the upper and the lower screen', () => {
+    const state = twoPanels();
+
+    assert.deepEqual(screens(state), [
+        {connector: UPPER, name: 'Upper screen', orientation: 'normal'},
+        {connector: LOWER, name: 'Lower screen', orientation: 'normal'},
+    ]);
+    assert.deepEqual(
+        screens(withTurn(state, LOWER, 'bottom-up')).map((screen) => screen.orientation),
+        ['normal', 'bottom-up'],
+    );
+});
+
+test('the screens: one panel is the built-in screen; a panel that is off is left out', () => {
+    assert.deepEqual(screens(lowerOff()), [
+        {connector: UPPER, name: 'Upper screen', orientation: 'normal'},
+    ]);
+
+    const docked = readState([9, [monitor(UPPER)], [logical(UPPER, 0, 0, true)], properties]);
+
+    assert.deepEqual(screens(docked), [
+        {connector: UPPER, name: 'Built-in screen', orientation: 'normal'},
+    ]);
+});
+
+test('the screens: more than two panels are numbered; a mirrored panel has no orientation', () => {
+    const state = readState([
+        9,
+        [monitor(UPPER), monitor(LOWER), monitor('eDP-3')],
+        [
+            logical(UPPER, 0, 0, true),
+            logical(LOWER, 0, 1440, false),
+            logical('eDP-3', 0, 2880, false),
+        ],
+        properties,
+    ]);
+
+    state.logical[2].transform = 5;
+    assert.deepEqual(
+        screens(state).map(({name, orientation}) => [name, orientation]),
+        [
+            ['Built-in screen 1', 'normal'],
+            ['Built-in screen 2', 'normal'],
+            ['Built-in screen 3', null],
+        ],
     );
 });

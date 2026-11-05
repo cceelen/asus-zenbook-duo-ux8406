@@ -1,7 +1,17 @@
 {
   "uuid": "asus-zenbook-duo-ux8406-keys@cceelen.github.io",
   "name": "Zenbook Duo keys",
-  "description": "ASUS Zenbook Duo UX8406: the key right of F12 switches the lower panel on and off, F8 swaps the windows of the two panels. Needs the asus-zenbook-duo-ux8406-keyboard-bpf package, which makes the keyboard deliver these keys. It also gives each touchscreen its panel.",
-  "shell-version": ["45", "46", "47", "48", "49", "50", "51"],
-  "settings-schema": "org.gnome.shell.extensions.asus-zenbook-duo-ux8406-keys"
+  "description": "ASUS Zenbook Duo UX8406: the key right of F12 switches the lower panel on and off, F8 swaps the windows of the two panels. It also gives each touchscreen its panel.\n\nThe two keys need the keyboard program asus-zenbook-duo-ux8406-keyboard-bpf, from your distribution's package manager: https://github.com/cceelen/asus-zenbook-duo-ux8406 tells how to install it. The touchscreens need nothing more. On other machines the extension does nothing.",
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51"
+  ],
+  "url": "https://github.com/cceelen/gnome-extension",
+  "settings-schema": "org.gnome.shell.extensions.asus-zenbook-duo-ux8406-keys",
+  "version-name": "0.6.2"
 }

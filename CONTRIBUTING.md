@@ -110,6 +110,19 @@ in each `extension/` directory are links to `gnome-common/`, and the build
 installs a copy in each extension. Their tests share the fixtures in
 `gnome-common/tests`.
 
+The tests of the extensions run with Node's test runner, and CI fails the run
+below 100 % of lines, branches or functions of the modules that they load. The
+modules that need a GNOME Shell (`extension.js`, `display.js`, `sensor.js`) are
+not loaded by a test, so they are not in it. The same check here:
+
+```sh
+node --test --experimental-test-coverage --test-coverage-exclude='**/tests/**' \
+    --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \
+    gnome-keys/tests/layout.test.js gnome-keys/tests/touch.test.js \
+    gnome-keys/tests/vectors.test.js gnome-rotation/tests/hold.test.js gnome-rotation/tests/rotation.test.js \
+    gnome-rotation/tests/vectors.test.js
+```
+
 ### Coverage
 
 The tests run each region of the guard. To measure it, with
@@ -167,6 +180,8 @@ uses the committed files only.
   Makefiles. No shell scripts for logic. A few lines of shell in a step of a
   workflow are not a script.
 - Use established crates for the command line, logging, signals and errors.
+- The coverage of the JavaScript that the tests load (the logic of the
+  extensions) stays at 100 % of its lines, branches and functions.
 - No test code in `src/`. Tests are in `tests/`, one file for each topic. A test
   machine is a directory tree in `tests/fixtures/`.
 - The coverage of the guard stays at 100 % of its regions.

@@ -205,15 +205,21 @@ jobs:
       - run: meson setup build -Dunit_checks=enabled
       - run: meson compile -C build
       - run: meson test -C build --print-errorlogs --no-suite failpoints
-      # Coverage of the extensions' logic, for the report only. The modules
-      # that need a GNOME Shell (extension.js, display.js, sensor.js) are not
-      # loaded by a test, so they are not in it.
-      - run: |
+      # Coverage of the extensions' logic, with a limit of 100 % of lines,
+      # branches and functions. The modules that need a GNOME Shell
+      # (extension.js, display.js, sensor.js) are not loaded by a test, so they
+      # are not in it.
+      # `shell: bash` gives pipefail: without it, the step has the exit
+      # status of tee, and a test or the limit that fails passes.
+      - shell: bash
+        run: |
           node --test --experimental-test-coverage --test-coverage-exclude='**/tests/**' \
+            --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \
             --test-reporter=spec --test-reporter-destination=stdout \
             --test-reporter=lcov --test-reporter-destination=js.lcov \
             gnome-keys/tests/layout.test.js gnome-keys/tests/touch.test.js \
-            gnome-rotation/tests/rotation.test.js | tee js.txt
+            gnome-keys/tests/vectors.test.js gnome-rotation/tests/hold.test.js gnome-rotation/tests/rotation.test.js \
+            gnome-rotation/tests/vectors.test.js | tee js.txt
           {
             echo '### Coverage of the extensions'
             echo '```text'

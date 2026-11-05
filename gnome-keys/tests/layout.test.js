@@ -60,6 +60,34 @@ test('underscanning and the monitors for lease are read, to be kept', () => {
     ]);
 });
 
+test('the range of the colours of a monitor is read, to be kept', () => {
+    const tv = [
+        ['HDMI-1', 'TV', 'p', 's'],
+        [['1920x1080@60.000', 1920, 1080, 60, 1, [1], {'is-current': true}]],
+        {'rgb-range': 2},
+    ];
+    const state = readState([
+        2,
+        [monitor(UPPER), tv],
+        [logical(UPPER, 0, 0, true), logical('HDMI-1', 2304, 0, false, 1)],
+        properties,
+    ]);
+
+    assert.equal(state.connected.get('HDMI-1').rgbRange, 2);
+});
+
+test('the layout mode and the right to change it are read', () => {
+    const read = (extra) => readState([2, [monitor(UPPER)], [logical(UPPER, 0, 0, true)], extra]);
+
+    assert.equal(read({'layout-mode': 2}).logicalMode, false);
+    assert.equal(read({'layout-mode': 1}).logicalMode, true);
+    // Without a layout mode the compositor lays out in logical pixels.
+    assert.equal(read({}).logicalMode, true);
+    assert.equal(read({}).canSetMode, false);
+    assert.equal(read({'supports-changing-layout-mode': false}).canSetMode, false);
+    assert.equal(read({'supports-changing-layout-mode': 'yes'}).canSetMode, false);
+});
+
 test('a monitor that is off has the mode it prefers', () => {
     assert.equal(lowerOff().connected.get(LOWER).id, '2880x1800@120.000');
 });
@@ -71,6 +99,13 @@ test('taking the lower panel out leaves the upper one as the primary', () => {
     assert.deepEqual(rest[0].connectors, [UPPER]);
     assert.equal(rest[0].primary, true);
     assert.equal(rest[0].y, 0);
+});
+
+test('the primary out with an heir that is not shown: the first monitor is the primary', () => {
+    const rest = without(twoPanels(), LOWER, 'DP-9');
+
+    assert.deepEqual(rest[0].connectors, [UPPER]);
+    assert.equal(rest[0].primary, true);
 });
 
 test('what is left moves to the origin', () => {
@@ -335,4 +370,18 @@ test('a layout becomes the arguments of ApplyMonitorsConfig', () => {
         [0, 1440, 1.25, 0, true, [[LOWER, '2880x1800@120.000', kept]]],
     ]);
     assert.equal(toConfig(state.logical, new Map()), null);
+});
+
+test('a layout with a monitor that has no mode gives no arguments', () => {
+    const state = twoPanels();
+    const without = new Map(state.connected);
+
+    without.delete(LOWER);
+    assert.equal(toConfig(state.logical, without), null);
+
+    // Mirrored: one of the two monitors of the logical monitor has no mode.
+    const mirrored = [{...state.logical[0], connectors: [UPPER, LOWER]}];
+
+    assert.equal(toConfig(mirrored, without), null);
+    assert.notEqual(toConfig(mirrored, state.connected), null);
 });
