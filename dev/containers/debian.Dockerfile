@@ -22,7 +22,7 @@ RUN apt-get update -q \
     && apt-get install -qy --no-install-recommends build-essential debhelper \
         ca-certificates git fakeroot meson ninja-build pkgconf systemd-dev udev \
         cargo rustc clang libbpf-dev linux-libc-dev python3 libglib2.0-bin \
-        nodejs lintian \
+        nodejs dbus-daemon lintian \
     && rm -rf /var/lib/apt/lists/*
 # The tests of the guard need an ordinary user: root ignores file permissions.
 RUN useradd -m builder
@@ -33,7 +33,7 @@ WORKDIR /src
 # checkout; it carries the crates in vendor/). This step needs the network.
 RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
-    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false -Dkde_shortcuts=false \
+    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false -Dkde_shortcuts=false -Dkde=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
 # The packages, from that archive, without network, and lintian on the result
 # (source package and all binary packages, via the .changes file): every tag is

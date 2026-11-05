@@ -9,7 +9,7 @@ pkgdesc="Lower panel of the Zenbook Duo UX8406 off while the keyboard lies on it
 url="https://github.com/cceelen/asus-zenbook-duo-ux8406"
 arch="x86_64"
 license="MIT"
-makedepends="abuild-meson cargo glib-dev meson nodejs python3 samurai"
+makedepends="abuild-meson cargo dbus glib-dev meson nodejs python3 samurai"
 # The scripts of the -openrc subpackage are named here as well: abuild reads
 # the install scripts of all subpackages from this list, by the name of the
 # package each belongs to. They start the guard, and stop it, which puts the
@@ -25,6 +25,7 @@ subpackages="
 	gnome-shell-extension-asus-zenbook-duo-ux8406-keys:gnome_keys:noarch
 	gnome-shell-extension-builtin-screen-rotation:gnome_rotation:noarch
 	asus-zenbook-duo-ux8406-kde-shortcuts:kde_shortcuts:noarch
+	asus-zenbook-duo-ux8406-kde-keys:kde_keys
 	$_guard:guard
 	$_guard-openrc:guard_openrc
 	$_guard-doc:guard_doc:noarch
@@ -100,6 +101,17 @@ kde_shortcuts() {
 
 	amove usr/share/kglobalaccel
 	amove usr/share/licenses/asus-zenbook-duo-ux8406-kde-shortcuts
+}
+
+kde_keys() {
+	pkgdesc="KDE Plasma integration for the display keys of the Zenbook Duo UX8406"
+	license="MIT"
+	depends="kwin"
+
+	amove usr/libexec/asus-ux8406-kde-keys
+	amove etc/xdg/autostart/asus-ux8406-kde-keys.desktop
+	amove usr/share/kwin/scripts/asus-zenbook-duo-ux8406-keys
+	amove usr/share/licenses/asus-zenbook-duo-ux8406-kde-keys
 }
 
 guard() {

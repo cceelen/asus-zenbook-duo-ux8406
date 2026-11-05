@@ -11,6 +11,8 @@ option('rotation', type: 'boolean', value: true,
        description: 'gnome-rotation: GNOME Shell extension that turns the built-in panels')
 option('kde_shortcuts', type: 'boolean', value: true,
        description: 'kde-shortcuts: default KDE Plasma shortcuts for function keys')
+option('kde', type: 'boolean', value: true,
+       description: 'kde-keys: KDE Plasma program and KWin script for the two display keys and the touchscreens')
 
 # How the guard is started.
 option('init', type: 'combo', choices: ['systemd', 'openrc'], value: 'systemd',

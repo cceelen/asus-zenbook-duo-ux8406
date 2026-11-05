@@ -21,6 +21,7 @@
   python3,
   glib,
   nodejs,
+  dbus,
   cargo-cyclonedx,
 }:
 let
@@ -71,6 +72,7 @@ let
           (option "gnome")
           (option "rotation")
           (option "kde_shortcuts")
+          (option "kde")
           # The guard goes to bin/, not sbin/ (nixpkgs has no sbin on PATH).
           "--sbindir=bin"
           "-Dudevdir=${placeholder "out"}/lib/udev"
@@ -277,6 +279,24 @@ in
       meta = meta // {
         description = "GNOME Shell extension that turns the built-in screens with the laptop";
         license = lib.licenses.mit;
+      };
+    };
+  };
+  # List it in environment.systemPackages: the autostart entry is in
+  # etc/xdg/autostart of the package.
+  kde-keys = mkPart {
+    enable = [ "kde" ];
+    attrs = rustInputs // {
+      pname = "asus-zenbook-duo-ux8406-kde-keys";
+      passthru.bombonVendoredSbom = vendoredSbom "asus-ux8406-kde-keys";
+      # dbus-daemon: the tests start a private bus.
+      nativeBuildInputs = rustInputs.nativeBuildInputs ++ [ dbus ];
+      # Below the prefix: Nix has no /etc to install into.
+      mesonFlags = rustInputs.mesonFlags ++ [ "--sysconfdir=etc" ];
+      meta = meta // {
+        description = "KDE Plasma integration for the display keys of the Zenbook Duo UX8406";
+        license = lib.licenses.mit;
+        mainProgram = "asus-ux8406-kde-keys";
       };
     };
   };

@@ -12,6 +12,7 @@ The keys need the [keyboard package](../keyboard-bpf/README.md).
 
 F12 (MyASUS) sends `KEY_F13`, which xkeyboard-config makes `XF86Tools`. Plasma
 binds that key to System Settings by itself, so this package does not bind it.
+The two display keys are in the [keys package](../kde-keys/README.md).
 
 ## How it operates
 

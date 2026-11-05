@@ -1,4 +1,4 @@
-# Each night on main: the coverage of the three Rust programs and of the
+# Each night on main: the coverage of the four Rust programs and of the
 # logic of the extensions, to the summary of the run and to Codecov, which
 # shows main in its badge and graphs. Pull requests are measured in ci.yml,
 # with the same steps; a rebase merge gives main other commits, so their
@@ -41,7 +41,7 @@ jobs:
             echo "No commit on main since the last night: nothing to measure."
           fi
 
-  # One measurement of the three programs, the guard with its fail points.
+  # One measurement of the four programs, the guard with its fail points.
   # The clean removes data from an earlier run that the cache brought back.
   rust:
     needs: changed
@@ -69,7 +69,7 @@ jobs:
           cargo llvm-cov clean --workspace
           cargo test --locked -p asus-ux8406-tcc-guard --features failpoints
           cargo test --locked -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
-          cargo test --locked -p asus-ux8406-kde-common
+          cargo test --locked -p asus-ux8406-kde-common -p asus-ux8406-kde-keys
           # The test of the state map makes a BPF map and pins it: that needs
           # root. Its binary is built as the user, and only it runs with sudo.
           bin=$(cargo test --locked -p asus-ux8406-keyboard-state --test root --no-run --message-format=json |
@@ -110,7 +110,7 @@ jobs:
             --test-reporter=lcov --test-reporter-destination=js.lcov \
             gnome-keys/tests/layout.test.js gnome-keys/tests/touch.test.js \
             gnome-keys/tests/vectors.test.js gnome-rotation/tests/hold.test.js gnome-rotation/tests/rotation.test.js \
-            gnome-rotation/tests/vectors.test.js | tee js.txt
+            gnome-rotation/tests/vectors.test.js kde-keys/tests/script.test.js | tee js.txt
           {
             echo '### Coverage of the extensions'
             echo '```text'

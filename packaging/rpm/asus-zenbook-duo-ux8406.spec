@@ -23,10 +23,12 @@ BuildRequires:  python3
 BuildRequires:  systemd-rpm-macros
 %if 0%{?suse_version}
 BuildRequires:  ninja
+BuildRequires:  dbus-1-daemon
 BuildRequires:  glib2-tools
 BuildRequires:  linux-glibc-devel
 %else
 BuildRequires:  ninja-build
+BuildRequires:  dbus-daemon
 BuildRequires:  glib2
 BuildRequires:  kernel-headers
 %endif
@@ -47,11 +49,14 @@ BuildRequires:  kernel-headers
 %undefine _debugsource_packages
 %endif
 
-# openSUSE puts the Plasma 6 version in the names of its Plasma packages.
+# openSUSE names KWin kwin6 and puts the Plasma 6 version in the names of its
+# Plasma packages.
 %if 0%{?suse_version}
 %global plasmadesktoppkg plasma6-desktop
+%global kwinpkg kwin6
 %else
 %global plasmadesktoppkg plasma-desktop
+%global kwinpkg kwin
 %endif
 
 %global guarddocdir %{_docdir}/asus-zenbook-duo-ux8406-tcc-guard
@@ -145,6 +150,19 @@ Recommends:     asus-zenbook-duo-ux8406-keyboard-bpf
 %description -n asus-zenbook-duo-ux8406-kde-shortcuts
 The emoji key (F11) opens the emoji selector of Plasma. This package is
 optional: the key works without it, but does nothing in Plasma.
+
+%package -n asus-zenbook-duo-ux8406-kde-keys
+Summary:        KDE Plasma integration for the display keys of the Zenbook Duo UX8406
+License:        MIT
+Requires:       %{kwinpkg}
+Recommends:     asus-zenbook-duo-ux8406-keyboard-bpf
+
+%description -n asus-zenbook-duo-ux8406-kde-keys
+The key right of F12 switches the lower screen on and off, and F8 swaps the
+windows of the two screens (a KWin script). Each touchscreen and pen gets its
+panel. The keyboard delivers the keys with
+asus-zenbook-duo-ux8406-keyboard-bpf. For Plasma 6 on Wayland. Active after
+the next login. Does nothing on any other model.
 
 %prep
 %autosetup
@@ -304,6 +322,20 @@ fi
 %{_datadir}/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop
 %if 0%{?suse_version}
 %dir %{_datadir}/kglobalaccel
+%endif
+
+# Autostart entries are %%config(noreplace) although Fedora does not demand
+# it: they are files below /etc, rpmlint warns of any file there that is not
+# one, and an administrator who edits an entry keeps the change.
+%files -n asus-zenbook-duo-ux8406-kde-keys
+%license %{_defaultlicensedir}/asus-zenbook-duo-ux8406-kde-keys
+%doc README.md
+%{_libexecdir}/asus-ux8406-kde-keys
+%config(noreplace) %{_sysconfdir}/xdg/autostart/asus-ux8406-kde-keys.desktop
+%{_datadir}/kwin/scripts/asus-zenbook-duo-ux8406-keys/
+%if 0%{?suse_version}
+%dir %{_datadir}/kwin
+%dir %{_datadir}/kwin/scripts
 %endif
 
 %changelog

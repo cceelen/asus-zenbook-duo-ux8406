@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Authors": [{"Name": "Christian Ceelen"}],
+        "Description": "The two display keys of the ASUS Zenbook Duo UX8406: the lower screen on and off, and the windows of the two screens swapped",
+        "EnabledByDefault": true,
+        "Id": "asus-zenbook-duo-ux8406-keys",
+        "License": "MIT",
+        "Name": "ASUS Zenbook Duo UX8406 keys",
+        "Website": "https://github.com/cceelen/asus-zenbook-duo-ux8406"
+    },
+    "X-Plasma-API": "javascript",
+    "X-Plasma-MainScript": "code/main.js"
+}

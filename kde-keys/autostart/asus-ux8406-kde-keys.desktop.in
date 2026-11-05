@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=ASUS Zenbook Duo UX8406 keys
+Comment=Lower screen key and touchscreens of the ASUS Zenbook Duo UX8406
+Exec=@LIBEXECDIR@/asus-ux8406-kde-keys
+OnlyShowIn=KDE;
+NoDisplay=true
