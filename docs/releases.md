@@ -127,7 +127,7 @@ The attestations do not cover the packages from COPR, OBS and Alpine.
   and the checks of `ci.yml` as required status checks, with "Require branches
   to be up to date before merging". `ci.yml` does not run on a push to `main`:
   the pull request has checked the same tree. Required checks: `rust`,
-  `rust-oldest`, `audit`, `pre-commit`, `workflows`, `meson`,
+  `rust-oldest`, `rust-branches`, `audit`, `pre-commit`, `workflows`, `meson`,
   `dependency-review` and `release-files / archive`. For the tags: no deletion,
   no update.
 - Settings, Code security: enable "Private vulnerability reporting".

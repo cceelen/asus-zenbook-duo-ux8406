@@ -60,6 +60,7 @@ fn the_properties_give_the_state_back(#[case] state: State) {
 #[case::a_third_line("ASUS_UX8406_KBD_BACKLIGHT=3\nASUS_UX8406_KBD_FN_LOCK=0\nACTION=remove\n")]
 #[case::another_property("ASUS_UX8406_KBD_BACKLIGHT=3\nDEVPATH=0\n")]
 #[case::two_digits("ASUS_UX8406_KBD_BACKLIGHT=03\nASUS_UX8406_KBD_FN_LOCK=0\n")]
+#[case::no_equals_sign("garbage\nmore\n")]
 #[case::a_sign("ASUS_UX8406_KBD_BACKLIGHT=+\nASUS_UX8406_KBD_FN_LOCK=0\n")]
 #[case::no_value("ASUS_UX8406_KBD_BACKLIGHT=\nASUS_UX8406_KBD_FN_LOCK=0\n")]
 #[case::a_space("ASUS_UX8406_KBD_BACKLIGHT= 3\nASUS_UX8406_KBD_FN_LOCK=0\n")]

@@ -58,7 +58,7 @@ repos:
     rev: v22.1.8
     hooks:
       - id: clang-format
-        files: ^keyboard-bpf/src/
+        files: ^keyboard-bpf/(src|tests/host)/
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.10
     hooks:
@@ -121,6 +121,18 @@ repos:
           -Wno-microsoft-anon-tag -D__TARGET_ARCH_x86
         language: system
         files: ^keyboard-bpf/(src|include)/|^keyboard-bpf/\.clang-tidy$
+        pass_filenames: false
+      - id: clang-tidy-host
+        name: clang-tidy (host harness)
+        # The harness of keyboard-bpf/tests/host is host C, built as C23 (see
+        # tests/run_host.py), with the same checks as the program. The shim
+        # directory comes first, as in the build.
+        entry: >-
+          bash -c 'clang-tidy --quiet --config-file=keyboard-bpf/.clang-tidy
+          keyboard-bpf/tests/host/*.c --
+          -std=c23 -Ikeyboard-bpf/tests/host/shim -Ikeyboard-bpf/tests/host'
+        language: system
+        files: ^keyboard-bpf/(tests/host/|\.clang-tidy$)
         pass_filenames: false
       - id: cargo-fmt
         name: cargo fmt

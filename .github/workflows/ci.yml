@@ -64,16 +64,25 @@ jobs:
       - run: cp Cargo.lock fuzz/Cargo.lock
       - run: cargo clippy --manifest-path fuzz/Cargo.toml --all-targets -- -D warnings
       # Coverage of the three programs: one measurement, read twice. Every
-      # region of the guard is run by a test (the limit); second-screen and
-      # keyboard-state are measured for the report only. The clean removes
-      # data from an earlier run that the cache brought back.
-      - run: cargo llvm-cov clean --workspace
-      - run: cargo llvm-cov --locked --no-report -p asus-ux8406-tcc-guard --features failpoints
-      - run: cargo llvm-cov --locked --no-report -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
-      - run: >-
-          cargo llvm-cov report --ignore-filename-regex '/tests/|second-screen/|keyboard-state/'
-          --fail-under-regions 100
-      - run: |
+      # region of the three is run by a test (the limit), and every branch of
+      # all of them is in the job rust-branches. The clean removes data from
+      # an earlier run that the cache brought back.
+      # One step for the whole measurement: with the environment of
+      # `cargo llvm-cov show-env`, the tests, the test that runs as root and
+      # the report use one directory, so the data of the root test counts.
+      # `shell: bash` gives pipefail.
+      - shell: bash
+        run: |
+          eval "$(cargo llvm-cov show-env --sh)"
+          cargo llvm-cov clean --workspace
+          cargo test --locked -p asus-ux8406-tcc-guard --features failpoints
+          cargo test --locked -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
+          # The test of the state map makes a BPF map and pins it: that needs
+          # root. Its binary is built as the user, and only it runs with sudo.
+          bin=$(cargo test --locked -p asus-ux8406-keyboard-state --test root --no-run --message-format=json |
+            jq -r 'select(.target.name == "root" and .executable != null) | .executable')
+          sudo env LLVM_PROFILE_FILE="$LLVM_PROFILE_FILE" "$bin" --nocapture
+          cargo llvm-cov report --ignore-filename-regex /tests/ --fail-under-regions 100
           cargo llvm-cov report --ignore-filename-regex /tests/ --lcov --output-path rust.lcov
           {
             echo '### Rust coverage'
@@ -115,6 +124,52 @@ jobs:
           toolchain: "1.85"
       - run: cargo check --locked --workspace --all-targets
       - run: cargo check --locked -p asus-ux8406-tcc-guard --all-targets --features failpoints
+
+  # Every branch of the Rust programs is run by a test (the limit). Stable
+  # rustc does not take the flag for the branch counters, so this job uses the
+  # nightly compiler; the regions of the other measurement stay on stable. The
+  # same runs as in the job rust.
+  rust-branches:
+    runs-on: ubuntu-26.04
+    env:
+      # A new lint of the nightly compiler is no reason to fail this job.
+      CARGO_BUILD_WARNINGS: allow
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/rust
+        with:
+          # A nightly of a fixed date: the branch counters and the flag
+          # --branch are unstable, and a required check must give the same
+          # result for the same commit. Moved forward on purpose (refer to
+          # CONTRIBUTING.md).
+          toolchain: nightly-2026-11-01
+          components: llvm-tools-preview
+      - uses: taiki-e/install-action@f7e5d7c961414b23f5b25b2da9294395d08513ad # v2.87.26
+        with:
+          tool: cargo-llvm-cov
+      # One step for the whole measurement: with the environment of
+      # `cargo llvm-cov show-env`, the tests, the test that runs as root and
+      # the report use one directory, so the data of the root test counts.
+      # `shell: bash` gives pipefail.
+      - shell: bash
+        run: |
+          eval "$(cargo llvm-cov show-env --sh --branch)"
+          cargo llvm-cov clean --workspace
+          cargo test --locked -p asus-ux8406-tcc-guard --features failpoints
+          cargo test --locked -p asus-ux8406-second-screen -p asus-ux8406-keyboard-state
+          # The test of the state map makes a BPF map and pins it: that needs
+          # root. Its binary is built as the user, and only it runs with sudo.
+          bin=$(cargo test --locked -p asus-ux8406-keyboard-state --test root --no-run --message-format=json |
+            jq -r 'select(.target.name == "root" and .executable != null) | .executable')
+          sudo env LLVM_PROFILE_FILE="$LLVM_PROFILE_FILE" "$bin" --nocapture
+          # cargo-llvm-cov has no limit for branches: the summary says how
+          # many are not run.
+          cargo llvm-cov report --branch --ignore-filename-regex /tests/ \
+            --json --summary-only --output-path branches.json
+          jq '.data[0].totals.branches' branches.json
+          jq -e '.data[0].totals.branches.notcovered == 0' branches.json
 
   # The weekly run on main also catches the advisories that appear without a
   # commit.
@@ -200,7 +255,7 @@ jobs:
           workspaces: . -> build/cargo
       - run: >-
           sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends
-          meson ninja-build pkgconf clang libbpf-dev linux-libc-dev
+          meson ninja-build pkgconf clang llvm libbpf-dev linux-libc-dev
           libglib2.0-bin systemd-dev udev
       - run: meson setup build -Dunit_checks=enabled
       - run: meson compile -C build
@@ -225,9 +280,14 @@ jobs:
           name: coverage-js
           path: js.lcov
           retention-days: 7
+      # The HID-BPF program's host harness: 100 % of its lines, functions and
+      # branches (llvm-cov), the sanitizers, and the mutants. The full run
+      # above includes them; naming them here fails the job if llvm is missing
+      # and the coverage test was not registered.
+      - run: meson test -C build --print-errorlogs host host-sanitize host-coverage host-mutation
 
   # The coverage of the rust and meson jobs goes to Codecov. It is measured,
-  # not a limit (the guard's 100 % is in the rust job), and a failed upload
+  # not a limit (the 100 % of the Rust programs is in the rust job), and a failed upload
   # does not fail the run. Only this job has the token; it runs nothing from
   # the tree.
   coverage:

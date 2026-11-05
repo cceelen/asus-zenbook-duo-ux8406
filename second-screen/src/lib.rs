@@ -108,6 +108,21 @@ pub struct Brightness {
     pub file: PathBuf,
 }
 
+/// The result of [`sync_brightness`] without the failure that is none: the
+/// compositor sets the brightness of both panels itself (refer to
+/// [`Error::is_taken_over`]), and there is nothing to write then.
+///
+/// # Errors
+///
+/// Any other error of `result`.
+pub fn tolerate_taken_over(result: Result<Brightness, Error>) -> Result<Option<Brightness>, Error> {
+    match result {
+        Ok(brightness) => Ok(Some(brightness)),
+        Err(error) if error.is_taken_over() => Ok(None),
+        Err(error) => Err(error),
+    }
+}
+
 /// Give the lower panel the brightness of the upper one.
 ///
 /// The value is carried over on the lower panel's own scale, should the two

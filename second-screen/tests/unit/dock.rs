@@ -68,6 +68,7 @@ fn a_backlight_elsewhere_belongs_to_neither_panel(
         "/sys/devices/pci0000:00/0000:00:02.0/drm/card1/card1-DP-1/x",
         "/sys/devices/pci0000:00/0000:00:02.0/drm/card1/card1-eDP-1",
         "intel_backlight",
+        "/intel_backlight",
         ""
     )]
     path: &str,
