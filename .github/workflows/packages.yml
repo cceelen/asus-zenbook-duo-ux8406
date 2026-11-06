@@ -4,8 +4,8 @@
 # installation on a clean system, a check of the installed files, and
 # removal. A linter error or a failed step fails the job.
 #
-# By hand ("Run workflow"), and in release.yml before the release pull request
-# and before the publication: a failed build stops the release.
+# By hand ("Run workflow"), and in release.yml before the publication: a
+# failed build stops the release.
 name: packages
 
 on:
