@@ -47,3 +47,8 @@ option('unit_checks', type: 'feature', value: 'disabled',
 # host, and llvm-cov, which the builders of the distributions do not all have.
 option('host_checks', type: 'feature', value: 'disabled',
        description: 'Check the HID-BPF program on the host with sanitizers, coverage and mutants')
+
+# The Rust tests of the parts (cargo test). Off by default: CI runs them, and
+# the builds of the distribution packages do not compile the test crates.
+option('cargo_tests', type: 'feature', value: 'disabled',
+       description: 'Run the Rust tests of the parts with cargo test')

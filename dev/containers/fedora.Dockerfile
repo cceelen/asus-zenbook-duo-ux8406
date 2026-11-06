@@ -12,7 +12,7 @@ FROM registry.fedoraproject.org/fedora:44@sha256:cb3bd21415bd82a2fae1a9379f3f972
 # keeps. Each layer from the source on is new in each run.
 FROM base AS tools
 RUN dnf install -y rpm-build git cargo clang libbpf-devel meson ninja-build python3 \
-        systemd-devel systemd-rpm-macros kernel-headers glib2 nodejs dbus-daemon rpmlint \
+        systemd-devel systemd-rpm-macros kernel-headers glib2 nodejs rpmlint \
     && dnf clean all
 # The tests refuse to run as root, so everything from here on is the
 # unprivileged user's.

@@ -14,7 +14,7 @@ license=('MIT AND GPL-2.0-only')
 # rust, not cargo: two Arch packages provide cargo (rust, rustup), and a
 # builder without a person to ask cannot choose.
 makedepends=(meson rust clang libbpf linux-api-headers python glib2 nodejs
-             systemd dbus)
+             systemd)
 options=(!debug)
 # The archive of the release, from `meson dist`: it carries the vendored
 # crates. makepkg uses the file of that name if it lies next to this one, and

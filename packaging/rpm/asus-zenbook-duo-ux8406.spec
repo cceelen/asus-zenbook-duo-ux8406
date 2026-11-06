@@ -23,12 +23,10 @@ BuildRequires:  python3
 BuildRequires:  systemd-rpm-macros
 %if 0%{?suse_version}
 BuildRequires:  ninja
-BuildRequires:  dbus-1-daemon
 BuildRequires:  glib2-tools
 BuildRequires:  linux-glibc-devel
 %else
 BuildRequires:  ninja-build
-BuildRequires:  dbus-daemon
 BuildRequires:  glib2
 BuildRequires:  kernel-headers
 %endif

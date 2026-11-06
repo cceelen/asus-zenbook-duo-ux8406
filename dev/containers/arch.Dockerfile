@@ -17,7 +17,7 @@ FROM base AS tools
 # changes nothing. retry starts the command again, two times, after a pause.
 RUN retry() { "$@" || { sleep 30; "$@"; } || { sleep 60; "$@"; }; }; \
     retry pacman -Syu --noconfirm --needed base-devel git meson rust clang libbpf \
-        linux-api-headers python glib2 nodejs systemd dbus namcap \
+        linux-api-headers python glib2 nodejs systemd namcap \
     && pacman -Scc --noconfirm
 # makepkg refuses root, and the tests are about file permissions.
 RUN useradd -m builder && mkdir /out && chown builder /out
