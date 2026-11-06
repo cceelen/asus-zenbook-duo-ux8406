@@ -311,10 +311,7 @@ jobs:
       - run: |
           parts="second-screen:asus-zenbook-duo-ux8406-second-screen tcc-guard:asus-zenbook-duo-ux8406-tcc-guard
                  keyboard-bpf:asus-zenbook-duo-ux8406-keyboard-bpf
-                 gnome-keys:gnome-shell-extension-asus-zenbook-duo-ux8406-keys
                  gnome-rotation:gnome-shell-extension-builtin-screen-rotation
-                 kde-shortcuts:asus-zenbook-duo-ux8406-kde-shortcuts
-                 kde-keys:asus-zenbook-duo-ux8406-kde-keys
                  kde-rotation:plasma-builtin-screen-rotation"
           # shellcheck disable=SC2046
           nix build -L --no-link --max-jobs auto $(for p in $parts; do echo ".#${p#*:}"; done)

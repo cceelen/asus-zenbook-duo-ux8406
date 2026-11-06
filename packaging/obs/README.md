@@ -65,10 +65,12 @@ repository. The project definition (Repositories, or the page `/meta`):
 ```
 
 - Ubuntu 24.04 is not a target: its Rust is 1.75 and 1.85 is necessary.
-- Where a distribution has no `udev-hid-bpf`, the keyboard package builds, but
-  you cannot install it. The
-  [compatibility table](../../README.md#compatibility) names these
-  distributions.
+- Where a distribution has no `udev-hid-bpf`, the keyboard package and the
+  packages that require it (GNOME Keys, KDE keys, KDE shortcuts) build, but you
+  cannot install them (Debian 13; Tumbleweed and Slowroll without
+  `home:xanders`). Leap 16.0 does not build these four. The
+  [compatibility table](../../README.md#compatibility) names these distributions
+  (footnotes 2, 4 and 9).
 
 ## Setup
 

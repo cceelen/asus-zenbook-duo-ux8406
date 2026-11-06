@@ -21,7 +21,7 @@ the OIDC token of the workflow).
 | ------------------------------------------- | ------------------- | ---------------------------------------- |
 | Source archive                              | `release-files.yml` | build provenance                         |
 | Provenance bundle, `<archive>.intoto.jsonl` | `release-files.yml` | on the release page; GitHub release      |
-| The eight Nix packages (store paths)        | `release-nix.yml`   | build provenance; SBOM, one for each     |
+| The five Nix packages (store paths)         | `release-nix.yml`   | build provenance; SBOM, one for each     |
 | SBOMs, `<package>-<version>.cdx.json`       | `release-nix.yml`   | on the release page; GitHub release      |
 | The release and all its files               | GitHub              | release attestation (immutable releases) |
 | Alpine packages                             | Alpine's builders   | none from this project; signed by Alpine |

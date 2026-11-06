@@ -1,4 +1,4 @@
-# Builds the eight Nix packages of the flake and one SBOM for each package
+# Builds the five Nix packages of the flake and one SBOM for each package
 # (flake.nix, output sboms), and attests them: the build provenance of each
 # package and its SBOM, keyless through Sigstore. Only release.yml calls it.
 #

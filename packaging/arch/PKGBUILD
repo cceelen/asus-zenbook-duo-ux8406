@@ -99,8 +99,7 @@ package_gnome-shell-extension-asus-zenbook-duo-ux8406-keys() {
   pkgdesc="GNOME Shell extension for the display keys of the Zenbook Duo UX8406"
   arch=(any)
   license=(MIT)
-  depends=(gnome-shell)
-  optdepends=('asus-zenbook-duo-ux8406-keyboard-bpf: makes the keyboard deliver the keys')
+  depends=(gnome-shell asus-zenbook-duo-ux8406-keyboard-bpf)
 
   _take usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io \
         usr/share/licenses/gnome-shell-extension-asus-zenbook-duo-ux8406-keys
@@ -122,8 +121,7 @@ package_asus-zenbook-duo-ux8406-kde-shortcuts() {
   arch=(any)
   license=(MIT)
   # plasma-desktop has the emoji selector.
-  depends=(plasma-desktop)
-  optdepends=('asus-zenbook-duo-ux8406-keyboard-bpf: makes the keyboard deliver the keys')
+  depends=(plasma-desktop asus-zenbook-duo-ux8406-keyboard-bpf)
 
   _take usr/share/kglobalaccel \
         usr/share/licenses/asus-zenbook-duo-ux8406-kde-shortcuts
@@ -132,8 +130,7 @@ package_asus-zenbook-duo-ux8406-kde-shortcuts() {
 package_asus-zenbook-duo-ux8406-kde-keys() {
   pkgdesc="KDE Plasma integration for the display keys of the Zenbook Duo UX8406"
   license=(MIT)
-  depends=(glibc libgcc_s.so kwin)
-  optdepends=('asus-zenbook-duo-ux8406-keyboard-bpf: makes the keyboard deliver the keys')
+  depends=(glibc libgcc_s.so kwin asus-zenbook-duo-ux8406-keyboard-bpf)
 
   _take usr/lib/asus-ux8406-kde-keys \
         etc/xdg/autostart/asus-ux8406-kde-keys.desktop \
