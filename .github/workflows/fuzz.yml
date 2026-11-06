@@ -1,25 +1,18 @@
-# Each night on main: the fuzz targets of the guard's parsers (fuzz/), five
-# minutes each, from the corpus of the night before. Each input that makes a
-# target fail gets a private draft security advisory, with the input and the
-# steps to reproduce it. release.yml runs them too, before the release pull
-# request. Pull requests do not run the fuzz targets; ci.yml checks their
-# format and lints.
+# Each week on main, and by hand: the fuzz targets of the guard's parsers
+# (fuzz/), five minutes each, from the corpus of the run before. Each input
+# that makes a target fail gets a private draft security advisory, with the
+# input and the steps to reproduce it. Pull requests and releases do not run
+# the fuzz targets; ci.yml checks their format and lints.
 name: fuzz
 
 on:
   schedule:
-    - cron: "41 2 * * *"
+    - cron: "41 2 * * 0"
   workflow_dispatch:
-  workflow_call:
-    secrets:
-      FUZZ_ADVISORY_TOKEN:
-        required: true
 
 # One run at a time: a run that starts while another runs waits for it.
-# The run of a release has a group of its own (github.workflow is the name of
-# the calling workflow): a nightly run that waits does not cancel it.
 concurrency:
-  group: fuzz-${{ github.workflow }}
+  group: fuzz
   cancel-in-progress: false
 
 permissions:
@@ -68,7 +61,7 @@ jobs:
       # goes next to it. The log of a public repository is public: the output
       # goes there only when the target saved no input (a failure to build or
       # to start, not a finding), as it then has no input in it.
-      - name: Fuzz each target for five minutes
+      - name: Fuzz the targets, five minutes each
         id: fuzz
         run: |
           failed=""

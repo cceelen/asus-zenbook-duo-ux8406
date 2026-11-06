@@ -41,10 +41,9 @@ same crates. Their system libraries are those of Alpine, not those in the SBOMs.
 
 The other steps occur automatically:
 
-- `release.yml` builds the packages of each distribution from `main`, runs the
-  fuzz targets and checks the services of the release (`doctor.yml`). If one
-  fails, the run stops: there is no release pull request, and the version does
-  not change.
+- `release.yml` builds the packages of each distribution from `main` and checks
+  the services of the release (`doctor.yml`). If one fails, the run stops: there
+  is no release pull request, and the version does not change.
 - [Release Please](https://github.com/googleapis/release-please) opens the
   release pull request. It has the next version in the package files and the new
   section of `CHANGELOG.md`, made from the commit titles since the last release:
@@ -121,7 +120,7 @@ The attestations do not cover the packages from COPR, OBS and Alpine.
   repository only, with "Contents", "Pull requests" and "Issues" set to read and
   write. Store it as the repository secret `RELEASE_TOKEN` (Settings, Secrets
   and variables, Actions). Renew it before it expires.
-- A personal access token for the nightly fuzz run: fine-grained, for this
+- A personal access token for the weekly fuzz run: fine-grained, for this
   repository only, with "Repository security advisories" set to read and write.
   Store it as the repository secret `FUZZ_ADVISORY_TOKEN`. Without it, the run
   fails and does not keep the input: the log and the artifacts of a public
