@@ -134,8 +134,10 @@ jobs:
             family: opensuse
             base: "registry.opensuse.org/opensuse/bci/rust:latest@sha256:7e70663ff9b3ba67f6bbd9bdb58bd806cde17d62817e938cf1de5603ad8d1b9e"
             install: "registry.opensuse.org/opensuse/tumbleweed:latest@sha256:d0cf65ea39d8d869d8499a4a21b55e359de15114d639c4fad32dc7c144ce2899"
+          # unbuilt: packages that the recipe must not build for the release.
           - release: leap-16.0
             family: opensuse
+            unbuilt: asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys
             base: &leap-16 "registry.opensuse.org/opensuse/leap:16.0@sha256:2f388e98be71bd6f5ccb75d3ee8fabfe857442bebdfa40a99a779b93c8b533af"
             install: *leap-16
           - release: debian-13
@@ -240,6 +242,17 @@ jobs:
         run: |
           chown -R builder .
           su builder -c "CARGO_NET_OFFLINE=true sh dev/containers/build.sh $FAMILY dist/asus-zenbook-duo-ux8406-*.tar.gz out"
+      # A package that the release cannot install must not be built.
+      - env:
+          UNBUILT: ${{ matrix.unbuilt }}
+        run: |
+          status=0
+          for p in $UNBUILT; do
+            for f in out/"$p"-[0-9]*; do
+              [ -e "$f" ] && { echo "::error::$f is built, but must not be for this release"; status=1; }
+            done
+          done
+          exit "$status"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: packages-${{ matrix.release }}

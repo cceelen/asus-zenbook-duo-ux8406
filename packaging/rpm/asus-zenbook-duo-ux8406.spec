@@ -65,8 +65,9 @@ BuildRequires:  kernel-headers
 
 # Leap has no udev-hid-bpf, which the keyboard package needs. There, the
 # keyboard package and the packages that need it for their keys (GNOME Keys,
-# KDE shortcuts, KDE keys) are not built.
-%if 0%{?sle_version}
+# KDE shortcuts, KDE keys) are not built. Leap 16.0 defines no sle_version:
+# its suse_version is 1600, Tumbleweed's (and Slowroll's) 1699.
+%if 0%{?suse_version} && 0%{?suse_version} < 1699
 %bcond_with keyboard
 %global keyboard_options -Dkeyboard=false -Dgnome=false -Dkde_shortcuts=false -Dkde=false
 %else
