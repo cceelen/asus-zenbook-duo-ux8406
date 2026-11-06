@@ -39,8 +39,9 @@ build() {
 }
 
 check() {
-  # The tests build first, hence the long timeouts.
-  meson test -C build --no-rebuild --print-errorlogs -t 3
+  # The Rust tests are not part of the package build (-Dcargo_tests is off);
+  # CI runs them.
+  meson test -C build --no-rebuild --print-errorlogs
 }
 
 # _take PATH...: moves paths (relative to the stage) into the package.

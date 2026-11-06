@@ -84,12 +84,9 @@ let
         ] ++ (attrs.mesonFlags or [ ]);
 
         # `meson test` runs in the build; the Nix build user is not root.
-        # The Rust tests build first, hence the time allowed.
+        # The Rust tests are not part of the package build (-Dcargo_tests is
+        # off); CI runs them.
         doCheck = true;
-        mesonCheckFlags = [
-          "--timeout-multiplier"
-          "3"
-        ];
 
         # The tests are run as the Nix build user, not root: name it in the log.
         preCheck = ''

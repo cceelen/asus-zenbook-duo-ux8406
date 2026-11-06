@@ -199,8 +199,9 @@ the user, to give KWin's setting back.
 %meson_build
 
 %check
-# Run as the unprivileged user rpmbuild runs as; the Rust tests build first.
-%meson_test -t 3
+# Run as the unprivileged user rpmbuild runs as. The Rust tests are not
+# part of the package build (-Dcargo_tests is off); CI runs them.
+%meson_test
 
 %install
 %meson_install
