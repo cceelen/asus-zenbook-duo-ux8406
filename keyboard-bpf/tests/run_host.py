@@ -24,7 +24,8 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent / "host"
 SHIM = HERE / "shim"
 TESTS = sorted(HERE.glob("test_*.c")) + [HERE / "fake_kernel.c"]
-COMMON = ["-std=c23", "-g", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter"]
+# C23 by its earlier name: gcc 13 (openSUSE Leap 16.0) does not know -std=c23.
+COMMON = ["-std=c2x", "-g", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter"]
 
 
 def run(cmd, **kwargs):
@@ -186,4 +187,7 @@ if __name__ == "__main__":
     try:
         main()
     except subprocess.CalledProcessError as error:
-        sys.exit(f"run_host.py: step failed with status {error.returncode}")
+        sys.exit(
+            f"run_host.py: step failed with status {error.returncode}\n"
+            f"{(error.stderr or '').rstrip()}"
+        )
