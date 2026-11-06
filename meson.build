@@ -185,6 +185,9 @@ if rust_test_packages.length() > 0
     timeout: 1800,
     # One cargo at a time: they share a target directory.
     is_parallel: false,
+    # Before the guard's run with the fail points, which then compiles only
+    # what the feature changes.
+    priority: 1,
   )
 endif
 
