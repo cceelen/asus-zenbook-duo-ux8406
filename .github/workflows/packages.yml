@@ -1,5 +1,5 @@
 # The packages of each distribution, built in a container from this tree
-# (dev/containers/compose.yaml): the linter of the distribution (rpmlint,
+# (dev/containers/<distro>.Dockerfile): the linter of the distribution (rpmlint,
 # lintian, namcap, apkbuild-lint) on the recipe and on the packages,
 # installation on a clean system, a check of the installed files, and
 # removal. A linter error or a failed step fails the job.
@@ -17,46 +17,63 @@ permissions:
 
 jobs:
   build:
+    name: build (${{ matrix.name }})
     runs-on: ubuntu-26.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
+      # One job for each build: the Dockerfile and its build arguments, the
+      # argument of dev/containers/check.sh, and the packages that the image
+      # installs (keyboard, GNOME, KDE). compose.yaml has the same builds for
+      # local use.
       matrix:
-        distro: [fedora, opensuse, debian, debian-testing, arch, alpine, nix]
+        include:
+          - { name: fedora, dockerfile: fedora, check: fedora, keyboard: "yes", gnome: "yes", kde: "yes" }
+          # No udev-hid-bpf in Tumbleweed: second-screen and guard only.
+          - { name: opensuse, dockerfile: opensuse, check: opensuse }
+          # No udev-hid-bpf in Debian 13: second-screen and guard only.
+          - { name: debian, dockerfile: debian, check: debian, build-args: "RELEASE=trixie\nKEYBOARD=no" }
+          - { name: debian-testing, dockerfile: debian, check: debian, build-args: "RELEASE=testing\nKEYBOARD=yes", keyboard: "yes" }
+          - { name: arch, dockerfile: arch, check: arch, keyboard: "yes", gnome: "yes", kde: "yes" }
+          # No udev-hid-bpf in Alpine: second-screen and guard only.
+          - { name: alpine, dockerfile: alpine, check: alpine }
+          - { name: nix, dockerfile: nix }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       # BuildKit keeps the layers of the stage tools in the Actions cache, one
-      # scope for each distribution: the layers that install the build tools
-      # are made again only when the base image or the Dockerfile changes.
-      # Only that stage goes to the cache: each layer from the source on is
-      # new in each run, and no other run can use it. The Actions cache drops
-      # what no run used for 7 days. Nix has no such stage.
+      # scope for each build: the layers that install the build tools are
+      # made again only when the base image or the Dockerfile changes. Only
+      # that stage goes to the cache: each layer from the source on is new in
+      # each run, and no other run can use it. The Actions cache drops what
+      # no run used for 7 days. Nix has no such stage.
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - if: ${{ matrix.distro != 'nix' }}
-        uses: docker/bake-action@018cb6412ab401ebaa809aa5f85966b74628600f # v7.4.0
+      - if: ${{ matrix.name != 'nix' }}
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          source: .
-          files: dev/containers/compose.yaml
-          targets: ${{ matrix.distro }}
-          set: |
-            *.context=.
-            *.target=tools
-            *.cache-from=type=gha,scope=packages-${{ matrix.distro }}
-            *.cache-to=type=gha,scope=packages-${{ matrix.distro }},mode=max,ignore-error=true
-      - uses: docker/bake-action@018cb6412ab401ebaa809aa5f85966b74628600f # v7.4.0
+          context: .
+          file: dev/containers/${{ matrix.dockerfile }}.Dockerfile
+          build-args: ${{ matrix.build-args }}
+          target: tools
+          cache-from: type=gha,scope=packages-${{ matrix.name }}
+          cache-to: type=gha,scope=packages-${{ matrix.name }},mode=max,ignore-error=true
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          source: .
-          files: dev/containers/compose.yaml
-          targets: ${{ matrix.distro }}
+          context: .
+          file: dev/containers/${{ matrix.dockerfile }}.Dockerfile
+          build-args: ${{ matrix.build-args }}
           load: true
-          set: |
-            *.context=.
-            *.tags=asus-zenbook-duo-ux8406-packages-${{ matrix.distro }}
-            *.cache-from=type=gha,scope=packages-${{ matrix.distro }}
+          tags: asus-zenbook-duo-ux8406-packages-${{ matrix.name }}
+          cache-from: type=gha,scope=packages-${{ matrix.name }}
       - env:
-          DISTRO: ${{ matrix.distro }}
-        run: >-
-          docker compose -f dev/containers/compose.yaml up --no-build
-          --exit-code-from "$DISTRO" "$DISTRO"
+          NAME: ${{ matrix.name }}
+          CHECK: ${{ matrix.check }}
+          KEYBOARD: ${{ matrix.keyboard || 'no' }}
+          GNOME: ${{ matrix.gnome || 'no' }}
+          KDE: ${{ matrix.kde || 'no' }}
+        run: |
+          if [ "$NAME" = nix ]; then script=check-nix.sh; else script=check.sh; fi
+          docker run --rm -e KEYBOARD -e GNOME -e KDE \
+            -v "$PWD/dev/containers:/checks:ro" "asus-zenbook-duo-ux8406-packages-$NAME" \
+            sh "/checks/$script" ${CHECK:+"$CHECK"}
