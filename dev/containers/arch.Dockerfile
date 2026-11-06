@@ -13,7 +13,10 @@ FROM docker.io/library/archlinux:latest@sha256:e82623936fa1a69700b48e98b058df6ea
 FROM base AS tools
 # The makedepends of the PKGBUILD, and git for the source archive.
 # udev-hid-bpf is needed at run time only.
-RUN pacman -Syu --noconfirm --needed base-devel git meson rust clang libbpf \
+# A mirror can fail to send some files; pacman then stops the transaction and
+# changes nothing. retry starts the command again, two times, after a pause.
+RUN retry() { "$@" || { sleep 30; "$@"; } || { sleep 60; "$@"; }; }; \
+    retry pacman -Syu --noconfirm --needed base-devel git meson rust clang libbpf \
         linux-api-headers python glib2 nodejs systemd dbus namcap \
     && pacman -Scc --noconfirm
 # makepkg refuses root, and the tests are about file permissions.
@@ -59,8 +62,9 @@ FROM base AS install
 # guard's example configuration and manual page are there.
 RUN sed -i 's# usr/share/doc/\*##; s#usr/share/man/\* ##' /etc/pacman.conf
 RUN --mount=type=bind,from=build,source=/out,target=/pkgs \
-    pacman -Syu --noconfirm \
-    && pacman -U --noconfirm /pkgs/asus-zenbook-duo-ux8406-second-screen-*.pkg.tar.zst \
+    retry() { "$@" || { sleep 30; "$@"; } || { sleep 60; "$@"; }; }; \
+    retry pacman -Syu --noconfirm \
+    && retry pacman -U --noconfirm /pkgs/asus-zenbook-duo-ux8406-second-screen-*.pkg.tar.zst \
         /pkgs/asus-zenbook-duo-ux8406-tcc-guard-*.pkg.tar.zst \
         /pkgs/asus-zenbook-duo-ux8406-keyboard-bpf-*.pkg.tar.zst \
         /pkgs/gnome-shell-extension-asus-zenbook-duo-ux8406-keys-*.pkg.tar.zst \

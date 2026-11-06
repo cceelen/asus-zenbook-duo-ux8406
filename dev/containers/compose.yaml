@@ -11,84 +11,12 @@
 
 name: asus-zenbook-duo-ux8406-packages
 
+# The check runs dev/containers/check.sh (check-nix.sh for Nix) in the
+# image; CI runs the same scripts (.github/workflows/packages.yml).
 x-check: &check
-  command:
-    - sh
-    - -euc
-    - |
-      eval "$$VERIFY"
-      echo "installed files verified"
-      "$$HELPER" --version
-      asus-ux8406-tcc-guard --version
-      if [ "$${KEYBOARD:-no}" = yes ]; then
-        udev-hid-bpf --version
-        udev-hid-bpf inspect \
-          /usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
-          | grep -c '"pid"' | grep -qx 3
-        echo "udev-hid-bpf reads the keyboard program"
-        # The helper that keeps the keyboard's state, and its rule: before
-        # the rule of udev-hid-bpf, and with the helper's own path.
-        "$${HELPER%/*}/asus-ux8406-keyboard-state" --version
-        grep -c "\"$${HELPER%/*}/asus-ux8406-keyboard-state " \
-          /usr/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules | grep -qx 2
-        "$${HELPER%/*}/asus-ux8406-keyboard-state" load 0003:0B05:1BF2.0001
-        echo "keyboard state helper in place"
-      else
-        echo "keyboard package not installed: no udev-hid-bpf here"
-      fi
-      if [ "$${GNOME:-no}" = yes ]; then
-        test -f /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/schemas/gschemas.compiled
-        # The files that the two extensions share are copies, not links.
-        for d in asus-zenbook-duo-ux8406-keys builtin-screen-rotation; do
-          for f in extension.js state.js display.js; do
-            test -f "/usr/share/gnome-shell/extensions/$$d@cceelen.github.io/$$f"
-            test ! -L "/usr/share/gnome-shell/extensions/$$d@cceelen.github.io/$$f"
-          done
-        done
-        gnome-shell --version
-        echo "extension files in place"
-      else
-        echo "extension package not installed here"
-      fi
-      if [ "$${KDE:-no}" = yes ]; then
-        test -f /usr/share/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop
-        "$${HELPER%/*}/asus-ux8406-kde-keys" --version
-        # The autostart entries name the programs by their installed paths.
-        grep -qx "Exec=$${HELPER%/*}/asus-ux8406-kde-keys" /etc/xdg/autostart/asus-ux8406-kde-keys.desktop
-        test -f /usr/share/kwin/scripts/asus-zenbook-duo-ux8406-keys/metadata.json
-        test -f /usr/share/kwin/scripts/asus-zenbook-duo-ux8406-keys/contents/code/main.js
-        plasma-builtin-screen-rotation --version
-        grep -qx "Exec=/usr/bin/plasma-builtin-screen-rotation run" \
-          /etc/xdg/autostart/plasma-builtin-screen-rotation.desktop
-        test -f /usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/metadata.json
-        test -f /usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml
-        echo "KDE Plasma files in place"
-      else
-        echo "KDE Plasma packages not installed here"
-      fi
-      # Removal: the package manager runs the removal scripts, and no file of
-      # the packages stays.
-      eval "$$REMOVE"
-      for f in "$$HELPER" "$${HELPER%/*}/asus-ux8406-keyboard-state" \
-          /usr/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules \
-          /usr/bin/asus-ux8406-tcc-guard /usr/sbin/asus-ux8406-tcc-guard \
-          /usr/lib/systemd/system/asus-ux8406-tcc-guard.service /etc/init.d/asus-ux8406-tcc-guard \
-          /usr/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \
-          /usr/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
-          /usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
-          /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io \
-          /usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io \
-          /usr/share/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop \
-          "$${HELPER%/*}/asus-ux8406-kde-keys" \
-          /etc/xdg/autostart/asus-ux8406-kde-keys.desktop \
-          /usr/share/kwin/scripts/asus-zenbook-duo-ux8406-keys \
-          /usr/bin/plasma-builtin-screen-rotation \
-          /etc/xdg/autostart/plasma-builtin-screen-rotation.desktop \
-          /usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation; do
-        if [ -e "$$f" ]; then echo "left after removal: $$f"; exit 1; fi
-      done
-      echo "packages removed, nothing left"
-      echo "OK"
+  volumes:
+    - ./check.sh:/check.sh:ro
+    - ./check-nix.sh:/check-nix.sh:ro
 
 services:
   fedora:
@@ -96,10 +24,8 @@ services:
     build:
       context: ../..
       dockerfile: dev/containers/fedora.Dockerfile
+    command: [sh, /check.sh, fedora]
     environment:
-      VERIFY: rpm --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation
-      REMOVE: dnf remove -y asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation
-      HELPER: /usr/libexec/asus-ux8406-second-screen
       KEYBOARD: "yes"
       GNOME: "yes"
       KDE: "yes"
@@ -110,10 +36,7 @@ services:
     build:
       context: ../..
       dockerfile: dev/containers/opensuse.Dockerfile
-    environment:
-      VERIFY: rpm --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard
-      REMOVE: rpm --erase asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard
-      HELPER: /usr/libexec/asus-ux8406-second-screen
+    command: [sh, /check.sh, opensuse]
 
   # No udev-hid-bpf in Debian 13: second-screen and guard packages only.
   debian:
@@ -124,11 +47,7 @@ services:
       args:
         RELEASE: trixie
         KEYBOARD: "no"
-    environment:
-      # dpkg --verify reports what differs and exits 0 all the same.
-      VERIFY: out=$$(dpkg --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard); echo "$$out"; test -z "$$out"
-      REMOVE: dpkg --purge asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard
-      HELPER: /usr/libexec/asus-ux8406-second-screen
+    command: [sh, /check.sh, debian]
 
   debian-testing:
     <<: *check
@@ -138,10 +57,8 @@ services:
       args:
         RELEASE: testing
         KEYBOARD: "yes"
+    command: [sh, /check.sh, debian]
     environment:
-      VERIFY: out=$$(dpkg --verify asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf); echo "$$out"; test -z "$$out"
-      REMOVE: dpkg --purge asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf
-      HELPER: /usr/libexec/asus-ux8406-second-screen
       KEYBOARD: "yes"
 
   arch:
@@ -149,10 +66,8 @@ services:
     build:
       context: ../..
       dockerfile: dev/containers/arch.Dockerfile
+    command: [sh, /check.sh, arch]
     environment:
-      VERIFY: pacman -Qkk asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation
-      REMOVE: pacman -Rns --noconfirm asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation
-      HELPER: /usr/lib/asus-ux8406-second-screen
       KEYBOARD: "yes"
       GNOME: "yes"
       KDE: "yes"
@@ -163,50 +78,12 @@ services:
     build:
       context: ../..
       dockerfile: dev/containers/alpine.Dockerfile
-    environment:
-      # apk has no verify for installed files: every file the packages list
-      # has to be there.
-      VERIFY: for f in $$(apk info -Lq asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-second-screen-udev asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-tcc-guard-openrc asus-zenbook-duo-ux8406-tcc-guard-doc); do test -e "/$$f"; done
-      REMOVE: apk del asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-second-screen-udev asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-tcc-guard-openrc asus-zenbook-duo-ux8406-tcc-guard-doc
-      HELPER: /usr/libexec/asus-ux8406-second-screen
+    command: [sh, /check.sh, alpine]
 
   # Nix has no install step here: the image holds the build results.
   nix:
+    <<: *check
     build:
       context: ../..
       dockerfile: dev/containers/nix.Dockerfile
-    command:
-      - sh
-      - -euc
-      - |
-        ls -l /second-screen/libexec/asus-ux8406-second-screen /second-screen/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \
-          /keyboard-bpf/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
-          /keyboard-bpf/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
-          /keyboard-bpf/libexec/asus-ux8406-keyboard-state \
-          /keyboard-bpf/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules \
-          /gnome-keys/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/extension.js \
-          /gnome-rotation/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/extension.js \
-          /kde-shortcuts/share/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop \
-          /kde-keys/libexec/asus-ux8406-kde-keys /kde-keys/etc/xdg/autostart/asus-ux8406-kde-keys.desktop \
-          /kde-keys/share/kwin/scripts/asus-zenbook-duo-ux8406-keys/contents/code/main.js \
-          /kde-rotation/bin/plasma-builtin-screen-rotation \
-          /kde-rotation/etc/xdg/autostart/plasma-builtin-screen-rotation.desktop \
-          /kde-rotation/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml
-        grep -c "RUN+=\"$$(readlink /second-screen)/libexec/asus-ux8406-second-screen " \
-          /second-screen/lib/udev/rules.d/90-asus-ux8406-second-screen.rules | grep -qx 3
-        /second-screen/libexec/asus-ux8406-second-screen --version
-        grep -c "\"$$(readlink /keyboard-bpf)/libexec/asus-ux8406-keyboard-state " \
-          /keyboard-bpf/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules | grep -qx 2
-        /keyboard-bpf/libexec/asus-ux8406-keyboard-state --version
-        ls -l /tcc-guard/bin/asus-ux8406-tcc-guard /tcc-guard/lib/systemd/system/asus-ux8406-tcc-guard.service \
-          /tcc-guard/share/doc/asus-ux8406-tcc-guard/asus-ux8406-tcc-guard.toml.example
-        grep -q "ExecStart=$$(readlink /tcc-guard)/bin/asus-ux8406-tcc-guard$$" \
-          /tcc-guard/lib/systemd/system/asus-ux8406-tcc-guard.service
-        /tcc-guard/bin/asus-ux8406-tcc-guard --version
-        grep -qx "Exec=$$(readlink /kde-keys)/libexec/asus-ux8406-kde-keys" \
-          /kde-keys/etc/xdg/autostart/asus-ux8406-kde-keys.desktop
-        /kde-keys/libexec/asus-ux8406-kde-keys --version
-        grep -qx "Exec=$$(readlink /kde-rotation)/bin/plasma-builtin-screen-rotation run" \
-          /kde-rotation/etc/xdg/autostart/plasma-builtin-screen-rotation.desktop
-        /kde-rotation/bin/plasma-builtin-screen-rotation --version
-        echo "OK"
+    command: [sh, /check-nix.sh]
