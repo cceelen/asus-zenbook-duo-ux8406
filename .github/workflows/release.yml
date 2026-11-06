@@ -107,8 +107,6 @@ jobs:
       id-token: write
       attestations: write
       artifact-metadata: write
-    with:
-      release: true
   # The Nix packages and one SBOM for each, attested. Their SBOMs go on the
   # release; the store paths go to Cachix after the publication.
   release-nix:
