@@ -73,7 +73,7 @@ headers, the kernel headers, `glib-compile-schemas`, `python3`, `node`, and
 `dbus-daemon` (the tests of the KDE programs start a private bus).
 
 ```sh
-meson setup build
+meson setup build -Dcargo_tests=enabled
 meson test -C build
 pre-commit run --all-files
 ```
@@ -86,6 +86,9 @@ pre-commit run --all-files
 - `meson configure build` lists the options. For example `-Dkeyboard=false`
   omits a part, and `-Dinit=openrc` installs the guard with an OpenRC script in
   place of the systemd unit.
+- `-Dcargo_tests=enabled` adds the Rust tests (`cargo test`), as CI does. The
+  builds of the distribution packages leave them out: they do not compile the
+  test crates.
 - `-Dunit_checks=enabled` adds the checks of the guard's systemd unit with
   `systemd-analyze` (`verify`, and an exposure of at most 1.3), as CI does.
 - `meson test -C build --suite NAME` runs the tests of one part. The README of

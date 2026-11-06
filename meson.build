@@ -171,7 +171,7 @@ endif
 # The Rust tests of all parts in one cargo run. The run compiles the crates
 # that the parts share one time; a run for each part compiled them again,
 # with the features of that part. The test is in the suite of each part.
-if rust_test_packages.length() > 0
+if rust_test_packages.length() > 0 and get_option('cargo_tests').allowed()
   rust_test_args = []
   foreach package : rust_test_packages
     rust_test_args += ['--package', package]

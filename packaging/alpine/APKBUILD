@@ -9,7 +9,7 @@ pkgdesc="Lower panel of the Zenbook Duo UX8406 off while the keyboard lies on it
 url="https://github.com/cceelen/asus-zenbook-duo-ux8406"
 arch="x86_64"
 license="MIT"
-makedepends="abuild-meson cargo dbus glib-dev meson nodejs python3 samurai"
+makedepends="abuild-meson cargo glib-dev meson nodejs python3 samurai"
 # The scripts of the -openrc subpackage are named here as well: abuild reads
 # the install scripts of all subpackages from this list, by the name of the
 # package each belongs to. They start the guard, and stop it, which puts the

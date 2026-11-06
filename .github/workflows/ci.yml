@@ -271,7 +271,7 @@ jobs:
           sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends
           meson ninja-build pkgconf clang llvm libbpf-dev linux-libc-dev
           libglib2.0-bin systemd-dev udev dbus-daemon
-      - run: meson setup build -Dunit_checks=enabled -Dhost_checks=enabled
+      - run: meson setup build -Dunit_checks=enabled -Dhost_checks=enabled -Dcargo_tests=enabled
       - run: meson compile -C build
       - run: meson test -C build --print-errorlogs --no-suite failpoints
       # Coverage of the extensions' logic, with a limit of 100 % of lines,

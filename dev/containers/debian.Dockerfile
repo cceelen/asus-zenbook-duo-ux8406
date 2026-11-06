@@ -24,7 +24,7 @@ RUN apt-get update -q \
     && apt-get install -qy --no-install-recommends build-essential debhelper \
         ca-certificates git fakeroot meson ninja-build pkgconf systemd-dev udev \
         cargo rustc clang libbpf-dev linux-libc-dev python3 libglib2.0-bin \
-        nodejs dbus-daemon lintian \
+        nodejs lintian \
     && rm -rf /var/lib/apt/lists/*
 # The tests of the guard need an ordinary user: root ignores file permissions.
 RUN useradd -m builder

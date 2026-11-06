@@ -15,7 +15,7 @@ FROM base AS tools
 # dependencies are installed here, as root: abuild is run with -d and
 # installs nothing itself.
 RUN apk add --no-cache alpine-sdk git abuild-meson cargo glib-dev meson nodejs \
-        python3 samurai atools dbus
+        python3 samurai atools
 # The packages are signed with a key made for this one build; apk has to trust
 # it for the repository index to be written. Tests need an ordinary user.
 RUN adduser -D builder \

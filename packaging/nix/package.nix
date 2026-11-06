@@ -21,7 +21,6 @@
   python3,
   glib,
   nodejs,
-  dbus,
   cargo-cyclonedx,
 }:
 let
@@ -290,8 +289,6 @@ in
     attrs = rustInputs // {
       pname = "asus-zenbook-duo-ux8406-kde-keys";
       passthru.bombonVendoredSbom = vendoredSbom "asus-ux8406-kde-keys";
-      # dbus-daemon: the tests start a private bus.
-      nativeBuildInputs = rustInputs.nativeBuildInputs ++ [ dbus ];
       # Below the prefix: Nix has no /etc to install into.
       mesonFlags = rustInputs.mesonFlags ++ [ "--sysconfdir=etc" ];
       meta = meta // {
@@ -307,7 +304,6 @@ in
     attrs = rustInputs // {
       pname = "plasma-builtin-screen-rotation";
       passthru.bombonVendoredSbom = vendoredSbom "plasma-builtin-screen-rotation";
-      nativeBuildInputs = rustInputs.nativeBuildInputs ++ [ dbus ];
       mesonFlags = rustInputs.mesonFlags ++ [ "--sysconfdir=etc" ];
       meta = meta // {
         description = "Turns the built-in screens with the laptop in KDE Plasma";

@@ -95,13 +95,15 @@ endif
 # none. The second run is also in the suite failpoints.
 rust_test_packages += 'asus-ux8406-tcc-guard'
 rust_test_suites += 'asus-ux8406-tcc-guard'
-test(
-  'cargo test, fault injection',
-  cargo,
-  args: ['test', '--release'] + cargo_args + ['--package', 'asus-ux8406-tcc-guard', '--features', 'failpoints'],
-  env: cargo_env,
-  suite: ['asus-ux8406-tcc-guard', 'failpoints'],
-  timeout: 1200,
-  # One cargo at a time: they share a target directory.
-  is_parallel: false,
-)
+if get_option('cargo_tests').allowed()
+  test(
+    'cargo test, fault injection',
+    cargo,
+    args: ['test', '--release'] + cargo_args + ['--package', 'asus-ux8406-tcc-guard', '--features', 'failpoints'],
+    env: cargo_env,
+    suite: ['asus-ux8406-tcc-guard', 'failpoints'],
+    timeout: 1200,
+    # One cargo at a time: they share a target directory.
+    is_parallel: false,
+  )
+endif

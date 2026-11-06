@@ -14,7 +14,7 @@ FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:1cf7a3b7b68f0027e88
 FROM base AS tools
 RUN zypper -n install rpm-build git cargo clang libbpf-devel meson ninja python3 \
         systemd-devel systemd-rpm-macros linux-glibc-devel gzip tar glib2-tools \
-        nodejs-default dbus-1-daemon rpmlint \
+        nodejs-default rpmlint \
     && zypper clean -a
 # The tests refuse to run as root, so everything from here on is the
 # unprivileged user's.

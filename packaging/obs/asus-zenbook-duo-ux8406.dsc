@@ -16,5 +16,4 @@ Build-Depends: debhelper-compat (= 13),
  linux-libc-dev (>= 6.10),
  python3,
  libglib2.0-bin,
- dbus-daemon,
  nodejs
