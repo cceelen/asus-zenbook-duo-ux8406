@@ -4,7 +4,7 @@
 //! [`geometry`], [`layout`], [`rotation`], [`hold`] and [`touch`] are the logic of the
 //! GNOME Shell extensions (`gnome-common/state.js`, `gnome-keys/extension/`,
 //! `gnome-rotation/extension/`) in Rust, on plain data. Both are checked
-//! against the same cases, in `gnome-common/tests/vectors/`.
+//! against the same cases, in `tests/vectors/`.
 
 pub mod daemon;
 pub mod geometry;

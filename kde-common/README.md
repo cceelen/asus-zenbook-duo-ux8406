@@ -20,10 +20,10 @@ the logic on plain data is the same in both.
 
 ## The shared cases
 
-`gnome-common/tests/vectors/*.json` has the cases for both implementations: each
-a call, its input and its result. `gnome-common/tests/vectors.js` makes them
-from the scenarios of the GNOME tests, and the GNOME code gives the results. The
-node tests (`gnome-keys/tests/vectors.test.js`,
+`tests/vectors/*.json` has the cases for both implementations: each a call, its
+input and its result. `gnome-common/tests/vectors.js` makes them from the
+scenarios of the GNOME tests, and the GNOME code gives the results. The node
+tests (`gnome-keys/tests/vectors.test.js`,
 `gnome-rotation/tests/vectors.test.js`) check that the files are those that the
 cases give and that the JavaScript gives each result; the Rust test
 `tests/logic/vectors.rs` checks that Rust gives each result. After a change of

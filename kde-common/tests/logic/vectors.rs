@@ -1,4 +1,4 @@
-//! The cases of `gnome-common/tests/vectors/`, which the JavaScript of the GNOME
+//! The cases of `tests/vectors/`, which the JavaScript of the GNOME
 //! Shell extensions must satisfy too.
 
 use std::collections::BTreeMap;
@@ -279,10 +279,7 @@ fn run_touch(entry: &Value) {
 #[case::rotation("rotation", run_rotation)]
 #[case::touch("touch", run_touch)]
 fn every_case_of_the_file_gives_the_expected_result(#[case] file: &str, #[case] run: fn(&Value)) {
-    let path = format!(
-        "{}/../gnome-common/tests/vectors/{file}.json",
-        env!("CARGO_MANIFEST_DIR")
-    );
+    let path = format!("{}/tests/vectors/{file}.json", env!("CARGO_MANIFEST_DIR"));
     let cases: Value = serde_json::from_str(&fs::read_to_string(&path).expect("the file"))
         .expect("the file is JSON");
     let cases = cases.as_array().expect("a list of cases");

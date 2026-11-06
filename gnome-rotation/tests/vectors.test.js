@@ -19,7 +19,7 @@ import {
 
 const read = (name) =>
     JSON.parse(
-        readFileSync(new URL(`../../gnome-common/tests/vectors/${name}.json`, import.meta.url)),
+        readFileSync(new URL(`../../kde-common/tests/vectors/${name}.json`, import.meta.url)),
     );
 
 const run = (entry) => {
