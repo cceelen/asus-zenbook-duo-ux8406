@@ -9,7 +9,9 @@
 # The base image, pinned by digest. Renovate updates the tag and the digest.
 FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:1cf7a3b7b68f0027e88fb5b5a4b4a0282fb8c18d0e2ece77342248e8244d3e2e AS base
 
-FROM base AS build
+# The build tools and the build user: the only stage that the Actions cache
+# keeps. Each layer from the source on is new in each run.
+FROM base AS tools
 RUN zypper -n install rpm-build git cargo clang libbpf-devel meson ninja python3 \
         systemd-devel systemd-rpm-macros linux-glibc-devel gzip tar glib2-tools \
         nodejs-default dbus-1-daemon rpmlint \
@@ -19,6 +21,7 @@ RUN zypper -n install rpm-build git cargo clang libbpf-devel meson ninja python3
 RUN useradd -m builder \
     && mkdir -p /build /rpm /out \
     && chown -R builder:builder /build /rpm /out
+FROM tools AS build
 COPY --chown=builder:builder . /build
 USER builder
 WORKDIR /build

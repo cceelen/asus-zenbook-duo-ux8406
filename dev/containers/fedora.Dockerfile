@@ -8,7 +8,9 @@
 # The base image, pinned by digest. Renovate updates the tag and the digest.
 FROM registry.fedoraproject.org/fedora:44@sha256:cb3bd21415bd82a2fae1a9379f3f972fa8e78d460c9f86101274d13230dd6fd6 AS base
 
-FROM base AS build
+# The build tools and the build user: the only stage that the Actions cache
+# keeps. Each layer from the source on is new in each run.
+FROM base AS tools
 RUN dnf install -y rpm-build git cargo clang libbpf-devel meson ninja-build python3 \
         systemd-devel systemd-rpm-macros kernel-headers glib2 nodejs dbus-daemon rpmlint \
     && dnf clean all
@@ -17,6 +19,7 @@ RUN dnf install -y rpm-build git cargo clang libbpf-devel meson ninja-build pyth
 RUN useradd -m builder \
     && mkdir -p /build /rpm /out \
     && chown -R builder:builder /build /rpm /out
+FROM tools AS build
 COPY --chown=builder:builder . /build
 USER builder
 WORKDIR /build
