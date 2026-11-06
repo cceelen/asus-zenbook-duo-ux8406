@@ -7,12 +7,13 @@
 #     --output dist/fedora .
 
 # The base image, pinned by digest. Renovate updates the tag and the digest;
-# packages.yml reads the image from here.
+# packages.yml pins its own images for the CI builds.
 FROM registry.fedoraproject.org/fedora:44@sha256:cb3bd21415bd82a2fae1a9379f3f972fa8e78d460c9f86101274d13230dd6fd6 AS base
 
 FROM base AS tools
 COPY dev/containers/build-deps.sh /tmp/
-RUN sh /tmp/build-deps.sh fedora && dnf clean all \
+# git: for meson dist below.
+RUN sh /tmp/build-deps.sh fedora && dnf install -y git && dnf clean all \
     && mkdir /out && chown builder /out
 
 FROM tools AS build

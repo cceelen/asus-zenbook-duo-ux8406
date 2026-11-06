@@ -2,9 +2,11 @@
 # Install the packages that build.sh made on a clean system of the same
 # distribution, with its package manager: it gets the run-time dependencies
 # from the repositories of the distribution, so a dependency that a recipe
-# forgot fails here. Run as root. check.sh then checks the installation.
+# forgot fails here. Weak dependencies and recommends are not installed: the
+# packages must work with what they require. Run as root. check.sh then
+# checks the installation.
 #
-#   install.sh fedora|opensuse|debian|arch|alpine DIR
+#   install.sh fedora|rhel|opensuse|debian|arch|alpine DIR
 #
 # KEYBOARD, GNOME and KDE (yes or no, default no) say which of those packages
 # to install, as for check.sh.
@@ -22,25 +24,37 @@ gnome=no kde=no
 
 # shellcheck disable=SC2086 # $files is a list of words.
 case "$family" in
-  fedora|opensuse)
+  fedora|rhel|opensuse)
     files=
     for p in $parts; do files="$files $dir/asus-zenbook-duo-ux8406-$p-[0-9]*.x86_64.rpm"; done
     [ "$gnome" = yes ] && files="$files $dir/gnome-shell-extension-asus-zenbook-duo-ux8406-keys-[0-9]*.noarch.rpm $dir/gnome-shell-extension-builtin-screen-rotation-[0-9]*.noarch.rpm"
     [ "$kde" = yes ] && files="$files $dir/asus-zenbook-duo-ux8406-kde-shortcuts-[0-9]*.noarch.rpm $dir/asus-zenbook-duo-ux8406-kde-keys-[0-9]*.x86_64.rpm $dir/plasma-builtin-screen-rotation-[0-9]*.x86_64.rpm"
-    if [ "$family" = fedora ]; then
-      retry dnf install -y $files
-    else
-      retry zypper -n install --allow-unsigned-rpm $files
-    fi
+    case "$family" in
+      fedora)
+        retry dnf install -y --setopt=install_weak_deps=False $files
+        ;;
+      rhel)
+        # udev-hid-bpf and parts of the desktops are in EPEL.
+        retry dnf install -y --setopt=install_weak_deps=False epel-release
+        retry dnf install -y --setopt=install_weak_deps=False $files
+        ;;
+      opensuse)
+        retry zypper -n install --no-recommends --allow-unsigned-rpm $files
+        ;;
+    esac
     ;;
   debian)
     # Services are not started, as on any container image.
     printf '#!/bin/sh\nexit 101\n' > /usr/sbin/policy-rc.d
+    # The Ubuntu image leaves out /usr/share/doc and /usr/share/man when it
+    # installs; the licence notices, the guard's example configuration and
+    # its manual page are there.
+    rm -f /etc/dpkg/dpkg.cfg.d/excludes
     chmod +x /usr/sbin/policy-rc.d
     files=
     for p in $parts; do files="$files $dir/asus-zenbook-duo-ux8406-${p}_*.deb"; done
     retry apt-get update -q
-    retry apt-get install -qy $files
+    retry apt-get install -qy --no-install-recommends $files
     ;;
   arch)
     # The image leaves out /usr/share/doc and /usr/share/man when it

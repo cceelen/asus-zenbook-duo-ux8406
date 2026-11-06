@@ -3,7 +3,7 @@
 # (dev/containers/<distro>.Dockerfile): the installed files, the programs,
 # and the removal. compose.yaml and .github/workflows/packages.yml run it.
 #
-#   check.sh fedora|opensuse|debian|arch|alpine
+#   check.sh fedora|rhel|opensuse|debian|arch|alpine
 #
 # KEYBOARD, GNOME and KDE (yes or no, default no) say which of those packages
 # the image has installed.
@@ -23,9 +23,11 @@ HELPER=/usr/libexec/asus-ux8406-second-screen
 
 # shellcheck disable=SC2086 # $packages is a list of words.
 case "${1:?which distribution}" in
-  fedora)
+  fedora|rhel)
     verify() { rpm --verify $packages; }
-    remove() { dnf remove -y $packages; }
+    # Only these packages: dnf would also remove the dependencies that came
+    # with them, and refuses to when one is protected (systemd-udev).
+    remove() { dnf remove -y --setopt=clean_requirements_on_remove=False $packages; }
     ;;
   opensuse)
     verify() { rpm --verify $packages; }

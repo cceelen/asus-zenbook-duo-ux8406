@@ -1,14 +1,16 @@
-# The packages of each distribution, from the source archive of a release
-# (release-archive.yml; in a release, the one that release-files.yml attests):
-# built and linted in a container of the
-# distribution (rpmlint, lintian, namcap, apkbuild-lint), then installed on a
-# clean container of the same image, checked and removed. Nix builds the
-# packages of the flake on the runner. A linter error or a failed step fails
-# the job.
+# The packages of each distribution release, from the source archive of a
+# release (release-archive.yml; in a release, the one that release-files.yml
+# attests): built and linted in an image with the build tools of the release
+# (rpmlint, lintian, namcap, apkbuild-lint), then installed on a clean
+# container of the release, checked and removed. Nix builds the packages of
+# the flake on the runner. A linter error or a failed step fails the job.
 #
-# The jobs run the scripts of dev/containers/ (build-deps.sh, build.sh,
-# install.sh, check.sh) directly in a job container: no image is built.
-# The Dockerfiles there run the same scripts, for local builds.
+# The build tools are installed once, not in each run: the job tools makes an
+# image for each release (the base image and dev/containers/build-deps.sh)
+# and keeps it in the GitHub container registry. It makes a new one only when
+# build-deps.sh or this file changes, and each week, for the updates of the
+# distributions. The build jobs run in that image. The Dockerfiles in
+# dev/containers/ run the same scripts, for local builds.
 #
 # By hand ("Run workflow"), and in release.yml after the release pull
 # request: a failed build stops the publication.
@@ -36,139 +38,265 @@ jobs:
     if: ${{ !inputs.archive }}
     uses: ./.github/workflows/release-archive.yml
 
-  # The builds, one list for the build jobs and the install jobs. Each one:
-  # the image, read from the FROM line of its Dockerfile (pinned by digest,
-  # which Renovate updates there), the family for the scripts, and the
-  # packages that the install job installs (keyboard, GNOME, KDE).
-  matrix:
+  # The scripts and the recipes for the job containers. download-artifact
+  # unpacks them there without git or tar, which not every image has.
+  tree:
     runs-on: ubuntu-26.04
-    outputs:
-      include: ${{ steps.matrix.outputs.include }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - id: matrix
-        run: |
-          # The image of the stage STAGE of dev/containers/FILE.Dockerfile.
-          image() {
-            ref=$(sed -n "s/^FROM \([^ ]*\) AS $2\$/\1/p" "dev/containers/$1.Dockerfile")
-            [ -n "$ref" ] || { echo "::error::no stage $2 in $1.Dockerfile"; exit 1; }
-            echo "$ref"
-          }
-          build() {
-            [ -n "$3" ] || exit 1
-            jq -nc --arg name "$1" --arg family "$2" --arg image "$3" \
-              --arg keyboard "$4" --arg gnome "$5" --arg kde "$6" \
-              '{$name, $family, $image, $keyboard, $gnome, $kde}'
-          }
-          {
-            build fedora fedora "$(image fedora base)" yes yes yes
-            # No udev-hid-bpf in Tumbleweed, Debian 13 and Alpine: second-screen
-            # and guard only.
-            build opensuse opensuse "$(image opensuse base)" no no no
-            build debian debian "$(image debian base-trixie)" no no no
-            build debian-testing debian "$(image debian base-testing)" yes no no
-            build arch arch "$(image arch base)" yes yes yes
-            build alpine alpine "$(image alpine base)" no no no
-          } | jq -sc . > "$RUNNER_TEMP/include.json"
-          cat "$RUNNER_TEMP/include.json"
-          echo "include=$(cat "$RUNNER_TEMP/include.json")" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: packages-tree
+          path: |
+            dev/containers/
+            packaging/
+          if-no-files-found: error
+          retention-days: 1
 
+  # The version of the build tools images: build-deps.sh, this file (the base
+  # images) and the week. A change of one gives new images.
+  tag:
+    runs-on: ubuntu-26.04
+    outputs:
+      hash: ${{ steps.hash.outputs.hash }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: hash
+        run: |
+          hash=$({ cat dev/containers/build-deps.sh .github/workflows/packages.yml; date -u +%G-W%V; } | sha256sum | cut -c1-12)
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+
+  # The image with the build tools of each release: taken from the registry
+  # when it is there, else made and pushed.
+  tools:
+    needs: tag
+    name: tools (${{ matrix.release }})
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    # Rawhide may fail: it changes every day.
+    continue-on-error: ${{ matrix.experimental == true }}
+    strategy:
+      fail-fast: false
+      # The distribution releases, all at the same time. base: the image for
+      # the build tools; where the distribution keeps one with them, it is
+      # that one (Arch base-devel, the Rust image of openSUSE BCI). install:
+      # the plain image for the install job. keyboard: the release has
+      # udev-hid-bpf. gnome, kde: the desktop packages are installed too.
+      # The images are pinned by digest; Renovate updates the tags and the
+      # digests (renovate.json, custom manager).
+      matrix:
+        include: &releases
+          - release: fedora-43
+            family: fedora
+            base: &fedora-43 "registry.fedoraproject.org/fedora:43@sha256:fd366128c971adc611ca245a9d6424c8bba490bd137799fca352ffc7353a99cd"
+            install: *fedora-43
+            keyboard: "yes"
+            gnome: "yes"
+            kde: "yes"
+          - release: fedora-44
+            family: fedora
+            base: &fedora-44 "registry.fedoraproject.org/fedora:44@sha256:b3e011d47e686a89781495c9a87bc80349af742965e5d51e79cd51711982e4a2"
+            install: *fedora-44
+            keyboard: "yes"
+            gnome: "yes"
+            kde: "yes"
+          - release: fedora-45
+            family: fedora
+            base: &fedora-45 "registry.fedoraproject.org/fedora:45@sha256:5ad386251aa5d0111754dff91a930acc1a928afe7bafc46762024e096ab9bbb0"
+            install: *fedora-45
+            keyboard: "yes"
+            gnome: "yes"
+            kde: "yes"
+          - release: fedora-rawhide
+            family: fedora
+            base: &fedora-rawhide "registry.fedoraproject.org/fedora:rawhide@sha256:02031526999d46c9f9c6490eeccf4cafd735438b9d0fb5e1d9fc941d7886e2ff"
+            install: *fedora-rawhide
+            keyboard: "yes"
+            gnome: "yes"
+            kde: "yes"
+            experimental: true
+          - release: almalinux-10
+            family: rhel
+            base: &almalinux-10 "docker.io/library/almalinux:10@sha256:5a4b41a427c9717be8f4ac2a32aa22efbae5f9124fbcb79a6765394f312acfe8"
+            install: *almalinux-10
+            keyboard: "yes"
+            gnome: "yes"
+            kde: "yes"
+          # No udev-hid-bpf in Tumbleweed, Leap 16.0, Debian 13 and Alpine.
+          - release: tumbleweed
+            family: opensuse
+            base: "registry.opensuse.org/opensuse/bci/rust:latest@sha256:7e70663ff9b3ba67f6bbd9bdb58bd806cde17d62817e938cf1de5603ad8d1b9e"
+            install: "registry.opensuse.org/opensuse/tumbleweed:latest@sha256:d0cf65ea39d8d869d8499a4a21b55e359de15114d639c4fad32dc7c144ce2899"
+          - release: leap-16.0
+            family: opensuse
+            base: &leap-16 "registry.opensuse.org/opensuse/leap:16.0@sha256:2f388e98be71bd6f5ccb75d3ee8fabfe857442bebdfa40a99a779b93c8b533af"
+            install: *leap-16
+          - release: debian-13
+            family: debian
+            base: &debian-13 "docker.io/library/debian:trixie@sha256:9c6e381421d0f48d1b8133e573f33c185ee16cbf505eda9c4a8a4791b25ea8a6"
+            install: *debian-13
+          - release: debian-testing
+            family: debian
+            base: &debian-testing "docker.io/library/debian:testing@sha256:2d46f43b677a047cfab870549eea0d83d0a9bea2f55b3f481efc901043916c2a"
+            install: *debian-testing
+            keyboard: "yes"
+          - release: debian-unstable
+            family: debian
+            base: &debian-unstable "docker.io/library/debian:unstable@sha256:873bf43b48d52ba792b98de93232153e59d4946b93cbd89d91cffef0df4ce823"
+            install: *debian-unstable
+            keyboard: "yes"
+          - release: ubuntu-26.04
+            family: debian
+            base: &ubuntu-2604 "docker.io/library/ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c"
+            install: *ubuntu-2604
+            keyboard: "yes"
+          - release: arch
+            family: arch
+            base: "docker.io/library/archlinux:base-devel@sha256:2de80105abb49f813a85393c6758a4334deb6bcec4a2411bd2f059c0bee6ee4c"
+            install: "docker.io/library/archlinux:latest@sha256:b1c2fe6e717bfd5673af8fc217e1e1c3ce0dcbb1d53c3414c8425e7ce79fc6d9"
+            keyboard: "yes"
+            gnome: "yes"
+            kde: "yes"
+          - release: alpine
+            family: alpine
+            base: &alpine "docker.io/library/alpine:edge@sha256:020dfcbaaf4cc1078bf2d9c7ba31a8466e334061dcd2f248001d68f79e52c000"
+            install: *alpine
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}-build:${{ matrix.release }}-${{ needs.tag.outputs.hash }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - env:
+          BASE: ${{ matrix.base }}
+          FAMILY: ${{ matrix.family }}
+          SOURCE: ${{ github.server_url }}/${{ github.repository }}
+          TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          echo "$TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+            echo "$IMAGE: in the registry"
+            exit 0
+          fi
+          # The label links the image to the repository, which gives the
+          # jobs of the repository the right to read it.
+          docker build --pull --tag "$IMAGE" --file - dev/containers <<EOF
+          FROM $BASE
+          LABEL org.opencontainers.image.source=$SOURCE
+          COPY build-deps.sh /tmp/
+          RUN sh /tmp/build-deps.sh $FAMILY
+          EOF
+          docker push "$IMAGE"
+
+  # In the image of the release: build the packages from the archive, as the
+  # user that build-deps.sh made (rpmbuild, makepkg and abuild run without
+  # root), and lint them.
   build:
-    needs: [archive, matrix]
+    needs: [archive, tree, tag, tools]
     # archive is skipped when the caller gives the archive.
-    if: ${{ !cancelled() && needs.matrix.result == 'success' && contains(fromJSON('["success", "skipped"]'), needs.archive.result) }}
-    name: build (${{ matrix.name }})
+    if: ${{ !cancelled() && needs.tree.result == 'success' && needs.tools.result == 'success' && contains(fromJSON('["success", "skipped"]'), needs.archive.result) }}
+    name: build (${{ matrix.release }})
     runs-on: ubuntu-26.04
     timeout-minutes: 60
-    container: ${{ matrix.image }}
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ghcr.io/${{ github.repository }}-build:${{ matrix.release }}-${{ needs.tag.outputs.hash }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+    continue-on-error: ${{ matrix.experimental == true }}
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.matrix.outputs.include) }}
-    env:
-      FAMILY: ${{ matrix.family }}
+        include: *releases
     defaults:
       run:
         shell: sh
     steps:
-      # git for actions/checkout: without it, the action needs tar and gzip,
-      # which not every image has.
-      - run: |
-          case "$FAMILY" in
-            fedora) dnf install -y git ;;
-            # gawk: else git brings busybox-gawk, which rpm-build cannot use.
-            opensuse) zypper -n install --no-recommends git-core gawk ;;
-            debian) apt-get update -q && apt-get install -qy --no-install-recommends git ca-certificates ;;
-            arch) pacman -Sy --noconfirm --needed git ;;
-            alpine) apk add git ;;
-          esac
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          persist-credentials: false
+          name: packages-tree
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: ${{ inputs.archive || 'release-source' }}
           path: dist
-      - run: sh dev/containers/build-deps.sh "$FAMILY"
-      # As the user that build-deps.sh made: rpmbuild, makepkg and abuild run
-      # without root. The job container has network; cargo must not use it:
-      # a crate that is not in vendor/ of the archive fails the build here,
-      # as it would on the build services of the distributions.
-      - run: |
+      # The job container has network; cargo must not use it: a crate that
+      # is not in vendor/ of the archive fails the build here, as it would
+      # on the build services of the distributions.
+      - env:
+          FAMILY: ${{ matrix.family }}
+        run: |
           chown -R builder .
           su builder -c "CARGO_NET_OFFLINE=true sh dev/containers/build.sh $FAMILY dist/asus-zenbook-duo-ux8406-*.tar.gz out"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: packages-${{ matrix.name }}
+          name: packages-${{ matrix.release }}
           path: out/
           if-no-files-found: error
           retention-days: 7
 
-  # On a clean container of the same image: the package manager installs
-  # the packages and gets their run-time dependencies, and check.sh checks
-  # the installed files and the programs and removes the packages.
+  # On a clean container of the release: the package manager installs the
+  # packages and gets their run-time dependencies (no recommends), and
+  # check.sh checks the installed files and the programs and removes the
+  # packages. One job for each release, with all its packages.
   install:
-    needs: [matrix, build]
+    needs: [tree, build]
     # Explicit: the default condition skips this job when archive, a job
     # before build, is skipped.
     if: ${{ !cancelled() && needs.build.result == 'success' }}
-    name: install (${{ matrix.name }})
+    name: install (${{ matrix.release }})
     runs-on: ubuntu-26.04
     timeout-minutes: 30
-    container: ${{ matrix.image }}
+    container: ${{ matrix.install }}
+    continue-on-error: ${{ matrix.experimental == true }}
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.matrix.outputs.include) }}
+        include: *releases
     env:
       FAMILY: ${{ matrix.family }}
-      KEYBOARD: ${{ matrix.keyboard }}
-      GNOME: ${{ matrix.gnome }}
-      KDE: ${{ matrix.kde }}
+      KEYBOARD: ${{ matrix.keyboard || 'no' }}
+      GNOME: ${{ matrix.gnome || 'no' }}
+      KDE: ${{ matrix.kde || 'no' }}
     defaults:
       run:
         shell: sh
     steps:
-      - run: |
-          case "$FAMILY" in
-            fedora) dnf install -y git ;;
-            # gawk: else git brings busybox-gawk, which rpm-build cannot use.
-            opensuse) zypper -n install --no-recommends git-core gawk ;;
-            debian) apt-get update -q && apt-get install -qy --no-install-recommends git ca-certificates ;;
-            arch) pacman -Sy --noconfirm --needed git ;;
-            alpine) apk add git ;;
-          esac
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: packages-${{ matrix.name }}
+          name: packages-tree
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: packages-${{ matrix.release }}
           path: pkgs
       - run: sh dev/containers/install.sh "$FAMILY" pkgs
       - run: sh dev/containers/check.sh "$FAMILY"
+
+  # The images of earlier weeks and versions: the newest two for each
+  # release are kept. Only on main, where the images of the releases come
+  # from.
+  prune:
+    needs: [tools, build]
+    if: ${{ github.ref == 'refs/heads/main' && !cancelled() }}
+    runs-on: ubuntu-26.04
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
+        with:
+          package-name: ${{ github.event.repository.name }}-build
+          package-type: container
+          min-versions-to-keep: 26
 
   # The packages of the flake, all in one build at the same time; then a link
   # to each part, which check-nix.sh checks.

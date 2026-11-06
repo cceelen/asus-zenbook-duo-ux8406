@@ -14,13 +14,14 @@
 ARG RELEASE=trixie
 
 # The base images, pinned by digest. Renovate updates the digests; packages.yml
-# reads the images from here. BuildKit builds only the stage that RELEASE selects.
+# pins its own images for the CI builds. BuildKit builds only the stage that RELEASE selects.
 FROM docker.io/library/debian:trixie@sha256:2dc419c6d7fe3dad0a2f9fd469c34cc90b0f9ba642d8fde837fe3d7d34a0e7f1 AS base-trixie
 FROM docker.io/library/debian:testing@sha256:cf15c569a84dfda832e421ab27a8049e962ba8e90571612396cd8db799279e4e AS base-testing
 
 FROM base-${RELEASE} AS tools
 COPY dev/containers/build-deps.sh /tmp/
-RUN sh /tmp/build-deps.sh debian && rm -rf /var/lib/apt/lists/* \
+# git: for meson dist below.
+RUN sh /tmp/build-deps.sh debian && apt-get install -qy --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/* \
     && mkdir /out && chown builder /out
 
 FROM tools AS build

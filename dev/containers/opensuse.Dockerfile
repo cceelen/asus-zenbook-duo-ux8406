@@ -8,12 +8,13 @@
 #     --output dist/opensuse .
 
 # The base image, pinned by digest. Renovate updates the tag and the digest;
-# packages.yml reads the image from here.
+# packages.yml pins its own images for the CI builds.
 FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:1cf7a3b7b68f0027e88fb5b5a4b4a0282fb8c18d0e2ece77342248e8244d3e2e AS base
 
 FROM base AS tools
 COPY dev/containers/build-deps.sh /tmp/
-RUN sh /tmp/build-deps.sh opensuse && zypper clean -a \
+# git: for meson dist below.
+RUN sh /tmp/build-deps.sh opensuse && zypper -n install --no-recommends git-core gawk && zypper clean -a \
     && mkdir /out && chown builder /out
 
 FROM tools AS build

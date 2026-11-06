@@ -7,12 +7,13 @@
 #     --output dist/alpine .
 
 # The base image, pinned by digest. Renovate updates the tag and the digest;
-# packages.yml reads the image from here.
+# packages.yml pins its own images for the CI builds.
 FROM docker.io/library/alpine:edge@sha256:020dfcbaaf4cc1078bf2d9c7ba31a8466e334061dcd2f248001d68f79e52c000 AS base
 
 FROM base AS tools
 COPY dev/containers/build-deps.sh /tmp/
-RUN sh /tmp/build-deps.sh alpine && rm -rf /var/cache/apk/* \
+# git: for meson dist below.
+RUN sh /tmp/build-deps.sh alpine && apk add git && rm -rf /var/cache/apk/* \
     && mkdir /out && chown builder /out
 
 FROM tools AS build
