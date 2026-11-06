@@ -230,7 +230,7 @@ cargo +nightly fuzz run kmsg fuzz/corpus/kmsg fuzz/seeds/kmsg -- -max_total_time
 ```
 
 Pull requests check the format and lints of the fuzz targets (`ci.yml`), but do
-not run them. The nightly run on main (`fuzz.yml`, one run at a time) gives each
+not run them. The weekly run on main (`fuzz.yml`, one run at a time) gives each
 target every input of `fuzz/seeds/` and of the saved corpus, and fuzzes it. Each
 input that makes a target fail gets a private draft security advisory. Add that
 input to `fuzz/seeds/<target>/` in the pull request that fixes the failure.
