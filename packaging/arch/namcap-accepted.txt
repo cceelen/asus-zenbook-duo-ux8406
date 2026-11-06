@@ -25,6 +25,16 @@ asus-zenbook-duo-ux8406-kde-keys W: Dependency included, but may not be needed (
 plasma-builtin-screen-rotation W: Dependency included, but may not be needed ('kwin')
 plasma-builtin-screen-rotation W: Dependency included, but may not be needed ('plasma-workspace')
 plasma-builtin-screen-rotation W: Dependency included, but may not be needed ('iio-sensor-proxy')
+# namcap looks for the QML modules of the applet in the installed packages,
+# and the build installs no desktop. plasma-workspace has the D-Bus types and
+# depends on qt6-declarative, kirigami and libplasma, which have the others.
+plasma-builtin-screen-rotation W: Referenced QML module 'org.kde.kirigami' is an uninstalled dependency (needed in files ['usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml'])
+plasma-builtin-screen-rotation W: Referenced QML module 'org.kde.plasma.components' is an uninstalled dependency (needed in files ['usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml'])
+plasma-builtin-screen-rotation W: Referenced QML module 'org.kde.plasma.core' is an uninstalled dependency (needed in files ['usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml'])
+plasma-builtin-screen-rotation W: Referenced QML module 'org.kde.plasma.plasmoid' is an uninstalled dependency (needed in files ['usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml'])
+plasma-builtin-screen-rotation W: Referenced QML module 'org.kde.plasma.workspace.dbus' is an uninstalled dependency (needed in files ['usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml'])
+plasma-builtin-screen-rotation W: Referenced QML module 'QtQuick' is an uninstalled dependency (needed in files ['usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml'])
+plasma-builtin-screen-rotation W: Referenced QML module 'QtQuick.Layouts' is an uninstalled dependency (needed in files ['usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml'])
 # The dynamic loader is in the list of needed libraries of each Rust program,
 # as rustc links it. It is part of glibc, which the packages depend on.
 asus-zenbook-duo-ux8406-keyboard-bpf W: Unused shared library '/usr/lib64/ld-linux-x86-64.so.2' by file ('usr/lib/asus-ux8406-keyboard-state')

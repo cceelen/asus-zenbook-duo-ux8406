@@ -138,6 +138,7 @@ endif
 #   host-mutation   applies mutants to a copy of the source (comparisons,
 #                   && and ||, ternaries, returns, constants) and fails if
 #                   one survives that is not argued as equivalent
+# The last three are registered only with -Dhost_checks=enabled.
 host_script = files('tests/run_host.py')
 host_workdir = meson.current_build_dir() / 'host'
 test(
@@ -147,28 +148,33 @@ test(
   suite: 'keyboard-bpf',
   timeout: 120,
 )
-test(
-  'host-sanitize',
-  python,
-  args: ['-B', host_script, 'sanitize', bpf_source, host_workdir],
-  suite: 'keyboard-bpf',
-  timeout: 120,
-)
-if find_program('llvm-cov', required: false).found() and find_program('llvm-profdata', required: false).found()
+host_checks = get_option('host_checks')
+if host_checks.allowed()
   test(
-    'host-coverage',
+    'host-sanitize',
     python,
-    args: ['-B', host_script, 'coverage', bpf_source, host_workdir],
+    args: ['-B', host_script, 'sanitize', bpf_source, host_workdir],
     suite: 'keyboard-bpf',
     timeout: 120,
   )
+  if find_program('llvm-cov', required: host_checks).found() and find_program('llvm-profdata', required: host_checks).found()
+    test(
+      'host-coverage',
+      python,
+      args: ['-B', host_script, 'coverage', bpf_source, host_workdir],
+      suite: 'keyboard-bpf',
+      timeout: 120,
+    )
+  else
+    message('keyboard-bpf: llvm-cov or llvm-profdata not found, the "host-coverage" test is not registered')
+  endif
+  test(
+    'host-mutation',
+    python,
+    args: ['-B', files('tests/mutate.py'), bpf_source, meson.current_build_dir() / 'host-mutants'],
+    suite: 'keyboard-bpf',
+    timeout: 600,
+  )
 else
-  message('keyboard-bpf: llvm-cov or llvm-profdata not found, the "host-coverage" test is not registered')
+  message('keyboard-bpf: host_checks is disabled, the tests "host-sanitize", "host-coverage" and "host-mutation" are not registered')
 endif
-test(
-  'host-mutation',
-  python,
-  args: ['-B', files('tests/mutate.py'), bpf_source, meson.current_build_dir() / 'host-mutants'],
-  suite: 'keyboard-bpf',
-  timeout: 600,
-)
