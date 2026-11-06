@@ -162,18 +162,20 @@ are set. The jobs run in the environments of the table, and the secrets of the
 table are secrets of these environments (Settings, Environments). The
 environment `aports` allows the branch `main` only.
 
-| Job      | Environment | Secrets                          | Variables                                                     |
-| -------- | ----------- | -------------------------------- | ------------------------------------------------------------- |
-| `cachix` | `cachix`    | `CACHIX_AUTH_TOKEN`              | `CACHIX_CACHE`                                                |
-| `aports` | `aports`    | `APORTS_SSH_KEY`, `APORTS_TOKEN` | `APORTS_FORK`, `APORTS_KNOWN_HOSTS`; `APORTS_DIR` (`testing`) |
+| Job      | Environment | Secrets             | Variables                               |
+| -------- | ----------- | ------------------- | --------------------------------------- |
+| `cachix` | `cachix`    | `CACHIX_AUTH_TOKEN` | `CACHIX_CACHE`                          |
+| `aports` | `aports`    | `APORTS_TOKEN`      | `APORTS_FORK`; `APORTS_DIR` (`testing`) |
 
-The aports merge requests come from a service account, over SSH; its token
-(scope `api`) opens the merge request with glab. Each run sets `master` of the
-fork to upstream's and replaces the branch `asus-zenbook-duo-ux8406`, so there
-is one merge request, with the latest release. The commits keep the maintainer
-of the APKBUILD as their author. Make the changes that the aports reviewers ask
-for in `packaging/alpine/`, so that the next release has them. To repeat the
-merge request of a release, run the workflow "aports" with its tag. The job of
+The aports merge requests come from a service account, through the GitLab API
+with its token (scope `api`), without git: the bot protection of that GitLab
+refuses git over HTTPS from CI runners, and over SSH it held the clone open.
+Each run makes the branch `asus-zenbook-duo-ux8406` of the fork anew from
+upstream's `master`, with one commit with the files of the aport, so there is
+one merge request, with the latest release. The commits keep the maintainer of
+the APKBUILD as their author. Make the changes that the aports reviewers ask for
+in `packaging/alpine/`, so that the next release has them. To repeat the merge
+request of a release, run the workflow "aports" with its tag. The job of
 `aports.yml` reads its secrets in the environment `aports`, also when
 `release.yml` calls it. A secret or variable that is missing stops the job at
 its first step, with its name. When Alpine moves the aport to `community/`, set
