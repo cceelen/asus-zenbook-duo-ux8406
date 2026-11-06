@@ -1,26 +1,20 @@
 # syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
-# Arch: build the packages, then install them on a clean system.
+# Arch: build the packages, then install them on a clean system. The stages
+# run the scripts of this directory, as .github/workflows/packages.yml does.
 #
 # The packages alone, into dist/arch/:
 #   docker build -f dev/containers/arch.Dockerfile --target packages \
 #     --output dist/arch .
 
-# The base image, pinned by digest. Renovate updates the tag and the digest.
+# The base image, pinned by digest. Renovate updates the tag and the digest;
+# packages.yml reads the image from here.
 FROM docker.io/library/archlinux:latest@sha256:e82623936fa1a69700b48e98b058df6eaab18b737c27473a7234a40fdecb9413 AS base
 
-# The build tools and the build user: the only stage that the Actions cache
-# keeps. Each layer from the source on is new in each run.
 FROM base AS tools
-# The makedepends of the PKGBUILD, and git for the source archive.
-# udev-hid-bpf is needed at run time only.
-# A mirror can fail to send some files; pacman then stops the transaction and
-# changes nothing. retry starts the command again, two times, after a pause.
-RUN retry() { "$@" || { sleep 30; "$@"; } || { sleep 60; "$@"; }; }; \
-    retry pacman -Syu --noconfirm --needed base-devel git meson rust clang libbpf \
-        linux-api-headers python glib2 nodejs systemd namcap \
-    && pacman -Scc --noconfirm
-# makepkg refuses root, and the tests are about file permissions.
-RUN useradd -m builder && mkdir /out && chown builder /out
+COPY dev/containers/build-deps.sh /tmp/
+RUN sh /tmp/build-deps.sh arch && pacman -Scc --noconfirm \
+    && mkdir /out && chown builder /out
+
 FROM tools AS build
 COPY --chown=builder . /src
 USER builder
@@ -31,45 +25,14 @@ RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
     && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false -Dkde_shortcuts=false -Dkde=false -Dkde_rotation=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
-# The packages, from that archive, without network. --nodeps: udev-hid-bpf,
-# a run-time dependency, is not in the official repositories. namcap checks the
-# PKGBUILD and every package; it has no exit status for findings, so an error
-# line (tagged ' E: ') fails the build, and so does a warning (' W: ') that is
-# not in packaging/arch/namcap-accepted.txt. The rule splitpkgmakedeps is left out:
-# it wants every run-time dependency of the split packages as a makedepends,
-# and two of them cannot be: udev-hid-bpf is not in the official repositories
-# (makepkg -s would fail), and gnome-shell is a whole desktop that the build
-# does not use.
-# The same goes for kwin, plasma-workspace and plasma-desktop.
-RUN --network=none set -eu; \
-    mkdir /home/builder/work; cd /home/builder/work; \
-    cp /src/packaging/arch/* /tmp/dist/meson-dist/*.tar.gz .; \
-    makepkg --noconfirm --nodeps --nocolor; \
-    cp *.pkg.tar.zst /out/; \
-    namcap -e splitpkgmakedeps PKGBUILD > /tmp/namcap.txt 2>&1; \
-    for p in *.pkg.tar.zst; do namcap "$p" >> /tmp/namcap.txt 2>&1; done; \
-    cat /tmp/namcap.txt; \
-    if grep -q ' E: ' /tmp/namcap.txt; then echo 'namcap reported errors' >&2; exit 1; fi; \
-    grep -v '^#' namcap-accepted.txt > /tmp/accepted.txt; \
-    if grep ' W: ' /tmp/namcap.txt | grep -v -x -F -f /tmp/accepted.txt; then \
-        echo 'namcap reported warnings that are not accepted' >&2; exit 1; fi
+RUN --network=none sh dev/containers/build.sh arch \
+    /tmp/dist/meson-dist/asus-zenbook-duo-ux8406-*.tar.gz /out
 
 FROM scratch AS packages
 COPY --from=build /out/ /
 
 FROM base AS install
-# The image leaves out /usr/share/doc and /usr/share/man when installing; the
-# guard's example configuration and manual page are there.
-RUN sed -i 's# usr/share/doc/\*##; s#usr/share/man/\* ##' /etc/pacman.conf
 RUN --mount=type=bind,from=build,source=/out,target=/pkgs \
-    retry() { "$@" || { sleep 30; "$@"; } || { sleep 60; "$@"; }; }; \
-    retry pacman -Syu --noconfirm \
-    && retry pacman -U --noconfirm /pkgs/asus-zenbook-duo-ux8406-second-screen-*.pkg.tar.zst \
-        /pkgs/asus-zenbook-duo-ux8406-tcc-guard-*.pkg.tar.zst \
-        /pkgs/asus-zenbook-duo-ux8406-keyboard-bpf-*.pkg.tar.zst \
-        /pkgs/gnome-shell-extension-asus-zenbook-duo-ux8406-keys-*.pkg.tar.zst \
-        /pkgs/gnome-shell-extension-builtin-screen-rotation-*.pkg.tar.zst \
-        /pkgs/asus-zenbook-duo-ux8406-kde-shortcuts-*.pkg.tar.zst \
-        /pkgs/asus-zenbook-duo-ux8406-kde-keys-*.pkg.tar.zst \
-        /pkgs/plasma-builtin-screen-rotation-*.pkg.tar.zst \
+    --mount=type=bind,source=dev/containers,target=/scripts \
+    KEYBOARD=yes GNOME=yes KDE=yes sh /scripts/install.sh arch /pkgs \
     && pacman -Scc --noconfirm

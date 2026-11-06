@@ -1,26 +1,22 @@
 # syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
-# Fedora: build the rpms, then install them on a clean system.
+# Fedora: build the rpms, then install them on a clean system. The stages run
+# the scripts of this directory, as .github/workflows/packages.yml does.
 #
 # The packages alone, into dist/fedora/:
 #   docker build -f dev/containers/fedora.Dockerfile --target packages \
 #     --output dist/fedora .
 
-# The base image, pinned by digest. Renovate updates the tag and the digest.
+# The base image, pinned by digest. Renovate updates the tag and the digest;
+# packages.yml reads the image from here.
 FROM registry.fedoraproject.org/fedora:44@sha256:cb3bd21415bd82a2fae1a9379f3f972fa8e78d460c9f86101274d13230dd6fd6 AS base
 
-# The build tools and the build user: the only stage that the Actions cache
-# keeps. Each layer from the source on is new in each run.
 FROM base AS tools
-RUN dnf install -y rpm-build git cargo clang libbpf-devel meson ninja-build python3 \
-        systemd-devel systemd-rpm-macros kernel-headers glib2 nodejs rpmlint \
-    && dnf clean all
-# The tests refuse to run as root, so everything from here on is the
-# unprivileged user's.
-RUN useradd -m builder \
-    && mkdir -p /build /rpm /out \
-    && chown -R builder:builder /build /rpm /out
+COPY dev/containers/build-deps.sh /tmp/
+RUN sh /tmp/build-deps.sh fedora && dnf clean all \
+    && mkdir /out && chown builder /out
+
 FROM tools AS build
-COPY --chown=builder:builder . /build
+COPY --chown=builder . /build
 USER builder
 WORKDIR /build
 # The source archive, as a release makes it (meson dist, from a git
@@ -29,35 +25,14 @@ RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
     && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false -Dkde_shortcuts=false -Dkde=false -Dkde_rotation=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
-# The packages, from that archive, as a user without root and without network.
-RUN --network=none rpmbuild --define "_topdir /rpm" \
-        --define "_sourcedir /tmp/dist/meson-dist" \
-        -ba packaging/rpm/asus-zenbook-duo-ux8406.spec \
-    && cp /rpm/RPMS/*/*.rpm /rpm/SRPMS/*.rpm /out/
-# rpmlint on the spec and on every rpm built above, binary and source. Its
-# full output is printed; the build fails on any error (rpmlint's own exit
-# status depends on a badness threshold that differs per distribution) and
-# on any other failure of rpmlint.
-COPY --chown=builder:builder packaging/rpm/ /build/packaging/rpm/
-RUN rc=0; \
-    rpmlint -r /build/packaging/rpm/asus-zenbook-duo-ux8406.rpmlintrc \
-        /build/packaging/rpm/asus-zenbook-duo-ux8406.spec /out/*.rpm \
-        > /tmp/rpmlint.log 2>&1 || rc=$?; \
-    cat /tmp/rpmlint.log; \
-    if grep -q ': E: ' /tmp/rpmlint.log; then echo "rpmlint: errors"; exit 1; fi; \
-    if [ "$rc" -ne 0 ] && [ "$rc" -ne 64 ]; then echo "rpmlint failed: $rc"; exit 1; fi
+RUN --network=none sh dev/containers/build.sh fedora \
+    /tmp/dist/meson-dist/asus-zenbook-duo-ux8406-*.tar.gz /out
 
 FROM scratch AS packages
 COPY --from=build /out/ /
 
 FROM base AS install
 RUN --mount=type=bind,from=build,source=/out,target=/pkgs \
-    dnf install -y /pkgs/asus-zenbook-duo-ux8406-second-screen-[0-9]*.x86_64.rpm \
-        /pkgs/asus-zenbook-duo-ux8406-tcc-guard-[0-9]*.x86_64.rpm \
-        /pkgs/asus-zenbook-duo-ux8406-keyboard-bpf-[0-9]*.x86_64.rpm \
-        /pkgs/gnome-shell-extension-asus-zenbook-duo-ux8406-keys-*.noarch.rpm \
-        /pkgs/gnome-shell-extension-builtin-screen-rotation-*.noarch.rpm \
-        /pkgs/asus-zenbook-duo-ux8406-kde-shortcuts-*.noarch.rpm \
-        /pkgs/asus-zenbook-duo-ux8406-kde-keys-[0-9]*.x86_64.rpm \
-        /pkgs/plasma-builtin-screen-rotation-[0-9]*.x86_64.rpm \
+    --mount=type=bind,source=dev/containers,target=/scripts \
+    KEYBOARD=yes GNOME=yes KDE=yes sh /scripts/install.sh fedora /pkgs \
     && dnf clean all
