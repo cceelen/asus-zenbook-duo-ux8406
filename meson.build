@@ -134,6 +134,11 @@ cargo_build = [
 
 meson.add_dist_script('build-aux' / 'dist-vendor.sh')
 
+# The Rust package of each part and the suite of its tests. Each part adds
+# its own; the tests run in one cargo test below.
+rust_test_packages = []
+rust_test_suites = []
+
 if get_option('screen')
   subdir('second-screen')
 endif
@@ -161,6 +166,26 @@ if get_option('kde')
 endif
 if get_option('kde_rotation')
   subdir('kde-rotation')
+endif
+
+# The Rust tests of all parts in one cargo run. The run compiles the crates
+# that the parts share one time; a run for each part compiled them again,
+# with the features of that part. The test is in the suite of each part.
+if rust_test_packages.length() > 0
+  rust_test_args = []
+  foreach package : rust_test_packages
+    rust_test_args += ['--package', package]
+  endforeach
+  test(
+    'cargo test',
+    cargo,
+    args: ['test', '--release'] + cargo_args + rust_test_args,
+    env: cargo_env,
+    suite: rust_test_suites,
+    timeout: 1800,
+    # One cargo at a time: they share a target directory.
+    is_parallel: false,
+  )
 endif
 
 summary({

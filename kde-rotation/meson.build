@@ -49,16 +49,9 @@ endif
 
 # The program against a fake KWin and a fake iio-sensor-proxy on a private
 # bus: the tests start dbus-daemon.
-test(
-  'cargo test',
-  cargo,
-  args: ['test', '--release'] + cargo_args + ['--package', 'asus-ux8406-kde-rotation'],
-  env: cargo_env,
-  suite: 'plasma-builtin-screen-rotation',
-  timeout: 900,
-  # One cargo at a time: they share a target directory.
-  is_parallel: false,
-)
+# The Rust tests run in the one cargo test of meson.build.
+rust_test_packages += 'asus-ux8406-kde-rotation'
+rust_test_suites += 'plasma-builtin-screen-rotation'
 test(
   'applet',
   node,
