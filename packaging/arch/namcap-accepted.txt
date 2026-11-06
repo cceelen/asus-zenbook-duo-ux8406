@@ -21,6 +21,10 @@ gnome-shell-extension-builtin-screen-rotation W: Dependency included, but may no
 asus-zenbook-duo-ux8406-kde-shortcuts W: Dependency included, but may not be needed ('plasma-desktop')
 # KWin runs the script.
 asus-zenbook-duo-ux8406-kde-keys W: Dependency included, but may not be needed ('kwin')
+# The keyboard package delivers the keys that these packages act on.
+gnome-shell-extension-asus-zenbook-duo-ux8406-keys W: Dependency included, but may not be needed ('asus-zenbook-duo-ux8406-keyboard-bpf')
+asus-zenbook-duo-ux8406-kde-shortcuts W: Dependency included, but may not be needed ('asus-zenbook-duo-ux8406-keyboard-bpf')
+asus-zenbook-duo-ux8406-kde-keys W: Dependency included, but may not be needed ('asus-zenbook-duo-ux8406-keyboard-bpf')
 # KWin turns the screens, plasma-workspace has the applet's D-Bus types.
 plasma-builtin-screen-rotation W: Dependency included, but may not be needed ('kwin')
 plasma-builtin-screen-rotation W: Dependency included, but may not be needed ('plasma-workspace')

@@ -14,11 +14,7 @@ ls -l "$root"/second-screen/libexec/asus-ux8406-second-screen "$root"/second-scr
   "$root"/keyboard-bpf/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
   "$root"/keyboard-bpf/libexec/asus-ux8406-keyboard-state \
   "$root"/keyboard-bpf/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules \
-  "$root"/gnome-keys/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/extension.js \
   "$root"/gnome-rotation/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/extension.js \
-  "$root"/kde-shortcuts/share/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop \
-  "$root"/kde-keys/libexec/asus-ux8406-kde-keys "$root"/kde-keys/etc/xdg/autostart/asus-ux8406-kde-keys.desktop \
-  "$root"/kde-keys/share/kwin/scripts/asus-zenbook-duo-ux8406-keys/contents/code/main.js \
   "$root"/kde-rotation/bin/plasma-builtin-screen-rotation \
   "$root"/kde-rotation/etc/xdg/autostart/plasma-builtin-screen-rotation.desktop \
   "$root"/kde-rotation/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml
@@ -33,9 +29,6 @@ ls -l "$root"/tcc-guard/bin/asus-ux8406-tcc-guard "$root"/tcc-guard/lib/systemd/
 grep -q "ExecStart=$(readlink "$root/tcc-guard")/bin/asus-ux8406-tcc-guard$" \
   "$root"/tcc-guard/lib/systemd/system/asus-ux8406-tcc-guard.service
 "$root"/tcc-guard/bin/asus-ux8406-tcc-guard --version
-grep -qx "Exec=$(readlink "$root/kde-keys")/libexec/asus-ux8406-kde-keys" \
-  "$root"/kde-keys/etc/xdg/autostart/asus-ux8406-kde-keys.desktop
-"$root"/kde-keys/libexec/asus-ux8406-kde-keys --version
 grep -qx "Exec=$(readlink "$root/kde-rotation")/bin/plasma-builtin-screen-rotation run" \
   "$root"/kde-rotation/etc/xdg/autostart/plasma-builtin-screen-rotation.desktop
 "$root"/kde-rotation/bin/plasma-builtin-screen-rotation --version

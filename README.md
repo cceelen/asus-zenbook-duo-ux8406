@@ -73,29 +73,30 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
 | ❌     | Not available.                                           |
 | 🤖     | Tested on the hardware.                                  |
 
-| Distribution         | Guard | Second screen | Keyboard | Keys  | Rotation | KDE keys | KDE rotation | KDE shortcuts |
-| -------------------- | ----- | ------------- | -------- | ----- | -------- | -------- | ------------ | ------------- |
-| Fedora 45            | 🛠️ ⁷  | 🛠️ ⁷          | 🛠️ ⁷     | 🛠️ ⁷  | 🛠️ ⁷     | 🛠️       | 🛠️           | 🛠️            |
-| Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖 | ✅ 🤖    | 🛠️       | 🛠️           | 🛠️            |
-| Fedora 43            | ✅    | ✅            | ✅       | ✅    | ✅       | 🛠️       | 🛠️           | 🛠️            |
-| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹  | ✅ ¹     | 🛠️       | 🛠️           | 🛠️            |
-| Arch                 | ✅    | ✅            | ✅       | ✅    | ✅       | 🛠️       | 🛠️           | 🛠️            |
-| openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅    | ✅       | 🛠️       | 🛠️           | 🛠️            |
-| openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ³  | ✅ ³     | 🛠️       | 🛠️           | 🛠️            |
-| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ✅    | ✅       | 🛠️       | 🛠️           | 🛠️            |
-| Debian 13            | ✅    | ✅            | ❌ ⁴     | ✅    | ✅       | 🛠️       | ❌ ⁸         | 🛠️            |
-| Debian testing       | ✅    | ✅            | ✅       | ✅    | ✅       | 🛠️       | 🛠️           | 🛠️            |
-| Debian unstable      | ✅    | ✅            | ✅       | ✅    | ✅       | 🛠️       | 🛠️           | 🛠️            |
-| Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅    | ✅       | 🛠️       | 🛠️           | 🛠️            |
-| Alpine               | 🛠️ ⁵  | 🛠️ ⁵          | ❌ ⁴     | 🛠️ ⁵  | 🛠️ ⁵     | 🛠️       | 🛠️           | 🛠️            |
-| Nix                  | ✅ ⁶  | ✅ ⁶          | ❌ ⁴     | ✅ ⁶  | ✅ ⁶     | 🛠️       | 🛠️           | 🛠️            |
+| Distribution         | Guard | Second screen | Keyboard | Keys   | Rotation | KDE keys | KDE rotation | KDE shortcuts |
+| -------------------- | ----- | ------------- | -------- | ------ | -------- | -------- | ------------ | ------------- |
+| Fedora 45            | 🛠️ ⁷  | 🛠️ ⁷          | 🛠️ ⁷     | 🛠️ ⁷   | 🛠️ ⁷     | 🛠️       | 🛠️           | 🛠️            |
+| Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖  | ✅ 🤖    | 🛠️       | 🛠️           | 🛠️            |
+| Fedora 43            | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
+| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹   | ✅ ¹     | 🛠️       | 🛠️           | 🛠️            |
+| Arch                 | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
+| openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅ ²   | ✅       | 🛠️ ²     | 🛠️           | 🛠️ ²          |
+| openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ² ³ | ✅ ³     | 🛠️ ²     | 🛠️           | 🛠️ ²          |
+| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ❌ ⁹   | ✅       | ❌ ⁹     | 🛠️           | ❌ ⁹          |
+| Debian 13            | ✅    | ✅            | ❌ ⁴     | ❌ ⁹   | ✅       | ❌ ⁹     | ❌ ⁸         | ❌ ⁹          |
+| Debian testing       | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
+| Debian unstable      | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
+| Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
+| Alpine               | 🛠️ ⁵  | 🛠️ ⁵          | ❌ ⁴     | ❌ ⁹   | 🛠️ ⁵     | ❌ ⁹     | 🛠️           | ❌ ⁹          |
+| Nix                  | ✅ ⁶  | ✅ ⁶          | ❌ ⁴     | ❌ ⁹   | ✅ ⁶     | ❌ ⁹     | 🛠️           | ❌ ⁹          |
 
 1. Built for RHEL 10 with EPEL 10. Installed in AlmaLinux 10 and Rocky Linux 10
    containers, not on RHEL.
-2. The distribution has no [udev-hid-bpf], which the keyboard package needs. The
-   personal OBS project `home:xanders` builds it. With that repository added,
-   the keyboard package installs and the loader reads the program. This project
-   does not maintain that repository.
+2. The distribution has no [udev-hid-bpf], which the keyboard package needs, and
+   with it Keys, KDE keys and KDE shortcuts. The personal OBS project
+   `home:xanders` builds it. With that repository added, the keyboard package
+   installs and the loader reads the program. This project does not maintain
+   that repository.
 3. Published, but not installed in a container: there is no container image.
 4. The distribution has no [udev-hid-bpf]. For Alpine, refer to
    [issue 43](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/43).
@@ -106,6 +107,11 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
 7. Not published yet: the Copr project builds for Fedora 45 from the next
    release on. The packages install in a clean container.
 8. Plasma 6.3 is too old: the applet needs the D-Bus types of Plasma 6.4.
+9. The package needs the keyboard package, which delivers its keys, and that
+   needs [udev-hid-bpf]. Not built for Leap 16.0, Alpine and Nix; built for
+   Debian 13 (the Debian recipe is one for all releases) but not installable.
+   Keys and KDE keys also give each touchscreen and pen its panel: there, that
+   is not available either.
 
 🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
 keyboard ids and dock port can be different. A result from your hardware adds a
@@ -154,9 +160,11 @@ The packages:
 | KDE rotation  | `plasma-builtin-screen-rotation`                     |
 | KDE shortcuts | `asus-zenbook-duo-ux8406-kde-shortcuts`              |
 
-The commands below use this list. It does not have the keyboard package: the
-commands add it where the distribution has udev-hid-bpf (refer to
-[Compatibility](#compatibility)).
+The commands below use this list. Keys, KDE keys and KDE shortcuts require the
+keyboard package and bring it with them; the commands also name it where the
+distribution has udev-hid-bpf (refer to [Compatibility](#compatibility)). On
+Leap 16.0, Debian 13 and Alpine, which have no udev-hid-bpf, use the lists
+without them, below.
 
 ```sh
 pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation"
@@ -166,6 +174,17 @@ For KDE Plasma, use this list in its place:
 
 ```sh
 pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts"
+```
+
+On Leap 16.0, Debian 13 and Alpine (footnote 9 of
+[Compatibility](#compatibility)), and on Tumbleweed and Slowroll without the
+repository `home:xanders` (footnote 2), use one of these lists:
+
+```sh
+# GNOME: without Keys
+pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-builtin-screen-rotation"
+# KDE Plasma: without KDE keys and KDE shortcuts; KDE rotation not on Debian 13
+pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen plasma-builtin-screen-rotation"
 ```
 
 ### Fedora and RHEL 10
@@ -203,6 +222,15 @@ tells you, then use the last two commands.
 dist=openSUSE_Tumbleweed
 sudo zypper addrepo --refresh https://download.opensuse.org/repositories/home:/cceelen:/asus-zenbook-duo-ux8406/$dist/home:cceelen:asus-zenbook-duo-ux8406.repo
 sudo zypper install $pkgs
+```
+
+Keys, KDE keys and KDE shortcuts need udev-hid-bpf, which Tumbleweed and
+Slowroll do not have (footnote 2 of [Compatibility](#compatibility)). Add the
+repository `home:xanders` first, which this project does not maintain, or use
+the lists without them (above). Leap 16.0 does not have these packages.
+
+```sh
+sudo zypper addrepo --refresh https://download.opensuse.org/repositories/home:/xanders/$dist/home:xanders.repo
 ```
 
 ### Debian and Ubuntu
@@ -253,8 +281,10 @@ sudo apk add $pkgs asus-zenbook-duo-ux8406-tcc-guard-openrc
 
 ### NixOS
 
-The flake of this repository has the packages and two NixOS modules. Add the
-flake as an input of your system flake, then:
+The flake of this repository has the packages and two NixOS modules. Keys, KDE
+keys and KDE shortcuts are not in it (footnote 9 of
+[Compatibility](#compatibility)). Add the flake as an input of your system
+flake, then:
 
 ```nix
 {
@@ -264,7 +294,6 @@ flake as an input of your system flake, then:
   ];
   services.asus-zenbook-duo-ux8406-tcc-guard.enable = true;
   environment.systemPackages = with asus-zenbook-duo-ux8406.packages.x86_64-linux; [
-    gnome-shell-extension-asus-zenbook-duo-ux8406-keys
     gnome-shell-extension-builtin-screen-rotation
   ];
   # The binary cache. Without it, Nix builds the packages.

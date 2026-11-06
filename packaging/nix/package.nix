@@ -19,7 +19,6 @@
   linuxHeaders,
   removeReferencesTo,
   python3,
-  glib,
   nodejs,
   cargo-cyclonedx,
 }:
@@ -236,28 +235,6 @@ in
     };
   };
 
-  # The GNOME Shell extension; list it in environment.systemPackages and
-  # enable it per user.
-  gnome-keys = mkPart {
-    enable = [ "gnome" ];
-    attrs = {
-      pname = "gnome-shell-extension-asus-zenbook-duo-ux8406-keys";
-      nativeBuildInputs = [
-        meson
-        ninja
-        pkg-config
-        glib
-        nodejs
-        python3
-      ];
-      passthru.extensionUuid = "asus-zenbook-duo-ux8406-keys@cceelen.github.io";
-      meta = meta // {
-        description = "GNOME Shell extension for the display keys of the Zenbook Duo UX8406";
-        license = lib.licenses.mit;
-      };
-    };
-  };
-
   # The GNOME Shell extension that turns the panels; it needs
   # hardware.sensor.iio.enable. List it in environment.systemPackages and
   # enable it per user.
@@ -279,22 +256,6 @@ in
       };
     };
   };
-  # List it in environment.systemPackages: the autostart entry is in
-  # etc/xdg/autostart of the package.
-  kde-keys = mkPart {
-    enable = [ "kde" ];
-    attrs = rustInputs // {
-      pname = "asus-zenbook-duo-ux8406-kde-keys";
-      passthru.bombonVendoredSbom = vendoredSbom "asus-ux8406-kde-keys";
-      # Below the prefix: Nix has no /etc to install into.
-      mesonFlags = rustInputs.mesonFlags ++ [ "--sysconfdir=etc" ];
-      meta = meta // {
-        description = "KDE Plasma integration for the display keys of the Zenbook Duo UX8406";
-        license = lib.licenses.mit;
-        mainProgram = "asus-ux8406-kde-keys";
-      };
-    };
-  };
   # Needs hardware.sensor.iio.enable. List it in environment.systemPackages.
   kde-rotation = mkPart {
     enable = [ "kde_rotation" ];
@@ -306,23 +267,6 @@ in
         description = "Turns the built-in screens with the laptop in KDE Plasma";
         license = lib.licenses.mit;
         mainProgram = "plasma-builtin-screen-rotation";
-      };
-    };
-  };
-  # List it in environment.systemPackages.
-  kde-shortcuts = mkPart {
-    enable = [ "kde_shortcuts" ];
-    attrs = {
-      pname = "asus-zenbook-duo-ux8406-kde-shortcuts";
-      nativeBuildInputs = [
-        meson
-        ninja
-        pkg-config
-        python3
-      ];
-      meta = meta // {
-        description = "Default KDE Plasma shortcuts for the function keys of the Zenbook Duo UX8406";
-        license = lib.licenses.mit;
       };
     };
   };

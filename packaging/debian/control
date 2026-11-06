@@ -59,8 +59,7 @@ Description: HID-BPF program for the hotkeys of the Zenbook Duo UX8406 keyboard
 
 Package: gnome-shell-extension-asus-zenbook-duo-ux8406-keys
 Architecture: all
-Depends: gnome-shell (>= 45~), ${misc:Depends}
-Recommends: asus-zenbook-duo-ux8406-keyboard-bpf
+Depends: gnome-shell (>= 45~), asus-zenbook-duo-ux8406-keyboard-bpf, ${misc:Depends}
 Description: GNOME Shell extension for the display keys of the Zenbook Duo UX8406
  The key right of F12 switches the lower panel on and off, and F8 swaps the
  windows of the two panels. The keyboard delivers these keys with
@@ -87,16 +86,14 @@ Description: GNOME Shell extension that turns the built-in screens with the lapt
 
 Package: asus-zenbook-duo-ux8406-kde-shortcuts
 Architecture: all
-Depends: plasma-desktop, ${misc:Depends}
-Recommends: asus-zenbook-duo-ux8406-keyboard-bpf
+Depends: plasma-desktop, asus-zenbook-duo-ux8406-keyboard-bpf, ${misc:Depends}
 Description: default KDE Plasma shortcuts for the function keys of the Zenbook Duo UX8406
  The emoji key (F11) opens the emoji selector of Plasma. This package is
  optional: the key works without it, but does nothing in Plasma.
 
 Package: asus-zenbook-duo-ux8406-kde-keys
 Architecture: amd64
-Depends: kwin-wayland, ${shlibs:Depends}, ${misc:Depends}
-Recommends: asus-zenbook-duo-ux8406-keyboard-bpf
+Depends: kwin-wayland, asus-zenbook-duo-ux8406-keyboard-bpf, ${shlibs:Depends}, ${misc:Depends}
 Description: KDE Plasma integration for the display keys of the Zenbook Duo UX8406
  The key right of F12 switches the lower screen on and off, and F8 swaps the
  windows of the two screens (a KWin script). Each touchscreen and pen gets

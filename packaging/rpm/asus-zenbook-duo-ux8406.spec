@@ -61,6 +61,17 @@ BuildRequires:  kernel-headers
 
 %global guarddocdir %{_docdir}/asus-zenbook-duo-ux8406-tcc-guard
 
+# Leap has no udev-hid-bpf, which the keyboard package needs. There, the
+# keyboard package and the packages that need it for their keys (GNOME Keys,
+# KDE shortcuts, KDE keys) are not built.
+%if 0%{?sle_version}
+%bcond_with keyboard
+%global keyboard_options -Dkeyboard=false -Dgnome=false -Dkde_shortcuts=false -Dkde=false
+%else
+%bcond_without keyboard
+%global keyboard_options %{nil}
+%endif
+
 %description
 Small pieces that make the ASUS Zenbook Duo UX8406 behave under Linux
 as it does under its vendor's software, without kernel changes.
@@ -94,6 +105,7 @@ logs one line and exits on any other model. An optional configuration file,
 /etc/asus-ux8406-tcc-guard.toml, overrides the defaults; an example is in the
 documentation directory.
 
+%if %{with keyboard}
 %package -n asus-zenbook-duo-ux8406-keyboard-bpf
 Summary:        HID-BPF program for the hotkeys of the Zenbook Duo UX8406 keyboard
 License:        GPL-2.0-only AND MIT
@@ -113,7 +125,7 @@ Summary:        GNOME Shell extension for the display keys of the Zenbook Duo UX
 License:        MIT
 BuildArch:      noarch
 Requires:       gnome-shell >= 45
-Recommends:     asus-zenbook-duo-ux8406-keyboard-bpf
+Requires:       asus-zenbook-duo-ux8406-keyboard-bpf
 
 %description -n gnome-shell-extension-asus-zenbook-duo-ux8406-keys
 The key right of F12 switches the lower panel on and off, and F8 swaps the
@@ -121,6 +133,7 @@ windows of the two panels. The keyboard delivers these keys with
 asus-zenbook-duo-ux8406-keyboard-bpf. The extension also gives each
 touchscreen its panel. To be enabled per user:
 gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io
+%endif
 
 %package -n gnome-shell-extension-builtin-screen-rotation
 Summary:        GNOME Shell extension that turns the built-in screens with the laptop
@@ -140,12 +153,13 @@ orientation.
 To be enabled per user:
 gnome-extensions enable builtin-screen-rotation@cceelen.github.io
 
+%if %{with keyboard}
 %package -n asus-zenbook-duo-ux8406-kde-shortcuts
 Summary:        Default KDE Plasma shortcuts for the function keys of the Zenbook Duo UX8406
 License:        MIT
 BuildArch:      noarch
 Requires:       %{plasmadesktoppkg}
-Recommends:     asus-zenbook-duo-ux8406-keyboard-bpf
+Requires:       asus-zenbook-duo-ux8406-keyboard-bpf
 
 %description -n asus-zenbook-duo-ux8406-kde-shortcuts
 The emoji key (F11) opens the emoji selector of Plasma. This package is
@@ -155,7 +169,7 @@ optional: the key works without it, but does nothing in Plasma.
 Summary:        KDE Plasma integration for the display keys of the Zenbook Duo UX8406
 License:        MIT
 Requires:       %{kwinpkg}
-Recommends:     asus-zenbook-duo-ux8406-keyboard-bpf
+Requires:       asus-zenbook-duo-ux8406-keyboard-bpf
 
 %description -n asus-zenbook-duo-ux8406-kde-keys
 The key right of F12 switches the lower screen on and off, and F8 swaps the
@@ -163,6 +177,7 @@ windows of the two screens (a KWin script). Each touchscreen and pen gets its
 panel. The keyboard delivers the keys with
 asus-zenbook-duo-ux8406-keyboard-bpf. For Plasma 6 on Wayland. Active after
 the next login. Does nothing on any other model.
+%endif
 
 %package -n plasma-builtin-screen-rotation
 Summary:        Turns the built-in screens with the laptop in KDE Plasma
@@ -195,7 +210,8 @@ the user, to give KWin's setting back.
     -Dudevdir=%{udevdir} \
     -Dsystemdsystemunitdir=%{_unitdir} \
     -Dfirmwaredir=%{_prefix}/lib/firmware \
-    -Dlicensedir=%{_defaultlicensedir}
+    -Dlicensedir=%{_defaultlicensedir} \
+    %{keyboard_options}
 %meson_build
 
 %check
@@ -273,6 +289,7 @@ fi
 %systemd_postun_with_restart asus-ux8406-tcc-guard.service
 %endif
 
+%if %{with keyboard}
 # Fedora's hwdb macro expands to nothing (hwdb is updated by a file trigger
 # of systemd).
 %post -n asus-zenbook-duo-ux8406-keyboard-bpf
@@ -285,6 +302,7 @@ fi
 %udev_rules_update
 %if 0%{?suse_version}
 %udev_hwdb_update
+%endif
 %endif
 
 %files -n asus-zenbook-duo-ux8406-second-screen
@@ -302,6 +320,7 @@ fi
 %{_unitdir}/asus-ux8406-tcc-guard.service
 %{_presetdir}/90-asus-zenbook-duo-ux8406-tcc-guard.preset
 
+%if %{with keyboard}
 %files -n asus-zenbook-duo-ux8406-keyboard-bpf
 %license %{_defaultlicensedir}/asus-zenbook-duo-ux8406-keyboard-bpf
 %doc README.md
@@ -325,6 +344,7 @@ fi
 %dir %{_datadir}/gnome-shell
 %dir %{_datadir}/gnome-shell/extensions
 %endif
+%endif
 
 %files -n gnome-shell-extension-builtin-screen-rotation
 %license %{_defaultlicensedir}/gnome-shell-extension-builtin-screen-rotation
@@ -335,6 +355,7 @@ fi
 %dir %{_datadir}/gnome-shell/extensions
 %endif
 
+%if %{with keyboard}
 %files -n asus-zenbook-duo-ux8406-kde-shortcuts
 %license %{_defaultlicensedir}/asus-zenbook-duo-ux8406-kde-shortcuts
 %doc README.md
@@ -355,6 +376,7 @@ fi
 %if 0%{?suse_version}
 %dir %{_datadir}/kwin
 %dir %{_datadir}/kwin/scripts
+%endif
 %endif
 
 %files -n plasma-builtin-screen-rotation
