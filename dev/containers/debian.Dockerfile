@@ -17,7 +17,9 @@ ARG RELEASE=trixie
 FROM docker.io/library/debian:trixie@sha256:2dc419c6d7fe3dad0a2f9fd469c34cc90b0f9ba642d8fde837fe3d7d34a0e7f1 AS base-trixie
 FROM docker.io/library/debian:testing@sha256:cf15c569a84dfda832e421ab27a8049e962ba8e90571612396cd8db799279e4e AS base-testing
 
-FROM base-${RELEASE} AS build
+# The build tools and the build user: the only stage that the Actions cache
+# keeps. Each layer from the source on is new in each run.
+FROM base-${RELEASE} AS tools
 RUN apt-get update -q \
     && apt-get install -qy --no-install-recommends build-essential debhelper \
         ca-certificates git fakeroot meson ninja-build pkgconf systemd-dev udev \
@@ -26,6 +28,7 @@ RUN apt-get update -q \
     && rm -rf /var/lib/apt/lists/*
 # The tests of the guard need an ordinary user: root ignores file permissions.
 RUN useradd -m builder
+FROM tools AS build
 COPY --chown=builder . /src
 USER builder
 WORKDIR /src

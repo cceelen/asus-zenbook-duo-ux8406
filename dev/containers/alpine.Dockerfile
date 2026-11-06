@@ -8,7 +8,9 @@
 # The base image, pinned by digest. Renovate updates the tag and the digest.
 FROM docker.io/library/alpine:edge@sha256:020dfcbaaf4cc1078bf2d9c7ba31a8466e334061dcd2f248001d68f79e52c000 AS base
 
-FROM base AS build
+# The build tools and the build user: the only stage that the Actions cache
+# keeps. Each layer from the source on is new in each run.
+FROM base AS tools
 # alpine-sdk has abuild, fakeroot and the C toolchain. The build
 # dependencies are installed here, as root: abuild is run with -d and
 # installs nothing itself.
@@ -20,6 +22,7 @@ RUN adduser -D builder \
     && addgroup builder abuild \
     && su builder -c 'abuild-keygen -a -n' \
     && find /home/builder -name '*.rsa.pub' -exec cp {} /etc/apk/keys/ \;
+FROM tools AS build
 COPY --chown=builder . /src
 USER builder
 WORKDIR /src

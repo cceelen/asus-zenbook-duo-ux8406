@@ -8,7 +8,9 @@
 # The base image, pinned by digest. Renovate updates the tag and the digest.
 FROM docker.io/library/archlinux:latest@sha256:e82623936fa1a69700b48e98b058df6eaab18b737c27473a7234a40fdecb9413 AS base
 
-FROM base AS build
+# The build tools and the build user: the only stage that the Actions cache
+# keeps. Each layer from the source on is new in each run.
+FROM base AS tools
 # The makedepends of the PKGBUILD, and git for the source archive.
 # udev-hid-bpf is needed at run time only.
 RUN pacman -Syu --noconfirm --needed base-devel git meson rust clang libbpf \
@@ -16,6 +18,7 @@ RUN pacman -Syu --noconfirm --needed base-devel git meson rust clang libbpf \
     && pacman -Scc --noconfirm
 # makepkg refuses root, and the tests are about file permissions.
 RUN useradd -m builder && mkdir /out && chown builder /out
+FROM tools AS build
 COPY --chown=builder . /src
 USER builder
 WORKDIR /src
