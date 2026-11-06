@@ -6,7 +6,7 @@ pkgname=(asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard
          asus-zenbook-duo-ux8406-kde-shortcuts
          asus-zenbook-duo-ux8406-kde-keys
          plasma-builtin-screen-rotation)
-pkgver=0.7.0
+pkgver=0.8.0
 pkgrel=1
 arch=(x86_64)
 url="https://github.com/cceelen/asus-zenbook-duo-ux8406"
