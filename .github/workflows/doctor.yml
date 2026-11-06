@@ -13,13 +13,14 @@ on:
   workflow_call:
     secrets:
       RELEASE_TOKEN:
-        required: false
+        required: true
       FUZZ_ADVISORY_TOKEN:
-        required: false
-      # A secret of the environment aports: the job gitlab-token reads it
-      # there, so release.yml does not pass it.
+        required: true
+      # A secret of the environment aports. The caller passes it by name all
+      # the same: else it is empty here, without an error. The job
+      # gitlab-token, which sets the environment, gets its value.
       APORTS_TOKEN:
-        required: false
+        required: true
   pull_request:
     paths:
       - .github/workflows/doctor.yml
