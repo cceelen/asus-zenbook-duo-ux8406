@@ -2,8 +2,13 @@
 # that one of them going away shows as a red run, not as a failed release,
 # and the version that each delivery pipeline has, with its link. Each check
 # is a job of its own; the summary of the run has the details. release.yml
-# runs it too, before the release pull request.
-# A pull request that changes this file runs the checks that need no secret.
+# runs it too, before the release pull request (before-release): there, a
+# service that does not answer or a token that does not work stops the
+# release, and the state of the last release in the pipelines (a failed
+# build, an older version) only warns, since the new release replaces it.
+# A pull request that changes this file runs the checks that need no secret,
+# to test the change of the checks: there, as before a release, the state of
+# the last release only warns. The daily run and a run by hand fail on it.
 name: doctor
 
 on:
@@ -11,6 +16,11 @@ on:
     - cron: "37 4 * * *"
   workflow_dispatch:
   workflow_call:
+    inputs:
+      before-release:
+        description: Called before a release; see the top of this file.
+        type: boolean
+        default: false
     secrets:
       RELEASE_TOKEN:
         required: true
@@ -44,6 +54,9 @@ env:
   APORTS_BRANCH: asus-zenbook-duo-ux8406
   # Days after a release that a pipeline may take to have it.
   GRACE: "7"
+  # The state of the last release only warns: before a release, and on a
+  # pull request.
+  STATE_WARNS: ${{ inputs.before-release == true || github.event_name == 'pull_request' }}
 
 jobs:
   # The latest release, which the jobs below compare their version with.
@@ -131,6 +144,8 @@ jobs:
       # each repository. A build that is waiting or running does not fail.
       - if: ${{ !cancelled() }}
         run: |
+          # The state of the last release (see STATE_WARNS).
+          state() { if [ "$STATE_WARNS" = true ]; then echo "::warning::$*"; else echo "::error::$*"; exit 1; fi; }
           link=https://build.opensuse.org/package/show/$OBS_PROJECT/$OBS_PACKAGE
           v=$(curl -fsS "https://build.opensuse.org/public/source/$OBS_PROJECT/$OBS_PACKAGE?expand=1" \
             | grep -o "$OBS_PACKAGE-[0-9][0-9.]*\.tar\.gz" | head -n 1 | sed "s/^$OBS_PACKAGE-//; s/\.tar\.gz\$//")
@@ -139,8 +154,8 @@ jobs:
           echo "OBS: ${v:-none} - $link" | tee -a "$GITHUB_STEP_SUMMARY"
           echo "OBS builds: ${builds//$'\n'/, }" | tee -a "$GITHUB_STEP_SUMMARY"
           broken=$(grep -E ': (failed|unresolvable|broken)$' <<< "$builds" || true)
-          if [ -n "$broken" ]; then echo "::error::OBS builds that failed: ${broken//$'\n'/, }"; exit 1; fi
-          if [ "$v" != "$WANT" ] && [ "$LATE" = true ]; then echo "::error::OBS has ${v:-no version}, not the release $WANT"; exit 1; fi
+          if [ -n "$broken" ]; then state "OBS builds that failed: ${broken//$'\n'/, }"; fi
+          if [ "$v" != "$WANT" ] && [ "$LATE" = true ]; then state "OBS has ${v:-no version}, not the release $WANT"; fi
 
   # Packit keeps the project (preserve_project in .packit.yaml).
   copr:
@@ -157,11 +172,13 @@ jobs:
       # The version of the latest build that succeeded, without the release
       # of the package.
       - run: |
+          # The state of the last release (see STATE_WARNS).
+          state() { if [ "$STATE_WARNS" = true ]; then echo "::warning::$*"; else echo "::error::$*"; exit 1; fi; }
           link=https://copr.fedorainfracloud.org/coprs/$COPR_OWNER/$COPR_PROJECT/
           v=$(curl -fsS "https://copr.fedorainfracloud.org/api_3/package?ownername=$COPR_OWNER&projectname=$COPR_PROJECT&packagename=$OBS_PACKAGE&with_latest_succeeded_build=true" \
             | jq -r '.builds.latest_succeeded.source_package.version // empty' | sed 's/-[^-]*$//')
           echo "COPR: ${v:-none} - $link" | tee -a "$GITHUB_STEP_SUMMARY"
-          if [ "$v" != "$WANT" ] && [ "$LATE" = true ]; then echo "::error::COPR has ${v:-no build}, not the release $WANT"; exit 1; fi
+          if [ "$v" != "$WANT" ] && [ "$LATE" = true ]; then state "COPR has ${v:-no build}, not the release $WANT"; fi
 
   # The binary cache answers, and has the key of the README.
   cachix:
@@ -187,6 +204,8 @@ jobs:
       - env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # The state of the last release (see STATE_WARNS).
+          state() { if [ "$STATE_WARNS" = true ]; then echo "::warning::$*"; else echo "::error::$*"; exit 1; fi; }
           sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/v$WANT" --jq .sha)
           run=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/release.yml/runs?head_sha=$sha" --jq '.workflow_runs[0].id // empty')
           job=""
@@ -195,7 +214,7 @@ jobs:
               --jq '[.jobs[] | select(.name == "cachix")][-1] // empty | "\(.conclusion) \(.html_url)"')
           fi
           echo "Nix: $WANT, cachix job ${job:-not found}" | tee -a "$GITHUB_STEP_SUMMARY"
-          if [ "${job%% *}" != success ] && [ "$LATE" = true ]; then echo "::error::The release $WANT is not in Cachix: cachix job ${job:-not found}"; exit 1; fi
+          if [ "${job%% *}" != success ] && [ "$LATE" = true ]; then state "The release $WANT is not in Cachix: cachix job ${job:-not found}"; fi
 
   # The merge request of the aport is open and its pipeline did not fail, or
   # Alpine has merged it. A closed one, or none at all, fails.
@@ -207,15 +226,17 @@ jobs:
       WANT: ${{ needs.release.outputs.version }}
     steps:
       - run: |
+          # The state of the last release (see STATE_WARNS).
+          state() { if [ "$STATE_WARNS" = true ]; then echo "::warning::$*"; else echo "::error::$*"; exit 1; fi; }
           api=https://gitlab.alpinelinux.org/api/v4/projects/alpine%2Faports
           mrs=$(curl -fsS "$api/merge_requests?source_branch=$APORTS_BRANCH&order_by=updated_at&per_page=5") \
             || { echo "::error::GitLab of Alpine does not answer"; exit 1; }
           iid=$(jq -r '[.[] | select(.state == "opened" or .state == "merged")][0].iid // empty' <<< "$mrs")
-          if [ -z "$iid" ]; then echo "::error::No open or merged aports merge request from $APORTS_BRANCH"; exit 1; fi
+          if [ -z "$iid" ]; then state "No open or merged aports merge request from $APORTS_BRANCH"; exit 0; fi
           mr=$(curl -fsS "$api/merge_requests/$iid")
           jq -r '"Alpine !\(.iid): \(.state), updated \(.updated_at), pipeline \(.head_pipeline.status // "none") - \(.web_url)"' <<< "$mr" >> "$GITHUB_STEP_SUMMARY"
           if [ "$(jq -r '.state == "opened" and .head_pipeline.status == "failed"' <<< "$mr")" = true ]; then
-            echo "::error::The pipeline of aports !$iid failed"; exit 1
+            state "The pipeline of aports !$iid failed"
           fi
       # The pkgver of the APKBUILD: on the branch of the merge request, or in
       # aports once merged. The review of Alpine takes its time: an older

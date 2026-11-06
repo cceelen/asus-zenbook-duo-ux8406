@@ -35,6 +35,8 @@ jobs:
     permissions:
       contents: read
       actions: read
+    with:
+      before-release: true
     secrets:
       RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       FUZZ_ADVISORY_TOKEN: ${{ secrets.FUZZ_ADVISORY_TOKEN }}
