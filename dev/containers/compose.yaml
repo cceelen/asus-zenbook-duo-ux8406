@@ -27,7 +27,6 @@ services:
     command: [sh, /check.sh, fedora]
     environment:
       KEYBOARD: "yes"
-      GNOME: "yes"
       KDE: "yes"
 
   # No udev-hid-bpf in Tumbleweed: second-screen and guard packages only.
@@ -69,7 +68,6 @@ services:
     command: [sh, /check.sh, arch]
     environment:
       KEYBOARD: "yes"
-      GNOME: "yes"
       KDE: "yes"
 
   # No udev-hid-bpf in Alpine: second-screen and guard packages only.

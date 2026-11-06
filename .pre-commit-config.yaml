@@ -68,7 +68,7 @@ repos:
     rev: v2.5.15
     hooks:
       - id: biome-check
-        files: ^(gnome-(common|keys|rotation)|kde-(keys|rotation))/.*\.js$
+        files: ^kde-(keys|rotation)/.*\.js$
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1
     hooks:

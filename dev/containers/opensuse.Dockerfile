@@ -13,7 +13,7 @@ FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:1cf7a3b7b68f0027e88
 # keeps. Each layer from the source on is new in each run.
 FROM base AS tools
 RUN zypper -n install rpm-build git cargo clang libbpf-devel meson ninja python3 \
-        systemd-devel systemd-rpm-macros linux-glibc-devel gzip tar glib2-tools \
+        systemd-devel systemd-rpm-macros linux-glibc-devel gzip tar \
         nodejs-default dbus-1-daemon rpmlint \
     && zypper clean -a
 # The tests refuse to run as root, so everything from here on is the
@@ -29,7 +29,7 @@ WORKDIR /build
 # checkout; it carries the crates in vendor/). This step needs the network.
 RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
-    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false -Dkde_shortcuts=false -Dkde=false -Dkde_rotation=false \
+    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dkde_shortcuts=false -Dkde=false -Dkde_rotation=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
 # The packages, from that archive, as a user without root and without network.
 RUN --network=none rpmbuild --define "_topdir /rpm" \
@@ -54,8 +54,7 @@ COPY --from=build /out/ /
 
 FROM base AS install
 # Tumbleweed does not package udev-hid-bpf, which the keyboard package needs;
-# only the second-screen and guard packages are installed. The extension
-# package is not installed either: it would pull in a whole GNOME.
+# only the second-screen and guard packages are installed.
 RUN --mount=type=bind,from=build,source=/out,target=/pkgs \
     zypper -n install --allow-unsigned-rpm /pkgs/asus-zenbook-duo-ux8406-second-screen-*.rpm \
         /pkgs/asus-zenbook-duo-ux8406-tcc-guard-*.rpm \

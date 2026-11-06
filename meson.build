@@ -9,8 +9,6 @@
 #   keyboard-state the helper that carries the keyboard's backlight and
 #                 function row mode from one connection to the next, and
 #                 its udev rule; goes with keyboard-bpf
-#   gnome-keys    the GNOME Shell extension for the two display keys
-#   gnome-rotation the GNOME Shell extension that turns the built-in panels
 #   kde-shortcuts for KDE Plasma: default shortcuts for function keys
 #   kde-keys      for KDE Plasma: the program for the lower screen key and the
 #                 touchscreens, its autostart entry, and the KWin script for
@@ -84,8 +82,6 @@ package_names = {
   'second-screen': 'asus-zenbook-duo-ux8406-second-screen',
   'tcc-guard': 'asus-zenbook-duo-ux8406-tcc-guard',
   'keyboard-bpf': 'asus-zenbook-duo-ux8406-keyboard-bpf',
-  'gnome-keys': 'gnome-shell-extension-asus-zenbook-duo-ux8406-keys',
-  'gnome-rotation': 'gnome-shell-extension-builtin-screen-rotation',
   'kde-shortcuts': 'asus-zenbook-duo-ux8406-kde-shortcuts',
   'kde-keys': 'asus-zenbook-duo-ux8406-kde-keys',
   'kde-rotation': 'plasma-builtin-screen-rotation',
@@ -100,12 +96,8 @@ paths = configuration_data({
 
 python = find_program('python3')
 kde = get_option('kde') or get_option('kde_rotation')
-# The tests of the two GNOME Shell extensions, the KWin script and the applet
-# run on node.
-node = find_program('node', required: get_option('gnome') or get_option('rotation') or kde)
-# What the two extensions share. In each extension/ directory these are links,
-# for the tests and the manual tools; each part installs the files themselves.
-gnome_common = files('gnome-common/display.js', 'gnome-common/state.js')
+# The tests of the KWin script and the applet run on node.
+node = find_program('node', required: kde)
 
 # Cargo. One target directory inside the build directory, so that nothing is
 # written into the source tree.
@@ -144,12 +136,6 @@ if get_option('keyboard')
   subdir('keyboard-bpf')
   subdir('keyboard-state')
 endif
-if get_option('gnome')
-  subdir('gnome-keys')
-endif
-if get_option('rotation')
-  subdir('gnome-rotation')
-endif
 if get_option('kde_shortcuts')
   subdir('kde-shortcuts')
 endif
@@ -167,8 +153,6 @@ summary({
   'second-screen': get_option('screen'),
   'tcc-guard': get_option('guard'),
   'keyboard-bpf': get_option('keyboard'),
-  'gnome-keys': get_option('gnome'),
-  'gnome-rotation': get_option('rotation'),
   'kde-shortcuts': get_option('kde_shortcuts'),
   'kde-keys': get_option('kde'),
   'kde-rotation': get_option('kde_rotation'),

@@ -5,16 +5,13 @@
 #
 #   check.sh fedora|opensuse|debian|arch|alpine
 #
-# KEYBOARD, GNOME and KDE (yes or no, default no) say which of those packages
+# KEYBOARD and KDE (yes or no, default no) say which of those packages
 # the image has installed.
 set -eu
 
 packages="asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-tcc-guard"
 if [ "${KEYBOARD:-no}" = yes ]; then
   packages="$packages asus-zenbook-duo-ux8406-keyboard-bpf"
-fi
-if [ "${GNOME:-no}" = yes ]; then
-  packages="$packages gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation"
 fi
 if [ "${KDE:-no}" = yes ]; then
   packages="$packages asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation"
@@ -75,20 +72,6 @@ if [ "${KEYBOARD:-no}" = yes ]; then
 else
   echo "keyboard package not installed: no udev-hid-bpf here"
 fi
-if [ "${GNOME:-no}" = yes ]; then
-  test -f /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/schemas/gschemas.compiled
-  # The files that the two extensions share are copies, not links.
-  for d in asus-zenbook-duo-ux8406-keys builtin-screen-rotation; do
-    for f in extension.js state.js display.js; do
-      test -f "/usr/share/gnome-shell/extensions/$d@cceelen.github.io/$f"
-      test ! -L "/usr/share/gnome-shell/extensions/$d@cceelen.github.io/$f"
-    done
-  done
-  gnome-shell --version
-  echo "extension files in place"
-else
-  echo "extension package not installed here"
-fi
 if [ "${KDE:-no}" = yes ]; then
   test -f /usr/share/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop
   "${HELPER%/*}/asus-ux8406-kde-keys" --version
@@ -115,8 +98,6 @@ for f in "$HELPER" "${HELPER%/*}/asus-ux8406-keyboard-state" \
     /usr/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \
     /usr/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
     /usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
-    /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io \
-    /usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io \
     /usr/share/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop \
     "${HELPER%/*}/asus-ux8406-kde-keys" \
     /etc/xdg/autostart/asus-ux8406-kde-keys.desktop \

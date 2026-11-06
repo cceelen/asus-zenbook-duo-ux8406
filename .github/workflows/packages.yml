@@ -24,17 +24,17 @@ jobs:
       fail-fast: false
       # One job for each build: the Dockerfile and its build arguments, the
       # argument of dev/containers/check.sh, and the packages that the image
-      # installs (keyboard, GNOME, KDE). compose.yaml has the same builds for
+      # installs (keyboard, KDE). compose.yaml has the same builds for
       # local use.
       matrix:
         include:
-          - { name: fedora, dockerfile: fedora, check: fedora, keyboard: "yes", gnome: "yes", kde: "yes" }
+          - { name: fedora, dockerfile: fedora, check: fedora, keyboard: "yes", kde: "yes" }
           # No udev-hid-bpf in Tumbleweed: second-screen and guard only.
           - { name: opensuse, dockerfile: opensuse, check: opensuse }
           # No udev-hid-bpf in Debian 13: second-screen and guard only.
           - { name: debian, dockerfile: debian, check: debian, build-args: "RELEASE=trixie\nKEYBOARD=no" }
           - { name: debian-testing, dockerfile: debian, check: debian, build-args: "RELEASE=testing\nKEYBOARD=yes", keyboard: "yes" }
-          - { name: arch, dockerfile: arch, check: arch, keyboard: "yes", gnome: "yes", kde: "yes" }
+          - { name: arch, dockerfile: arch, check: arch, keyboard: "yes", kde: "yes" }
           # No udev-hid-bpf in Alpine: second-screen and guard only.
           - { name: alpine, dockerfile: alpine, check: alpine }
           - { name: nix, dockerfile: nix }
@@ -71,10 +71,9 @@ jobs:
           NAME: ${{ matrix.name }}
           CHECK: ${{ matrix.check }}
           KEYBOARD: ${{ matrix.keyboard || 'no' }}
-          GNOME: ${{ matrix.gnome || 'no' }}
           KDE: ${{ matrix.kde || 'no' }}
         run: |
           if [ "$NAME" = nix ]; then script=check-nix.sh; else script=check.sh; fi
-          docker run --rm -e KEYBOARD -e GNOME -e KDE \
+          docker run --rm -e KEYBOARD -e KDE \
             -v "$PWD/dev/containers:/checks:ro" "asus-zenbook-duo-ux8406-packages-$NAME" \
             sh "/checks/$script" ${CHECK:+"$CHECK"}
