@@ -50,6 +50,7 @@ each screen. The client binds what KWin offers, up to these versions.
 ## Test
 
 ```sh
+meson setup build -Dcargo_tests=enabled
 meson test -C build --suite asus-ux8406-kde-common
 ```
 

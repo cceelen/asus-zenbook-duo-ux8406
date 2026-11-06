@@ -54,6 +54,7 @@ the documentation directory of the package gives each setting and its default.
 ## Test
 
 ```sh
+meson setup build -Dcargo_tests=enabled
 meson test -C build --suite asus-ux8406-tcc-guard
 ```
 
