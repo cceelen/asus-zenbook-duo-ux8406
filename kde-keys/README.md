@@ -89,6 +89,7 @@ one line and ends.
 ## Test
 
 ```sh
+meson setup build -Dcargo_tests=enabled
 meson test -C build --suite asus-ux8406-kde-keys
 ```
 
