@@ -47,6 +47,8 @@ jobs:
   aports:
     if: ${{ vars.APORTS_FORK != '' }}
     runs-on: ubuntu-26.04
+    # A clone that stopped without an error held a run for 50 minutes.
+    timeout-minutes: 20
     container: docker.io/library/alpine:edge@sha256:020dfcbaaf4cc1078bf2d9c7ba31a8466e334061dcd2f248001d68f79e52c000
     environment: aports
     env:
@@ -92,15 +94,16 @@ jobs:
           install -m 600 /dev/null "$RUNNER_TEMP/aports-key"
           printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/aports-key"
           printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/known_hosts"
-          echo "GIT_SSH_COMMAND=ssh -i $RUNNER_TEMP/aports-key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes" >> "$GITHUB_ENV"
+          echo "GIT_SSH_COMMAND=ssh -i $RUNNER_TEMP/aports-key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=4" >> "$GITHUB_ENV"
       # The master branch of the fork is set to upstream's, so that the fork
       # follows upstream. The clone is of upstream: in a partial clone git
       # gets missing objects from the cloned remote, and only upstream has
       # all of them. Only the commits are fetched, and only the directory of
       # the aport is checked out.
       - run: |
-          # The push is retried with exponential back-off (10, 20, 40 s): the
-          # bot protection of that GitLab has blocked CI pushes off and on.
+          # The clone and the push are retried with exponential back-off (10,
+          # 20, 40 s): the bot protection of that GitLab has blocked CI pushes
+          # off and on. ssh stops a connection that sends nothing for 60 s.
           retry() {
             delay=10
             for attempt in 1 2 3 4; do
@@ -112,7 +115,7 @@ jobs:
             done
             return 1
           }
-          git clone --filter=tree:0 --no-checkout --single-branch --branch master \
+          retry git clone --filter=tree:0 --no-checkout --single-branch --branch master \
             --origin upstream git@gitlab.alpinelinux.org:alpine/aports.git aports
           cd aports
           git remote add fork "git@gitlab.alpinelinux.org:$FORK.git"
