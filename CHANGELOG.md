@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.7.0...v0.8.0) (2026-11-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* make the key packages require the keyboard package
+
+### Bug Fixes
+
+* declare every run-time dependency of the packages ([d9b1bf9](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/d9b1bf9249c2ba1e06aee9e59a45468311545a87))
+* **keyboard-bpf:** build the host tests with gcc 13 ([45280b7](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/45280b7a4b6cf7a75e8a5252586986d7d94a0208))
+* make the key packages require the keyboard package ([b37d7c6](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/b37d7c6a4f58d0610c48299599146a10cb0478b9))
+* **rpm:** leave the keyboard packages out of the Leap 16.0 build ([7ef0474](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/7ef0474d7cce9204f09f9aaa55a29311d549f7a8))
+
 ## [0.7.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.6.0...v0.7.0) (2026-11-06)
 
 
