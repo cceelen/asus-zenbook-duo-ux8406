@@ -24,11 +24,6 @@ override_dh_auto_configure:
 	    -Dsystemdsystemunitdir=/usr/lib/systemd/system \
 	    -Dfirmwaredir=/usr/lib/firmware
 
-# Every test runs, as the unprivileged user that builds the package; the
-# Rust tests compile first, hence the generous timeout multiplier.
-override_dh_auto_test:
-	dh_auto_test -- -t 3
-
 override_dh_auto_install:
 	dh_auto_install
 	rm -f debian/tmp/usr/share/licenses/depmf.json

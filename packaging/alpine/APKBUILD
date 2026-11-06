@@ -58,10 +58,10 @@ build() {
 	meson compile -C output
 }
 
-# As the ordinary user abuild builds as. No test is skipped: the timeout is
-# raised because the Rust tests are built first.
+# As the ordinary user abuild builds as. The Rust tests are not part of the
+# package build (-Dcargo_tests is off); CI runs them.
 check() {
-	meson test -C output --no-rebuild --print-errorlogs -t 3
+	meson test -C output --no-rebuild --print-errorlogs
 }
 
 package() {
