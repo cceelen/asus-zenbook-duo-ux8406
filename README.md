@@ -221,6 +221,8 @@ curl -fsSL $repo/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/asus-zenb
 echo "deb [signed-by=/etc/apt/keyrings/asus-zenbook-duo-ux8406.gpg] $repo/ /" | sudo tee /etc/apt/sources.list.d/asus-zenbook-duo-ux8406.list
 sudo apt update
 sudo apt install $pkgs
+# Not on Debian 13, which has no udev-hid-bpf:
+sudo apt install asus-zenbook-duo-ux8406-keyboard-bpf
 ```
 
 ### Arch
