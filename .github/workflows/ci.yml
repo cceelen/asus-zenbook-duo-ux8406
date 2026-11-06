@@ -338,12 +338,7 @@ jobs:
           persist-credentials: false
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
 
-  # A called workflow may not ask for more permissions than its caller
-  # grants. These are for its attest job, which does not run here.
+  # The source archive, as a release makes it. The job keeps its name: the
+  # check release-files / archive is required for main.
   release-files:
-    uses: ./.github/workflows/release-files.yml
-    permissions:
-      contents: read
-      id-token: write
-      attestations: write
-      artifact-metadata: write
+    uses: ./.github/workflows/release-archive.yml
