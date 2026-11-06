@@ -51,6 +51,7 @@ jobs:
     secrets:
       RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       FUZZ_ADVISORY_TOKEN: ${{ secrets.FUZZ_ADVISORY_TOKEN }}
+      APORTS_TOKEN: ${{ secrets.APORTS_TOKEN }}
   pull-request:
     needs: [packages-first, fuzz-first, doctor-first]
     if: ${{ github.event_name == 'workflow_dispatch' }}
