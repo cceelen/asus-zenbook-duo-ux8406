@@ -53,6 +53,8 @@ case "$family" in
     chmod +x /usr/sbin/policy-rc.d
     files=
     for p in $parts; do files="$files $dir/asus-zenbook-duo-ux8406-${p}_*.deb"; done
+    [ "$gnome" = yes ] && files="$files $dir/gnome-shell-extension-asus-zenbook-duo-ux8406-keys_*.deb $dir/gnome-shell-extension-builtin-screen-rotation_*.deb"
+    [ "$kde" = yes ] && files="$files $dir/asus-zenbook-duo-ux8406-kde-shortcuts_*.deb $dir/asus-zenbook-duo-ux8406-kde-keys_*.deb $dir/plasma-builtin-screen-rotation_*.deb"
     retry apt-get update -q
     retry apt-get install -qy --no-install-recommends $files
     ;;

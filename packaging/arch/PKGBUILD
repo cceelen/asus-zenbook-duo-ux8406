@@ -121,7 +121,7 @@ package_asus-zenbook-duo-ux8406-kde-shortcuts() {
   arch=(any)
   license=(MIT)
   # plasma-desktop has the emoji selector.
-  depends=(plasma-desktop asus-zenbook-duo-ux8406-keyboard-bpf)
+  depends=(plasma-desktop kglobalacceld asus-zenbook-duo-ux8406-keyboard-bpf)
 
   _take usr/share/kglobalaccel \
         usr/share/licenses/asus-zenbook-duo-ux8406-kde-shortcuts
@@ -130,7 +130,7 @@ package_asus-zenbook-duo-ux8406-kde-shortcuts() {
 package_asus-zenbook-duo-ux8406-kde-keys() {
   pkgdesc="KDE Plasma integration for the display keys of the Zenbook Duo UX8406"
   license=(MIT)
-  depends=(glibc libgcc_s.so kwin asus-zenbook-duo-ux8406-keyboard-bpf)
+  depends=(glibc libgcc_s.so 'kwin>=6' asus-zenbook-duo-ux8406-keyboard-bpf)
 
   _take usr/lib/asus-ux8406-kde-keys \
         etc/xdg/autostart/asus-ux8406-kde-keys.desktop \
@@ -142,7 +142,8 @@ package_plasma-builtin-screen-rotation() {
   pkgdesc="Turns the built-in screens with the laptop in KDE Plasma"
   license=(MIT)
   # The applet needs the D-Bus types of plasma-workspace 6.4.
-  depends=(glibc libgcc_s.so kwin 'plasma-workspace>=6.4' iio-sensor-proxy)
+  depends=(glibc libgcc_s.so 'kwin>=6' 'plasma-workspace>=6.4' kglobalacceld
+           qt6-declarative kirigami libplasma iio-sensor-proxy)
 
   _take usr/bin/plasma-builtin-screen-rotation \
         usr/share/man/man1/plasma-builtin-screen-rotation.1 \

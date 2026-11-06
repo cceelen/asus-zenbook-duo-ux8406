@@ -53,10 +53,12 @@ BuildRequires:  kernel-headers
 %global plasmadesktoppkg plasma6-desktop
 %global kwinpkg kwin6
 %global plasmaworkspacepkg plasma6-workspace
+%global kglobalacceldpkg kglobalacceld6
 %else
 %global plasmadesktoppkg plasma-desktop
 %global kwinpkg kwin
 %global plasmaworkspacepkg plasma-workspace
+%global kglobalacceldpkg kglobalacceld
 %endif
 
 %global guarddocdir %{_docdir}/asus-zenbook-duo-ux8406-tcc-guard
@@ -96,6 +98,8 @@ Does nothing on any other model.
 Summary:        CPU thermal-offset guard for the ASUS Zenbook Duo UX8406
 License:        MIT
 %{?systemd_requires}
+# The service is a systemd unit.
+Requires:       systemd
 
 %description -n asus-zenbook-duo-ux8406-tcc-guard
 A root service that raises the CPU thermal offset when the embedded controller
@@ -159,6 +163,8 @@ Summary:        Default KDE Plasma shortcuts for the function keys of the Zenboo
 License:        MIT
 BuildArch:      noarch
 Requires:       %{plasmadesktoppkg}
+# kglobalacceld reads the shortcuts.
+Requires:       %{kglobalacceldpkg}
 Requires:       asus-zenbook-duo-ux8406-keyboard-bpf
 
 %description -n asus-zenbook-duo-ux8406-kde-shortcuts
@@ -168,7 +174,7 @@ optional: the key works without it, but does nothing in Plasma.
 %package -n asus-zenbook-duo-ux8406-kde-keys
 Summary:        KDE Plasma integration for the display keys of the Zenbook Duo UX8406
 License:        MIT
-Requires:       %{kwinpkg}
+Requires:       %{kwinpkg} >= 6
 Requires:       asus-zenbook-duo-ux8406-keyboard-bpf
 
 %description -n asus-zenbook-duo-ux8406-kde-keys
@@ -182,7 +188,25 @@ the next login. Does nothing on any other model.
 %package -n plasma-builtin-screen-rotation
 Summary:        Turns the built-in screens with the laptop in KDE Plasma
 License:        MIT
-Requires:       %{kwinpkg}
+Requires:       %{kwinpkg} >= 6
+# kglobalacceld takes the shortcuts of the program.
+Requires:       %{kglobalacceldpkg}
+# The QML modules of the applet. openSUSE names them by capability.
+%if 0%{?suse_version}
+Requires:       qt6qmlimport(QtQuick)
+Requires:       qt6qmlimport(QtQuick.Layouts)
+Requires:       qt6qmlimport(org.kde.kirigami)
+Requires:       qt6qmlimport(org.kde.plasma.components)
+Requires:       qt6qmlimport(org.kde.plasma.core)
+Requires:       qt6qmlimport(org.kde.plasma.plasmoid)
+Requires:       qt6qmlimport(org.kde.plasma.workspace.dbus)
+%else
+Requires:       qt6-qtdeclarative
+Requires:       kf6-kirigami
+# libplasma, by the name that it provides: rpmlint takes a dependency on a
+# package named lib* for a library that a binary links.
+Requires:       kf6-plasma
+%endif
 # The applet needs the D-Bus types of Plasma 6.4.
 Requires:       %{plasmaworkspacepkg} >= 6.4
 Requires:       iio-sensor-proxy
