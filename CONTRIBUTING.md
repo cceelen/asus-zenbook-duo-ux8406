@@ -89,7 +89,9 @@ pre-commit run --all-files
 - `-Dunit_checks=enabled` adds the checks of the guard's systemd unit with
   `systemd-analyze` (`verify`, and an exposure of at most 1.3), as CI does.
 - `meson test -C build --suite NAME` runs the tests of one part. The README of
-  each part gives the name and tells what the tests examine.
+  each part gives the name and tells what the tests examine. The Rust tests of
+  all parts are one test in each of these suites: one cargo run compiles the
+  crates that the parts share one time.
 
 ### Packages in containers
 

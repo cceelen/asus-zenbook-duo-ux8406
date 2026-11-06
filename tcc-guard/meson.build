@@ -88,23 +88,20 @@ if install_licences
   )
 endif
 
-# The tests run twice: as built for installation, and with the fail points
-# switched on. The fail points (src/fault.rs, the fail crate) let
-# tests/scenarios/faults.rs cause system failures that no arrangement of
-# files can; a build without the feature has none.
-# The second run is also in the suite failpoints.
-foreach name, features : {
-  'cargo test': [],
-  'cargo test, fault injection': ['--features', 'failpoints'],
-}
-  test(
-    name,
-    cargo,
-    args: ['test', '--release'] + cargo_args + ['--package', 'asus-ux8406-tcc-guard'] + features,
-    env: cargo_env,
-    suite: features.length() > 0 ? ['asus-ux8406-tcc-guard', 'failpoints'] : 'asus-ux8406-tcc-guard',
-    timeout: 1200,
-    # One cargo at a time: they share a target directory.
-    is_parallel: false,
-  )
-endforeach
+# The tests run twice: as built for installation, in the one cargo test of
+# meson.build, and here with the fail points switched on. The fail points
+# (src/fault.rs, the fail crate) let tests/scenarios/faults.rs cause system
+# failures that no arrangement of files can; a build without the feature has
+# none. The second run is also in the suite failpoints.
+rust_test_packages += 'asus-ux8406-tcc-guard'
+rust_test_suites += 'asus-ux8406-tcc-guard'
+test(
+  'cargo test, fault injection',
+  cargo,
+  args: ['test', '--release'] + cargo_args + ['--package', 'asus-ux8406-tcc-guard', '--features', 'failpoints'],
+  env: cargo_env,
+  suite: ['asus-ux8406-tcc-guard', 'failpoints'],
+  timeout: 1200,
+  # One cargo at a time: they share a target directory.
+  is_parallel: false,
+)
