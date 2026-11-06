@@ -42,3 +42,6 @@ runs:
       with:
         workspaces: ${{ inputs.cache-workspaces }}
         cache-on-failure: true
+        # Only main saves: a cache of a pull request is for that pull request
+        # only, and with the limit of 10 GB it pushes out the caches of main.
+        save-if: ${{ github.ref == 'refs/heads/main' }}
