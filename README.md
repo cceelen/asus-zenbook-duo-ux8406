@@ -319,23 +319,7 @@ build packages of them.
 | Rotation | `builtin-screen-rotation@cceelen.github.io`      | [Built-in screen rotation][ego-rotation] |
 
 Install them from [extensions.gnome.org](https://extensions.gnome.org) with the
-Extensions app, Extension Manager or the browser. If an extension is not on
-extensions.gnome.org yet, download its zip file from the
-[releases of cceelen/gnome-extension](https://github.com/cceelen/gnome-extension/releases)
-and install it:
-
-```sh
-gnome-extensions install --force asus-zenbook-duo-ux8406-keys@cceelen.github.io.shell-extension.zip
-gnome-extensions install --force builtin-screen-rotation@cceelen.github.io.shell-extension.zip
-```
-
-GNOME Shell on Wayland finds a new extension only when it starts. Log in again,
-then enable the extensions:
-
-```sh
-gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io
-gnome-extensions enable builtin-screen-rotation@cceelen.github.io
-```
+Extensions app, Extension Manager or the browser.
 
 ### From the extension packages to extensions.gnome.org
 
