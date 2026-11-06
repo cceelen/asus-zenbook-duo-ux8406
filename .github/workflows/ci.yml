@@ -210,9 +210,10 @@ jobs:
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
-      - run: >-
-          sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends
-          clang clang-tidy libbpf-dev linux-libc-dev pipx
+      - uses: ./.github/actions/apt
+        with:
+          name: pre-commit
+          packages: clang clang-tidy libbpf-dev linux-libc-dev pipx
       - run: pipx run pre-commit run --all-files --show-diff-on-failure
         env:
           SKIP: cargo-fmt,cargo-clippy
@@ -267,10 +268,12 @@ jobs:
         with:
           workspaces: . -> build/cargo
           save-if: ${{ github.ref == 'refs/heads/main' }}
-      - run: >-
-          sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends
-          meson ninja-build pkgconf clang llvm libbpf-dev linux-libc-dev
-          libglib2.0-bin systemd-dev udev dbus-daemon
+      - uses: ./.github/actions/apt
+        with:
+          name: meson
+          packages: >-
+            meson ninja-build pkgconf clang llvm libbpf-dev linux-libc-dev
+            libglib2.0-bin systemd-dev udev dbus-daemon
       - run: meson setup build -Dunit_checks=enabled -Dhost_checks=enabled -Dcargo_tests=enabled
       - run: meson compile -C build
       - run: meson test -C build --print-errorlogs --no-suite failpoints
