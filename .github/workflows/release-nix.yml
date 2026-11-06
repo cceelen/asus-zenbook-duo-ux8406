@@ -34,7 +34,12 @@ jobs:
           : > checksums.txt
           : > paths.txt
           packages='[]'
-          for p in $(nix eval --raw .#packages.x86_64-linux --apply 'ps: toString (builtins.attrNames (removeAttrs ps [ "default" ]))'); do
+          names=$(nix eval --raw .#packages.x86_64-linux --apply 'ps: toString (builtins.attrNames (removeAttrs ps [ "default" ]))')
+          # All packages and SBOMs in one build, at the same time; the loop
+          # then finds them in the store.
+          # shellcheck disable=SC2046
+          nix build -L --no-link --max-jobs auto $(for p in $names; do echo ".#$p .#sboms.x86_64-linux.$p"; done)
+          for p in $names; do
             out=$(nix build -L --no-link --print-out-paths ".#$p")
             bom=$(nix build -L --no-link --print-out-paths ".#sboms.x86_64-linux.$p")
             version=$(nix eval --raw ".#$p.version")
