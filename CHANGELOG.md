@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.7.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.6.0...v0.7.0) (2026-11-06)
+
+
+### Features
+
+* **kde-keys:** add the KDE Plasma program for the display keys ([a8ca25d](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/a8ca25d7a4f8f14987a1241e5e458283c421981a))
+* **kde-rotation:** add the KDE Plasma program that turns the screens ([42d816f](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/42d816f23d3351482008a4ef70816259f570a765))
+* **kde-shortcuts:** add the default shortcuts for KDE Plasma ([64031a3](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/64031a328231780d350e624c6c6b81994cd75977))
+* **keyboard-bpf:** keep the light and the row mode between connections ([3afaebb](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/3afaebb760f71730aed7471381d487fefe681238))
+* **release:** publish Alpine and Nix packages with attested SBOMs ([4ea5082](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/4ea5082e444d369b9a2a1dc5212ceae8be6653ac)), closes [#35](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/35)
+* **release:** put the provenance bundle of the source archive on the release ([5985663](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/59856638aeadb05264ddf2683a5683ba86ab7893))
+* **rotation:** add an extension that turns the built-in screens ([757975f](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/757975f89b13b3d7f2208e9fd4cae8888b926848))
+* **rotation:** turn each built-in screen by hand ([a0c43a7](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/a0c43a74480cb0348bb47c80c982c82b844a8da8))
+* **tcc-guard,second-screen,keyboard,gnome-keys:** initial package commits ([e1503b8](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/e1503b8ce04f161cba6cd5a195b28c123c22c8f5))
+
+
+### Bug Fixes
+
+* **arch:** require the rust package for the build ([4e4b2b6](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/4e4b2b689cb10eaa1495f714221d837738d52c1d))
+* **ci:** correct pipeline integration and obs setup ([#2](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/2)) ([7f56e82](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/7f56e8231be9b59469811f052f48b36a1c601087))
+* **ci:** take the release pull request from this repository only ([b702224](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/b7022240a9b4ad9a4b7bbdcbeb16e4f00078a324))
+* **debian13:** crate ignore 0.4.30 has issues on debian 13 ([2fe788c](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/2fe788c896e7561912137b6e93171823eb001456))
+* **gnome-keys:** give each touchscreen its panel ([c81baa3](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/c81baa3521c66c5b45c854195c371131e5bf6768))
+* **gnome-keys:** keep the layout sound when the lower panel is switched ([89437ad](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/89437ad3af0b7c9c133a1cdd411466cefb999b3e))
+* **gnome:** keep underscanning and the monitors for lease in a new layout ([8504cb2](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/8504cb21f492effdab7d4b59b673ec31782d4894))
+* **kde-rotation:** accept the namcap warnings for the QML modules of the applet ([6b3ce10](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/6b3ce10ff2a8a4804949dc3a239fe4e0eb099f44))
+* **keyboard:** register the sanitizer, coverage and mutation tests only on request ([3fc759e](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/3fc759e65d4e7bdad7799a662973c9992ece4f01))
+* **keys:** do not put back a layout of another orientation ([b005c18](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/b005c18478f27e9eee2cb8bc4589597e98b4e9ee))
+* **nix:** keep the build tools out of the keyboard package's closure ([8ddefb6](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/8ddefb662d0d251634bee58abe8e60b8bd53eb1d))
+* **packaging:** start the guard service on installation ([0f48040](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/0f480406755a31fc5cf103e041f93ce3e4329a26))
+* **packit:** build for RHEL 10 with EPEL 10 ([56b6118](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/56b61188e8f2a8de070d6c83008d98cba36744cd))
+* **pipeline:** updated runner setup ([3ceef9b](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/3ceef9b4eea6c841e5dbffc3fd2b1b4340310d87))
+* **release:** clone aports from upstream and push to the fork ([8817951](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/8817951c11243328dc49fc333255d910a32e1f1e))
+* **release:** find the release pull request without a search ([af8601c](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/af8601c61f498fd15d44c72b01277589d06e6665))
+* **release:** make releases with Release Please ([8dac6ee](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/8dac6ee391a75d6f9b8f1e591c0b73690f5e2ca9))
+* **release:** pass the aports secrets to the called workflow ([b0987e2](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/b0987e25c415762db348a8411b7399d7de7f4e2b))
+* **release:** pass the aports token to the service checks ([3363129](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/3363129a5de13e25cc101e756baed36dccad0bf9))
+* **release:** retry the aports pushes with back-off and print the merge request link when glab fails ([3a69b0b](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/3a69b0b39329659a54c3f9d50ebb6b0822000e91))
+* **release:** run the aports job in an Alpine container ([3bc10db](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/3bc10db11fe9d2c20714acf5f9d70786b8ff3924))
+* **release:** set the version in fuzz/Cargo.lock too ([096d45c](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/096d45cfdd56d3ae28979785d18074ea9c1aad4b))
+* **release:** set the version of each crate of the tree in Cargo.lock ([e2796e8](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/e2796e8f1e2eda657eb90ae5b3402b72ecd5dfdd))
+* **release:** use SSH for aports and open the merge request with glab ([3a4618c](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/3a4618cc707df33cbcdcaeab5df16e5747f92d27))
+* **renovate:** updated dependencies and code changes ([f2db2e9](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/f2db2e9b1d2d68c98a70aebb41f5d5c5b0d8aa1b))
+* **rotation:** correct the sensor claim and the behaviour at a screen lock ([fc44470](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/fc4447050e1535763fe64acf21a25a008b3cd3d8))
+* **rotation:** show Auto-rotate only where the extension can turn a panel ([f981325](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/f981325cb1bbce04665d2b2bb43d4d2f2c80b6b7)), closes [#25](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/25)
+* **rotation:** turn the screens by hand where no sensor is found ([9fb3d5e](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/9fb3d5e6f1ba78db5dc0ffca8d92f6a30bf94518))
+* **rpm:** build without a debugsource package on RHEL ([14f6687](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/14f6687416974cdfbd1323c970306b7ecd2fcb74))
+
 ## [0.6.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.5.0...v0.6.0) (2026-11-05)
 
 
