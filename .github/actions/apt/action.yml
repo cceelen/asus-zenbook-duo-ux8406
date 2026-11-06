@@ -1,0 +1,36 @@
+# Ubuntu packages for a job of the runner, with the .deb files from the
+# Actions cache: a slow mirror of the runner's Ubuntu took up to 9 minutes
+# to send them. apt still checks the indexes and fetches what is newer. Only
+# main saves the cache (as rust-cache, .github/actions/rust).
+name: apt
+description: Install Ubuntu packages on the runner, with the .deb files cached.
+
+inputs:
+  packages:
+    description: The packages, separated by spaces.
+    required: true
+  name:
+    description: The name of the cache, one for each list of packages.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - id: restore
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/apt-archives
+        key: apt-${{ inputs.name }}-${{ runner.os }}-${{ hashFiles('.github/actions/apt/action.yml') }}-${{ inputs.packages }}
+    - shell: bash
+      env:
+        PACKAGES: ${{ inputs.packages }}
+      run: |
+        mkdir -p ~/apt-archives/partial
+        sudo apt-get update -q
+        # shellcheck disable=SC2086 # a list of package names
+        sudo apt-get install -qy --no-install-recommends -o Dir::Cache::Archives="$HOME/apt-archives" $PACKAGES
+    - if: ${{ github.ref == 'refs/heads/main' && steps.restore.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/apt-archives
+        key: ${{ steps.restore.outputs.cache-primary-key }}
