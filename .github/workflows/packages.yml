@@ -1,80 +1,197 @@
-# The packages of each distribution, built in a container from this tree
-# (dev/containers/<distro>.Dockerfile): the linter of the distribution (rpmlint,
-# lintian, namcap, apkbuild-lint) on the recipe and on the packages,
-# installation on a clean system, a check of the installed files, and
-# removal. A linter error or a failed step fails the job.
+# The packages of each distribution, from the source archive of a release
+# (release-archive.yml; in a release, the one that release-files.yml attests):
+# built and linted in a container of the
+# distribution (rpmlint, lintian, namcap, apkbuild-lint), then installed on a
+# clean container of the same image, checked and removed. Nix builds the
+# packages of the flake on the runner. A linter error or a failed step fails
+# the job.
 #
-# By hand ("Run workflow"), and in release.yml before the publication: a
-# failed build stops the release.
+# The jobs run the scripts of dev/containers/ (build-deps.sh, build.sh,
+# install.sh, check.sh) directly in a job container: no image is built.
+# The Dockerfiles there run the same scripts, for local builds.
+#
+# By hand ("Run workflow"), and in release.yml after the release pull
+# request: a failed build stops the publication.
 name: packages
 
 on:
   workflow_call:
+    inputs:
+      archive:
+        description: >-
+          The artifact of this run with the source archive (release.yml gives
+          release-source, from release-files.yml). Empty: this workflow
+          makes the archive.
+        type: string
+        default: ""
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build:
-    name: build (${{ matrix.name }})
+  # Only without an archive from the caller: two jobs of one run cannot
+  # upload an artifact of the same name.
+  archive:
+    if: ${{ !inputs.archive }}
+    uses: ./.github/workflows/release-archive.yml
+
+  # The builds, one list for the build jobs and the install jobs. Each one:
+  # the image, read from the FROM line of its Dockerfile (pinned by digest,
+  # which Renovate updates there), the family for the scripts, and the
+  # packages that the install job installs (keyboard, GNOME, KDE).
+  matrix:
     runs-on: ubuntu-26.04
-    timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      # One job for each build: the Dockerfile and its build arguments, the
-      # argument of dev/containers/check.sh, and the packages that the image
-      # installs (keyboard, GNOME, KDE). compose.yaml has the same builds for
-      # local use.
-      matrix:
-        include:
-          - { name: fedora, dockerfile: fedora, check: fedora, keyboard: "yes", gnome: "yes", kde: "yes" }
-          # No udev-hid-bpf in Tumbleweed: second-screen and guard only.
-          - { name: opensuse, dockerfile: opensuse, check: opensuse }
-          # No udev-hid-bpf in Debian 13: second-screen and guard only.
-          - { name: debian, dockerfile: debian, check: debian, build-args: "RELEASE=trixie\nKEYBOARD=no" }
-          - { name: debian-testing, dockerfile: debian, check: debian, build-args: "RELEASE=testing\nKEYBOARD=yes", keyboard: "yes" }
-          - { name: arch, dockerfile: arch, check: arch, keyboard: "yes", gnome: "yes", kde: "yes" }
-          # No udev-hid-bpf in Alpine: second-screen and guard only.
-          - { name: alpine, dockerfile: alpine, check: alpine }
-          - { name: nix, dockerfile: nix }
+    outputs:
+      include: ${{ steps.matrix.outputs.include }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # BuildKit keeps the layers of the stage tools in the Actions cache, one
-      # scope for each build: the layers that install the build tools are
-      # made again only when the base image or the Dockerfile changes. Only
-      # that stage goes to the cache: each layer from the source on is new in
-      # each run, and no other run can use it. The Actions cache drops what
-      # no run used for 7 days. Nix has no such stage. Only main writes, as
-      # for rust-cache (.github/actions/rust); a run of a branch reads.
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - if: ${{ matrix.name != 'nix' && github.ref == 'refs/heads/main' }}
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          context: .
-          file: dev/containers/${{ matrix.dockerfile }}.Dockerfile
-          build-args: ${{ matrix.build-args }}
-          target: tools
-          cache-from: type=gha,scope=packages-${{ matrix.name }}
-          cache-to: type=gha,scope=packages-${{ matrix.name }},mode=max,ignore-error=true
-      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          context: .
-          file: dev/containers/${{ matrix.dockerfile }}.Dockerfile
-          build-args: ${{ matrix.build-args }}
-          load: true
-          tags: asus-zenbook-duo-ux8406-packages-${{ matrix.name }}
-          cache-from: type=gha,scope=packages-${{ matrix.name }}
-      - env:
-          NAME: ${{ matrix.name }}
-          CHECK: ${{ matrix.check }}
-          KEYBOARD: ${{ matrix.keyboard || 'no' }}
-          GNOME: ${{ matrix.gnome || 'no' }}
-          KDE: ${{ matrix.kde || 'no' }}
+      - id: matrix
         run: |
-          if [ "$NAME" = nix ]; then script=check-nix.sh; else script=check.sh; fi
-          docker run --rm -e KEYBOARD -e GNOME -e KDE \
-            -v "$PWD/dev/containers:/checks:ro" "asus-zenbook-duo-ux8406-packages-$NAME" \
-            sh "/checks/$script" ${CHECK:+"$CHECK"}
+          # The image of the stage STAGE of dev/containers/FILE.Dockerfile.
+          image() {
+            ref=$(sed -n "s/^FROM \([^ ]*\) AS $2\$/\1/p" "dev/containers/$1.Dockerfile")
+            [ -n "$ref" ] || { echo "::error::no stage $2 in $1.Dockerfile"; exit 1; }
+            echo "$ref"
+          }
+          build() {
+            [ -n "$3" ] || exit 1
+            jq -nc --arg name "$1" --arg family "$2" --arg image "$3" \
+              --arg keyboard "$4" --arg gnome "$5" --arg kde "$6" \
+              '{$name, $family, $image, $keyboard, $gnome, $kde}'
+          }
+          {
+            build fedora fedora "$(image fedora base)" yes yes yes
+            # No udev-hid-bpf in Tumbleweed, Debian 13 and Alpine: second-screen
+            # and guard only.
+            build opensuse opensuse "$(image opensuse base)" no no no
+            build debian debian "$(image debian base-trixie)" no no no
+            build debian-testing debian "$(image debian base-testing)" yes no no
+            build arch arch "$(image arch base)" yes yes yes
+            build alpine alpine "$(image alpine base)" no no no
+          } | jq -sc . > "$RUNNER_TEMP/include.json"
+          cat "$RUNNER_TEMP/include.json"
+          echo "include=$(cat "$RUNNER_TEMP/include.json")" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: [archive, matrix]
+    # archive is skipped when the caller gives the archive.
+    if: ${{ !cancelled() && needs.matrix.result == 'success' && contains(fromJSON('["success", "skipped"]'), needs.archive.result) }}
+    name: build (${{ matrix.name }})
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.matrix.outputs.include) }}
+    env:
+      FAMILY: ${{ matrix.family }}
+    defaults:
+      run:
+        shell: sh
+    steps:
+      # git for actions/checkout: without it, the action needs tar and gzip,
+      # which not every image has.
+      - run: |
+          case "$FAMILY" in
+            fedora) dnf install -y git ;;
+            # gawk: else git brings busybox-gawk, which rpm-build cannot use.
+            opensuse) zypper -n install --no-recommends git-core gawk ;;
+            debian) apt-get update -q && apt-get install -qy --no-install-recommends git ca-certificates ;;
+            arch) pacman -Sy --noconfirm --needed git ;;
+            alpine) apk add git ;;
+          esac
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ inputs.archive || 'release-source' }}
+          path: dist
+      - run: sh dev/containers/build-deps.sh "$FAMILY"
+      # As the user that build-deps.sh made: rpmbuild, makepkg and abuild run
+      # without root. The job container has network; cargo must not use it:
+      # a crate that is not in vendor/ of the archive fails the build here,
+      # as it would on the build services of the distributions.
+      - run: |
+          chown -R builder .
+          su builder -c "CARGO_NET_OFFLINE=true sh dev/containers/build.sh $FAMILY dist/asus-zenbook-duo-ux8406-*.tar.gz out"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: packages-${{ matrix.name }}
+          path: out/
+          if-no-files-found: error
+          retention-days: 7
+
+  # On a clean container of the same image: the package manager installs
+  # the packages and gets their run-time dependencies, and check.sh checks
+  # the installed files and the programs and removes the packages.
+  install:
+    needs: [matrix, build]
+    # Explicit: the default condition skips this job when archive, a job
+    # before build, is skipped.
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    name: install (${{ matrix.name }})
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.matrix.outputs.include) }}
+    env:
+      FAMILY: ${{ matrix.family }}
+      KEYBOARD: ${{ matrix.keyboard }}
+      GNOME: ${{ matrix.gnome }}
+      KDE: ${{ matrix.kde }}
+    defaults:
+      run:
+        shell: sh
+    steps:
+      - run: |
+          case "$FAMILY" in
+            fedora) dnf install -y git ;;
+            # gawk: else git brings busybox-gawk, which rpm-build cannot use.
+            opensuse) zypper -n install --no-recommends git-core gawk ;;
+            debian) apt-get update -q && apt-get install -qy --no-install-recommends git ca-certificates ;;
+            arch) pacman -Sy --noconfirm --needed git ;;
+            alpine) apk add git ;;
+          esac
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: packages-${{ matrix.name }}
+          path: pkgs
+      - run: sh dev/containers/install.sh "$FAMILY" pkgs
+      - run: sh dev/containers/check.sh "$FAMILY"
+
+  # The packages of the flake, all in one build at the same time; then a link
+  # to each part, which check-nix.sh checks.
+  nix:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+      - run: |
+          parts="second-screen:asus-zenbook-duo-ux8406-second-screen tcc-guard:asus-zenbook-duo-ux8406-tcc-guard
+                 keyboard-bpf:asus-zenbook-duo-ux8406-keyboard-bpf
+                 gnome-keys:gnome-shell-extension-asus-zenbook-duo-ux8406-keys
+                 gnome-rotation:gnome-shell-extension-builtin-screen-rotation
+                 kde-shortcuts:asus-zenbook-duo-ux8406-kde-shortcuts
+                 kde-keys:asus-zenbook-duo-ux8406-kde-keys
+                 kde-rotation:plasma-builtin-screen-rotation"
+          # shellcheck disable=SC2046
+          nix build -L --no-link --max-jobs auto $(for p in $parts; do echo ".#${p#*:}"; done)
+          mkdir results
+          for p in $parts; do
+            nix build --out-link "results/${p%%:*}" ".#${p#*:}"
+          done
+      - run: sh dev/containers/check-nix.sh results
