@@ -1,8 +1,7 @@
 # A release has one manual step: start this workflow ("Run workflow").
 #
-# That run first builds the packages of each distribution from main and
-# checks the services of the release (doctor.yml). If one fails, the run
-# stops before the version changes.
+# That run first checks the services of the release (doctor.yml). If one
+# fails, the run stops before the version changes.
 #
 # That run opens the release pull request: the next version in the package
 # files and the new section of CHANGELOG.md, from the commit titles since the
@@ -30,11 +29,6 @@ concurrency:
 permissions:
   contents: read
 jobs:
-  packages-first:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
-    uses: ./.github/workflows/packages.yml
-    permissions:
-      contents: read
   doctor-first:
     if: ${{ github.event_name == 'workflow_dispatch' }}
     uses: ./.github/workflows/doctor.yml
@@ -46,7 +40,7 @@ jobs:
       FUZZ_ADVISORY_TOKEN: ${{ secrets.FUZZ_ADVISORY_TOKEN }}
       APORTS_TOKEN: ${{ secrets.APORTS_TOKEN }}
   pull-request:
-    needs: [packages-first, doctor-first]
+    needs: doctor-first
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-26.04
     env:
