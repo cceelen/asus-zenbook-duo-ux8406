@@ -10,9 +10,11 @@
 # The job runs in an Alpine container, with the tools from apk. abuild runs
 # as root there (-F); the container is used once.
 #
-# Git goes over SSH: the bot protection of gitlab.alpinelinux.org refuses
-# anonymous HTTPS clones from CI runners. glab opens the merge request
-# through the API with the token.
+# No git: the bot protection of gitlab.alpinelinux.org refuses git over
+# HTTPS from CI runners (HTTP 418), and over SSH it held the clone of
+# aports open without data. The job makes the branch and its commit through
+# the API, with the token, from the master branch of upstream; glab opens
+# the merge request through the API too.
 #
 # There is one merge request at a time, from one fixed branch. A new release
 # replaces the branch, and so updates an open merge request.
@@ -27,8 +29,6 @@ on:
     # The job reads the secrets in the environment aports; a secret of the
     # environment takes the place of one that the caller passes.
     secrets:
-      APORTS_SSH_KEY:
-        required: false
       APORTS_TOKEN:
         required: false
   workflow_dispatch:
@@ -39,7 +39,7 @@ on:
         required: true
 permissions:
   contents: read
-# One run at a time: two runs would push the same branch.
+# One run at a time: two runs would write the same branch.
 concurrency:
   group: aports
   cancel-in-progress: false
@@ -47,7 +47,6 @@ jobs:
   aports:
     if: ${{ vars.APORTS_FORK != '' }}
     runs-on: ubuntu-26.04
-    # A clone that stopped without an error held a run for 50 minutes.
     timeout-minutes: 20
     container: docker.io/library/alpine:edge@sha256:020dfcbaaf4cc1078bf2d9c7ba31a8466e334061dcd2f248001d68f79e52c000
     environment: aports
@@ -61,20 +60,13 @@ jobs:
       APORT: ${{ vars.APORTS_DIR || 'testing' }}/asus-zenbook-duo-ux8406-second-screen
       BRANCH: asus-zenbook-duo-ux8406
     steps:
-      # The secrets and the host key. Without one of them, the job stops here
-      # and names it.
+      # The token. Without it, the job stops here and names it.
       - env:
-          SSH_KEY: ${{ secrets.APORTS_SSH_KEY }}
           TOKEN: ${{ secrets.APORTS_TOKEN }}
-          KNOWN_HOSTS: ${{ vars.APORTS_KNOWN_HOSTS }}
         run: |
-          missing=0
-          [ -n "$SSH_KEY" ] || { echo "::error::APORTS_SSH_KEY is not set"; missing=1; }
-          [ -n "$TOKEN" ] || { echo "::error::APORTS_TOKEN is not set"; missing=1; }
-          [ -n "$KNOWN_HOSTS" ] || { echo "::error::APORTS_KNOWN_HOSTS is not set"; missing=1; }
-          exit "$missing"
+          [ -n "$TOKEN" ] || { echo "::error::APORTS_TOKEN is not set"; exit 1; }
       # Before the checkout, so that it uses git.
-      - run: apk add --no-cache abuild atools git github-cli glab jq openssh-client
+      - run: apk add --no-cache abuild atools curl git github-cli glab jq
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.tag }}
@@ -85,79 +77,56 @@ jobs:
           gh release download "$TAG" --pattern 'asus-zenbook-duo-ux8406-*.tar.gz' --dir distfiles
           gh attestation verify distfiles/*.tar.gz --repo "$GH_REPO" \
             --signer-workflow "$GH_REPO/.github/workflows/release-files.yml"
-      # The key of the service account, and the pinned host key of
-      # gitlab.alpinelinux.org.
-      - env:
-          SSH_KEY: ${{ secrets.APORTS_SSH_KEY }}
-          KNOWN_HOSTS: ${{ vars.APORTS_KNOWN_HOSTS }}
-        run: |
-          install -m 600 /dev/null "$RUNNER_TEMP/aports-key"
-          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/aports-key"
-          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/known_hosts"
-          echo "GIT_SSH_COMMAND=ssh -i $RUNNER_TEMP/aports-key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=4" >> "$GITHUB_ENV"
-      # The master branch of the fork is set to upstream's, so that the fork
-      # follows upstream. The clone is of upstream: in a partial clone git
-      # gets missing objects from the cloned remote, and only upstream has
-      # all of them. Only the commits are fetched, and only the directory of
-      # the aport is checked out.
       - run: |
-          # The clone and the push are retried with exponential back-off (10,
-          # 20, 40 s): the bot protection of that GitLab has blocked CI pushes
-          # off and on. ssh stops a connection that sends nothing for 60 s.
-          retry() {
-            delay=10
-            for attempt in 1 2 3 4; do
-              "$@" && return 0
-              [ "$attempt" = 4 ] && break
-              echo "::warning::$* failed; next try in ${delay}s"
-              sleep "$delay"
-              delay=$((delay * 2))
-            done
-            return 1
-          }
-          retry git clone --filter=tree:0 --no-checkout --single-branch --branch master \
-            --origin upstream git@gitlab.alpinelinux.org:alpine/aports.git aports
-          cd aports
-          git remote add fork "git@gitlab.alpinelinux.org:$FORK.git"
-          retry git push --force fork upstream/master:refs/heads/master
-          git sparse-checkout set "$APORT"
-          git checkout -B "$BRANCH" upstream/master
-          mkdir -p "$APORT"
-          cp ../tree/packaging/alpine/* "$APORT/"
-      - run: |
-          cd "aports/$APORT"
+          mkdir aport
+          cp tree/packaging/alpine/* aport/
+          cd aport
           SRCDEST="$GITHUB_WORKSPACE/distfiles" abuild -F checksum
           apkbuild-lint APKBUILD
           abuild -F validate
-      # The author is the maintainer of the APKBUILD. The title is the one
-      # that aports wants for a new or an upgraded aport.
-      - run: |
-          # The push is retried with exponential back-off (10, 20, 40 s): the
-          # bot protection of that GitLab has blocked CI pushes off and on.
-          retry() {
-            delay=10
-            for attempt in 1 2 3 4; do
-              "$@" && return 0
-              [ "$attempt" = 4 ] && break
-              echo "::warning::$* failed; next try in ${delay}s"
-              sleep "$delay"
-              delay=$((delay * 2))
-            done
-            return 1
-          }
-          cd aports
+      # One commit with the files of the aport, on the branch of the fork,
+      # made from the master branch of upstream (force: a new release
+      # replaces the branch). Each file is created, updated or deleted, as
+      # upstream has it or not. The author is the maintainer of the
+      # APKBUILD. The title is the one that aports wants for a new or an
+      # upgraded aport.
+      - env:
+          TOKEN: ${{ secrets.APORTS_TOKEN }}
+        run: |
+          api=https://gitlab.alpinelinux.org/api/v4
+          get() { curl -sS --fail-with-body --retry 3 --retry-all-errors -H "PRIVATE-TOKEN: $TOKEN" "$api/$1"; }
+          enc() { printf '%s' "$1" | jq -sRr @uri; }
+          upstream=$(get "projects/$(enc alpine/aports)" | jq -r .id)
+          # The files of the aport upstream; none for a new aport (404).
+          existing=$(curl -sS --retry 3 --retry-all-errors -H "PRIVATE-TOKEN: $TOKEN" \
+            "$api/projects/$upstream/repository/tree?ref=master&per_page=100&path=$(enc "$APORT")" \
+            | jq -r 'if type == "array" then .[] | select(.type == "blob") | .name else empty end')
           version=${TAG#v}
-          if git cat-file -e "upstream/master:$APORT/APKBUILD" 2>/dev/null; then
+          if printf '%s\n' "$existing" | grep -qx APKBUILD; then
             title="$APORT: upgrade to $version"
           else
             title="$APORT: new aport"
           fi
-          author=$(sed -n 's/^# Maintainer: //p' "$APORT/APKBUILD")
+          {
+            for f in aport/*; do
+              name=${f##*/}
+              if printf '%s\n' "$existing" | grep -qx "$name"; then action=update; else action=create; fi
+              jq -n --arg action "$action" --arg path "$APORT/$name" --arg content "$(base64 -w 0 < "$f")" \
+                '{$action, file_path: $path, $content, encoding: "base64"}'
+            done
+            for name in $existing; do
+              [ -e "aport/$name" ] || jq -n --arg path "$APORT/$name" '{action: "delete", file_path: $path}'
+            done
+          } | jq -s . > actions.json
+          author=$(sed -n 's/^# Maintainer: //p' aport/APKBUILD)
           email=${author##*<}
-          git add "$APORT"
-          git -c user.name="${author% <*}" -c user.email="${email%>}" \
-            commit --quiet --message "$title"
-          retry git push --force fork "HEAD:refs/heads/$BRANCH"
+          jq -n --arg branch "$BRANCH" --argjson start "$upstream" --arg title "$title" \
+            --arg name "${author% <*}" --arg email "${email%>}" --slurpfile actions actions.json \
+            '{branch: $branch, start_project: $start, start_branch: "master", force: true,
+              commit_message: $title, author_name: $name, author_email: $email, actions: $actions[0]}' > commit.json
+          curl -sS --fail-with-body --retry 3 --retry-all-errors -X POST -H "PRIVATE-TOKEN: $TOKEN" \
+            -H 'Content-Type: application/json' --data @commit.json \
+            "$api/projects/$(enc "$FORK")/repository/commits" | jq -r '"commit: \(.web_url)"'
           echo "TITLE=$title" >> "$GITHUB_ENV"
       # A new merge request, or a new title for the open one. If the API is
       # not reachable, the branch is on the fork: the log gives the link that
