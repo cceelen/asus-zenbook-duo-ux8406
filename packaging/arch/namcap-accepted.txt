@@ -29,9 +29,16 @@ asus-zenbook-duo-ux8406-kde-keys W: Dependency included, but may not be needed (
 plasma-builtin-screen-rotation W: Dependency included, but may not be needed ('kwin')
 plasma-builtin-screen-rotation W: Dependency included, but may not be needed ('plasma-workspace')
 plasma-builtin-screen-rotation W: Dependency included, but may not be needed ('iio-sensor-proxy')
+# kglobalacceld takes the shortcuts; the applet loads the QML modules of
+# qt6-declarative, kirigami and libplasma.
+asus-zenbook-duo-ux8406-kde-shortcuts W: Dependency included, but may not be needed ('kglobalacceld')
+plasma-builtin-screen-rotation W: Dependency included, but may not be needed ('kglobalacceld')
+plasma-builtin-screen-rotation W: Dependency included, but may not be needed ('qt6-declarative')
+plasma-builtin-screen-rotation W: Dependency included, but may not be needed ('kirigami')
+plasma-builtin-screen-rotation W: Dependency included, but may not be needed ('libplasma')
 # namcap looks for the QML modules of the applet in the installed packages,
-# and the build installs no desktop. plasma-workspace has the D-Bus types and
-# depends on qt6-declarative, kirigami and libplasma, which have the others.
+# and the build installs no desktop. The package depends on the packages
+# that have them: qt6-declarative, kirigami, libplasma, plasma-workspace.
 plasma-builtin-screen-rotation W: Referenced QML module 'org.kde.kirigami' is an uninstalled dependency (needed in files ['usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml'])
 plasma-builtin-screen-rotation W: Referenced QML module 'org.kde.plasma.components' is an uninstalled dependency (needed in files ['usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml'])
 plasma-builtin-screen-rotation W: Referenced QML module 'org.kde.plasma.core' is an uninstalled dependency (needed in files ['usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml'])

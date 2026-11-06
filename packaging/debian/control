@@ -35,7 +35,7 @@ Description: lower panel of the Zenbook Duo UX8406 off while the keyboard lies o
 
 Package: asus-zenbook-duo-ux8406-tcc-guard
 Architecture: amd64
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: systemd, ${shlibs:Depends}, ${misc:Depends}
 Description: CPU thermal-offset guard for the ASUS Zenbook Duo UX8406
  A service that raises the CPU's thermal offset (the Intel TCC offset) when
  the machine's embedded controller warns of heat, and takes it back once the
@@ -86,14 +86,14 @@ Description: GNOME Shell extension that turns the built-in screens with the lapt
 
 Package: asus-zenbook-duo-ux8406-kde-shortcuts
 Architecture: all
-Depends: plasma-desktop, asus-zenbook-duo-ux8406-keyboard-bpf, ${misc:Depends}
+Depends: plasma-desktop, kglobalacceld, asus-zenbook-duo-ux8406-keyboard-bpf, ${misc:Depends}
 Description: default KDE Plasma shortcuts for the function keys of the Zenbook Duo UX8406
  The emoji key (F11) opens the emoji selector of Plasma. This package is
  optional: the key works without it, but does nothing in Plasma.
 
 Package: asus-zenbook-duo-ux8406-kde-keys
 Architecture: amd64
-Depends: kwin-wayland, asus-zenbook-duo-ux8406-keyboard-bpf, ${shlibs:Depends}, ${misc:Depends}
+Depends: kwin-wayland (>= 4:6.0~), asus-zenbook-duo-ux8406-keyboard-bpf, ${shlibs:Depends}, ${misc:Depends}
 Description: KDE Plasma integration for the display keys of the Zenbook Duo UX8406
  The key right of F12 switches the lower screen on and off, and F8 swaps the
  windows of the two screens (a KWin script). Each touchscreen and pen gets
@@ -105,7 +105,11 @@ Description: KDE Plasma integration for the display keys of the Zenbook Duo UX84
 
 Package: plasma-builtin-screen-rotation
 Architecture: amd64
-Depends: kwin-wayland, plasma-workspace (>= 4:6.4), iio-sensor-proxy, ${shlibs:Depends}, ${misc:Depends}
+Depends: kwin-wayland (>= 4:6.0~), plasma-workspace (>= 4:6.4), kglobalacceld,
+         qml6-module-qtquick, qml6-module-qtquick-layouts,
+         qml6-module-org-kde-kirigami, plasma-desktoptheme,
+         qml6-module-org-kde-plasma-workspace | plasma-workspace (<< 4:6.7~),
+         iio-sensor-proxy, ${shlibs:Depends}, ${misc:Depends}
 Description: turns the built-in screens with the laptop in KDE Plasma
  With the laptop on its left or right side, or upside down, both built-in
  panels are turned and put side by side or one below the other. While this

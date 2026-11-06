@@ -147,6 +147,7 @@ jobs:
             base: &debian-testing "docker.io/library/debian:testing@sha256:2d46f43b677a047cfab870549eea0d83d0a9bea2f55b3f481efc901043916c2a"
             install: *debian-testing
             keyboard: "yes"
+            kde: "yes"
           - release: debian-unstable
             family: debian
             base: &debian-unstable "docker.io/library/debian:unstable@sha256:873bf43b48d52ba792b98de93232153e59d4946b93cbd89d91cffef0df4ce823"
@@ -157,6 +158,7 @@ jobs:
             base: &ubuntu-2604 "docker.io/library/ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c"
             install: *ubuntu-2604
             keyboard: "yes"
+            kde: "yes"
           - release: arch
             family: arch
             base: "docker.io/library/archlinux:base-devel@sha256:2de80105abb49f813a85393c6758a4334deb6bcec4a2411bd2f059c0bee6ee4c"

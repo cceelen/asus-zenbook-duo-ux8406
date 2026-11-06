@@ -91,7 +91,8 @@ kde_rotation() {
 	pkgdesc="Turns the built-in screens with the laptop in KDE Plasma"
 	license="MIT"
 	# The applet needs the D-Bus types of Plasma 6.4.
-	depends="kwin plasma-workspace>=6.4 iio-sensor-proxy"
+	depends="kwin>=6 plasma-workspace>=6.4 kglobalacceld qt6-qtdeclarative kirigami
+		libplasma iio-sensor-proxy"
 
 	amove usr/bin/plasma-builtin-screen-rotation
 	amove etc/xdg/autostart/plasma-builtin-screen-rotation.desktop
