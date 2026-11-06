@@ -12,7 +12,7 @@ FROM registry.fedoraproject.org/fedora:44@sha256:cb3bd21415bd82a2fae1a9379f3f972
 # keeps. Each layer from the source on is new in each run.
 FROM base AS tools
 RUN dnf install -y rpm-build git cargo clang libbpf-devel meson ninja-build python3 \
-        systemd-devel systemd-rpm-macros kernel-headers glib2 nodejs dbus-daemon rpmlint \
+        systemd-devel systemd-rpm-macros kernel-headers nodejs dbus-daemon rpmlint \
     && dnf clean all
 # The tests refuse to run as root, so everything from here on is the
 # unprivileged user's.
@@ -27,7 +27,7 @@ WORKDIR /build
 # checkout; it carries the crates in vendor/). This step needs the network.
 RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
-    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false -Dkde_shortcuts=false -Dkde=false -Dkde_rotation=false \
+    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dkde_shortcuts=false -Dkde=false -Dkde_rotation=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
 # The packages, from that archive, as a user without root and without network.
 RUN --network=none rpmbuild --define "_topdir /rpm" \
@@ -55,8 +55,6 @@ RUN --mount=type=bind,from=build,source=/out,target=/pkgs \
     dnf install -y /pkgs/asus-zenbook-duo-ux8406-second-screen-[0-9]*.x86_64.rpm \
         /pkgs/asus-zenbook-duo-ux8406-tcc-guard-[0-9]*.x86_64.rpm \
         /pkgs/asus-zenbook-duo-ux8406-keyboard-bpf-[0-9]*.x86_64.rpm \
-        /pkgs/gnome-shell-extension-asus-zenbook-duo-ux8406-keys-*.noarch.rpm \
-        /pkgs/gnome-shell-extension-builtin-screen-rotation-*.noarch.rpm \
         /pkgs/asus-zenbook-duo-ux8406-kde-shortcuts-*.noarch.rpm \
         /pkgs/asus-zenbook-duo-ux8406-kde-keys-[0-9]*.x86_64.rpm \
         /pkgs/plasma-builtin-screen-rotation-[0-9]*.x86_64.rpm \

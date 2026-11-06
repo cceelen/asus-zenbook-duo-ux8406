@@ -88,10 +88,8 @@ jobs:
           path: rust.lcov
           retention-days: 7
 
-  # Node's test runner over the logic tests of the extensions; the run fails
-  # below 100 % of lines, branches or functions. The modules that need a GNOME
-  # Shell (extension.js, display.js, sensor.js) are not loaded by a test, so
-  # they are not in it.
+  # Node's test runner over the tests of the KWin script; the run fails below
+  # 100 % of lines, branches or functions.
   js:
     needs: changed
     if: ${{ needs.changed.outputs.run == 'true' }}
@@ -108,11 +106,9 @@ jobs:
             --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \
             --test-reporter=spec --test-reporter-destination=stdout \
             --test-reporter=lcov --test-reporter-destination=js.lcov \
-            gnome-keys/tests/layout.test.js gnome-keys/tests/touch.test.js \
-            gnome-keys/tests/vectors.test.js gnome-rotation/tests/hold.test.js gnome-rotation/tests/rotation.test.js \
-            gnome-rotation/tests/vectors.test.js kde-keys/tests/script.test.js | tee js.txt
+            kde-keys/tests/script.test.js | tee js.txt
           {
-            echo '### Coverage of the extensions'
+            echo '### Coverage of the KWin script'
             echo '```text'
             sed -n '/start of coverage report/,/end of coverage report/p' js.txt
             echo '```'

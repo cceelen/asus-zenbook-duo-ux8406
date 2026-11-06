@@ -14,7 +14,7 @@ FROM base AS tools
 # alpine-sdk has abuild, fakeroot and the C toolchain. The build
 # dependencies are installed here, as root: abuild is run with -d and
 # installs nothing itself.
-RUN apk add --no-cache alpine-sdk git abuild-meson cargo glib-dev meson nodejs \
+RUN apk add --no-cache alpine-sdk git abuild-meson cargo meson nodejs \
         python3 samurai atools dbus
 # The packages are signed with a key made for this one build; apk has to trust
 # it for the repository index to be written. Tests need an ordinary user.
@@ -30,7 +30,7 @@ WORKDIR /src
 # checkout; it carries the crates in vendor/). This step needs the network.
 RUN git init -q . && git add -A \
     && git -c user.name=dev -c user.email=dev@localhost commit -qm dev \
-    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dgnome=false -Drotation=false -Dkde_shortcuts=false -Dkde=false -Dkde_rotation=false \
+    && meson setup /tmp/dist -Dscreen=false -Dguard=false -Dkeyboard=false -Dkde_shortcuts=false -Dkde=false -Dkde_rotation=false \
     && meson dist -C /tmp/dist --no-tests --formats gztar
 # The packages, from that archive, without network. The APKBUILD names the
 # archive of the GitHub release; abuild finds a file of that name in SRCDEST

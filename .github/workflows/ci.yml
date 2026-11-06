@@ -246,7 +246,7 @@ jobs:
   # Ubuntu 26.04, not -latest: the HID-BPF program needs kernel headers of 6.10
   # or later (24.04 has 6.8). The runner's user is not root, which the tests
   # need. `meson test` runs the cargo tests, the BPF object checks and the
-  # extension's node tests. The suite failpoints is left out: the rust job
+  # node tests. The suite failpoints is left out: the rust job
   # runs the same tests with the fail points, for the coverage.
   meson:
     runs-on: ubuntu-26.04
@@ -270,14 +270,12 @@ jobs:
       - run: >-
           sudo apt-get update -q && sudo apt-get install -qy --no-install-recommends
           meson ninja-build pkgconf clang llvm libbpf-dev linux-libc-dev
-          libglib2.0-bin systemd-dev udev dbus-daemon
+          systemd-dev udev dbus-daemon
       - run: meson setup build -Dunit_checks=enabled -Dhost_checks=enabled
       - run: meson compile -C build
       - run: meson test -C build --print-errorlogs --no-suite failpoints
-      # Coverage of the extensions' logic, with a limit of 100 % of lines,
-      # branches and functions. The modules that need a GNOME Shell
-      # (extension.js, display.js, sensor.js) are not loaded by a test, so they
-      # are not in it.
+      # Coverage of the KWin script, with a limit of 100 % of lines, branches
+      # and functions.
       # `shell: bash` gives pipefail: without it, the step has the exit
       # status of tee, and a test or the limit that fails passes.
       - shell: bash
@@ -286,11 +284,9 @@ jobs:
             --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \
             --test-reporter=spec --test-reporter-destination=stdout \
             --test-reporter=lcov --test-reporter-destination=js.lcov \
-            gnome-keys/tests/layout.test.js gnome-keys/tests/touch.test.js \
-            gnome-keys/tests/vectors.test.js gnome-rotation/tests/hold.test.js gnome-rotation/tests/rotation.test.js \
-            gnome-rotation/tests/vectors.test.js kde-keys/tests/script.test.js | tee js.txt
+            kde-keys/tests/script.test.js | tee js.txt
           {
-            echo '### Coverage of the extensions'
+            echo '### Coverage of the KWin script'
             echo '```text'
             sed -n '/start of coverage report/,/end of coverage report/p' js.txt
             echo '```'

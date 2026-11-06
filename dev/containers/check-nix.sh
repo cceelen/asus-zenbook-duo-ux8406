@@ -9,8 +9,6 @@ ls -l /second-screen/libexec/asus-ux8406-second-screen /second-screen/lib/udev/r
   /keyboard-bpf/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
   /keyboard-bpf/libexec/asus-ux8406-keyboard-state \
   /keyboard-bpf/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules \
-  /gnome-keys/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io/extension.js \
-  /gnome-rotation/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/extension.js \
   /kde-shortcuts/share/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop \
   /kde-keys/libexec/asus-ux8406-kde-keys /kde-keys/etc/xdg/autostart/asus-ux8406-kde-keys.desktop \
   /kde-keys/share/kwin/scripts/asus-zenbook-duo-ux8406-keys/contents/code/main.js \

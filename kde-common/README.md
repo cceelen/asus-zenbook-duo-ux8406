@@ -14,23 +14,28 @@ output management. It is part of the programs and installs nothing.**
 | `daemon`   | the event loop and the log of the two programs                              | (KDE only)                             |
 | `protocol` | the Wayland code, made from the XML files in `protocols/`                   | (KDE only)                             |
 
-The GNOME extensions keep their JavaScript. Where the two cannot be the same
-(the mutter D-Bus data, the GNOME Shell objects), each desktop has its own code;
-the logic on plain data is the same in both.
+The GNOME extensions keep their JavaScript, in
+[cceelen/gnome-extension](https://github.com/cceelen/gnome-extension); the GNOME
+files above are of that repository. Where the two cannot be the same (the mutter
+D-Bus data, the GNOME Shell objects), each desktop has its own code; the logic
+on plain data is the same in both.
 
 ## The shared cases
 
 `tests/vectors/*.json` has the cases for both implementations: each a call, its
-input and its result. `gnome-common/tests/vectors.js` makes them from the
-scenarios of the GNOME tests, and the GNOME code gives the results. The node
+input and its result. The files are a copy of `gnome-common/tests/vectors/` of
+cceelen/gnome-extension. There, `gnome-common/tests/vectors.js` makes them from
+the scenarios of the GNOME tests, and the GNOME code gives the results. The node
 tests (`gnome-keys/tests/vectors.test.js`,
 `gnome-rotation/tests/vectors.test.js`) check that the files are those that the
 cases give and that the JavaScript gives each result; the Rust test
 `tests/logic/vectors.rs` checks that Rust gives each result. After a change of
-the cases or of the GNOME logic, write the files again:
+the cases or of the GNOME logic, write the files again in
+cceelen/gnome-extension, and copy them here:
 
 ```sh
 node gnome-common/tests/write-vectors.js
+cp gnome-common/tests/vectors/*.json /path/to/asus-zenbook-duo-ux8406/kde-common/tests/vectors/
 ```
 
 Two differences, both outside the cases: a monitor without a mode takes no room

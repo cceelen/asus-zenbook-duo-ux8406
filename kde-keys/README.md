@@ -5,7 +5,8 @@ touchscreens. The key right of F12 switches the lower screen on and off, F8
 swaps the windows of the two screens, and each touchscreen and pen gets its
 screen. It is active after the next login. The keys need the keyboard package.**
 
-This is the KDE counterpart of the [GNOME extension](../gnome-keys/README.md).
+This is the KDE counterpart of the
+[GNOME extension](https://github.com/cceelen/gnome-extension/blob/main/gnome-keys/README.md).
 It needs Plasma 6 on Wayland. It is not tested on KDE hardware yet: refer to the
 [test plan](../docs/kde-test-plan.md).
 

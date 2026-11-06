@@ -19,7 +19,6 @@
   linuxHeaders,
   removeReferencesTo,
   python3,
-  glib,
   nodejs,
   dbus,
   cargo-cyclonedx,
@@ -69,8 +68,6 @@ let
           (option "screen")
           (option "guard")
           (option "keyboard")
-          (option "gnome")
-          (option "rotation")
           (option "kde_shortcuts")
           (option "kde")
           (option "kde_rotation")
@@ -115,7 +112,7 @@ let
       cargo
       rustc
       rustPlatform.cargoSetupHook
-      # For the tests of the keyboard and extension parts.
+      # For the tests of the keyboard and KDE parts.
       python3
       nodejs
     ];
@@ -240,49 +237,6 @@ in
     };
   };
 
-  # The GNOME Shell extension; list it in environment.systemPackages and
-  # enable it per user.
-  gnome-keys = mkPart {
-    enable = [ "gnome" ];
-    attrs = {
-      pname = "gnome-shell-extension-asus-zenbook-duo-ux8406-keys";
-      nativeBuildInputs = [
-        meson
-        ninja
-        pkg-config
-        glib
-        nodejs
-        python3
-      ];
-      passthru.extensionUuid = "asus-zenbook-duo-ux8406-keys@cceelen.github.io";
-      meta = meta // {
-        description = "GNOME Shell extension for the display keys of the Zenbook Duo UX8406";
-        license = lib.licenses.mit;
-      };
-    };
-  };
-
-  # The GNOME Shell extension that turns the panels; it needs
-  # hardware.sensor.iio.enable. List it in environment.systemPackages and
-  # enable it per user.
-  gnome-rotation = mkPart {
-    enable = [ "rotation" ];
-    attrs = {
-      pname = "gnome-shell-extension-builtin-screen-rotation";
-      nativeBuildInputs = [
-        meson
-        ninja
-        pkg-config
-        nodejs
-        python3
-      ];
-      passthru.extensionUuid = "builtin-screen-rotation@cceelen.github.io";
-      meta = meta // {
-        description = "GNOME Shell extension that turns the built-in screens with the laptop";
-        license = lib.licenses.mit;
-      };
-    };
-  };
   # List it in environment.systemPackages: the autostart entry is in
   # etc/xdg/autostart of the package.
   kde-keys = mkPart {
