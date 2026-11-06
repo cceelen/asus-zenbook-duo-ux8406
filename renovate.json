@@ -18,6 +18,19 @@
       "before 6am on the first day of the month"
     ]
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "The images of the package builds, pinned by digest in the matrix of packages.yml.",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/packages\\.yml$/"
+      ],
+      "matchStrings": [
+        "\"(?<depName>[a-z0-9.-]+(?:/[a-z0-9._-]+)+):(?<currentValue>[a-z0-9._-]+)@(?<currentDigest>sha256:[a-f0-9]{64})\""
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ],
   "packageRules": [
     {
       "description": "Crates: minor and patch updates together. Cargo.lock is kept to versions that build with rust-version (resolver 3), which Renovate never changes.",
@@ -58,10 +71,11 @@
       "minimumReleaseAge": "3 days"
     },
     {
-      "description": "The base images of the local containers and the container of the aports job, pinned by digest: the updates of tags and digests together in one pull request.",
+      "description": "The base images of the package builds, of the local containers and of the container of the aports job, pinned by digest: the updates of tags and digests together in one pull request.",
       "matchFileNames": [
         "dev/containers/*.Dockerfile",
-        ".github/workflows/aports.yml"
+        ".github/workflows/aports.yml",
+        ".github/workflows/packages.yml"
       ],
       "pinDigests": true,
       "labels": [

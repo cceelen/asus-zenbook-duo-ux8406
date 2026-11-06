@@ -10,7 +10,7 @@
 # CARGO_NET_OFFLINE=true makes cargo fail on any crate that is not in vendor/
 # of the archive.
 #
-#   build.sh fedora|opensuse|debian|arch|alpine ARCHIVE OUT
+#   build.sh fedora|rhel|opensuse|debian|arch|alpine ARCHIVE OUT
 #
 # ARCHIVE is asus-zenbook-duo-ux8406-<version>.tar.gz; the packages go to OUT.
 set -eu
@@ -23,7 +23,7 @@ tree=$(realpath "$(dirname "$0")/../..")
 work=$(mktemp -d)
 
 case "$family" in
-  fedora|opensuse)
+  fedora|rhel|opensuse)
     rpmbuild --define "_topdir $work" --define "_sourcedir ${archive%/*}" \
       -ba "$tree/packaging/rpm/asus-zenbook-duo-ux8406.spec"
     cp "$work"/RPMS/*/*.rpm "$work"/SRPMS/*.rpm "$out"/
@@ -44,8 +44,12 @@ case "$family" in
     cp "$archive" "asus-zenbook-duo-ux8406_$version.orig.tar.gz"
     tar -xzf "asus-zenbook-duo-ux8406_$version.orig.tar.gz"
     cp -r "$tree/packaging/debian" "asus-zenbook-duo-ux8406-$version/debian"
+    # An artifact does not keep the file modes.
+    chmod +x "asus-zenbook-duo-ux8406-$version/debian/rules"
     (cd "asus-zenbook-duo-ux8406-$version" && dpkg-buildpackage -us -uc -rfakeroot)
-    lintian --info --display-info --pedantic --fail-on error \
+    # The Debian profile on Ubuntu too: the recipe is Debian's, and its
+    # changelog names unstable, which Ubuntu's profile rejects.
+    lintian --profile debian --info --display-info --pedantic --fail-on error \
       "asus-zenbook-duo-ux8406_$version"-*_amd64.changes
     find "$work" -maxdepth 1 -type f -exec cp {} "$out"/ \;
     ;;

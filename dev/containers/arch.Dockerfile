@@ -7,12 +7,13 @@
 #     --output dist/arch .
 
 # The base image, pinned by digest. Renovate updates the tag and the digest;
-# packages.yml reads the image from here.
+# packages.yml pins its own images for the CI builds.
 FROM docker.io/library/archlinux:latest@sha256:e82623936fa1a69700b48e98b058df6eaab18b737c27473a7234a40fdecb9413 AS base
 
 FROM base AS tools
 COPY dev/containers/build-deps.sh /tmp/
-RUN sh /tmp/build-deps.sh arch && pacman -Scc --noconfirm \
+# git: for meson dist below.
+RUN sh /tmp/build-deps.sh arch && pacman -S --noconfirm --needed git && pacman -Scc --noconfirm \
     && mkdir /out && chown builder /out
 
 FROM tools AS build

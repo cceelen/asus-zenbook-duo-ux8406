@@ -123,8 +123,10 @@ jobs:
     needs: [release, release-files]
     if: ${{ needs.release.outputs.release_created == 'true' }}
     uses: ./.github/workflows/packages.yml
+    # packages: the images with the build tools (job tools of packages.yml).
     permissions:
       contents: read
+      packages: write
     # The archive that release-files attests and publishes.
     with:
       archive: release-source
