@@ -4,12 +4,12 @@ For the maintainer: how to make a release and how to keep the tree current.
 
 ## Who builds what
 
-| Distribution                         | Built by                    | Configuration                          |
-| ------------------------------------ | --------------------------- | -------------------------------------- |
-| Fedora, RHEL 10 with EPEL 10         | Fedora COPR, through Packit | `.packit.yaml`                         |
-| openSUSE, Debian, Ubuntu 26.04, Arch | openSUSE Build Service      | `.obs/workflows.yml`, `packaging/obs/` |
-| Nix                                  | `release-nix.yml`; Cachix   | `flake.nix`, `packaging/nix/`          |
-| Alpine                               | Alpine, through aports      | `packaging/alpine/`                    |
+| Distribution                   | Built by                    | Configuration                          |
+| ------------------------------ | --------------------------- | -------------------------------------- |
+| Fedora, RHEL 10 with EPEL 10   | Fedora COPR, through Packit | `.packit.yaml`                         |
+| openSUSE, Debian, Ubuntu, Arch | openSUSE Build Service      | `.obs/workflows.yml`, `packaging/obs/` |
+| Nix                            | `release-nix.yml`; Cachix   | `flake.nix`, `packaging/nix/`          |
+| Alpine                         | Alpine, through aports      | `packaging/alpine/`                    |
 
 COPR, OBS, Cachix and Alpine sign their repositories, each with its own key. No
 signing key is stored in GitHub: the attestations are keyless (Sigstore, through
