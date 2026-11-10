@@ -76,7 +76,7 @@ let
           "--sbindir=bin"
           "-Dudevdir=${placeholder "out"}/lib/udev"
           "-Dsystemdsystemunitdir=${placeholder "out"}/lib/systemd/system"
-          "-Dfirmwaredir=${placeholder "out"}/lib/firmware"
+          "-Dhidbpfdir=${placeholder "out"}/lib/firmware/hid/bpf"
           # Nix has no convention for licence files; they go below
           # share/licenses/<package>/.
           "-Dlicensedir=share/licenses"

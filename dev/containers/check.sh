@@ -20,6 +20,7 @@ if [ "${KDE:-no}" = yes ]; then
   packages="$packages asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation"
 fi
 HELPER=/usr/libexec/asus-ux8406-second-screen
+BPF=/usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o
 
 # shellcheck disable=SC2086 # $packages is a list of words.
 case "${1:?which distribution}" in
@@ -37,6 +38,7 @@ case "${1:?which distribution}" in
     # dpkg --verify reports what differs and exits 0 all the same.
     verify() { out=$(dpkg --verify $packages); echo "$out"; test -z "$out"; }
     remove() { dpkg --purge $packages; }
+    BPF=/usr/lib/x86_64-linux-gnu/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o
     ;;
   arch)
     verify() { pacman -Qkk $packages; }
@@ -63,10 +65,11 @@ echo "installed files verified"
 asus-ux8406-tcc-guard --version
 if [ "${KEYBOARD:-no}" = yes ]; then
   udev-hid-bpf --version
-  udev-hid-bpf inspect \
-    /usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
-    | grep -c '"pid"' | grep -qx 3
-  echo "udev-hid-bpf reads the keyboard program"
+  udev-hid-bpf inspect "$BPF" | grep -c '"pid"' | grep -qx 3
+  # The directory is the one that the udev-hid-bpf of the distribution
+  # loads programs from.
+  udev-hid-bpf list-bpf-programs | grep -qxF " $BPF"
+  echo "udev-hid-bpf finds and reads the keyboard program"
   # The helper that keeps the keyboard's state, and its rule: before
   # the rule of udev-hid-bpf, and with the helper's own path.
   "${HELPER%/*}/asus-ux8406-keyboard-state" --version
@@ -126,7 +129,7 @@ for f in "$HELPER" "${HELPER%/*}/asus-ux8406-keyboard-state" \
     /usr/lib/systemd/system/asus-ux8406-tcc-guard.service /etc/init.d/asus-ux8406-tcc-guard \
     /usr/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \
     /usr/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
-    /usr/lib/firmware/hid/bpf/0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o \
+    "$BPF" \
     /usr/share/gnome-shell/extensions/asus-zenbook-duo-ux8406-keys@cceelen.github.io \
     /usr/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io \
     /usr/share/kglobalaccel/asus-zenbook-duo-ux8406-shortcuts.desktop \

@@ -65,9 +65,9 @@ if unitdir == ''
   unitdir = systemd.found() ? systemd.get_variable('systemdsystemunitdir') : prefix / 'lib' / 'systemd' / 'system'
 endif
 
-firmwaredir = get_option('firmwaredir')
-if firmwaredir == ''
-  firmwaredir = prefix / 'lib' / 'firmware'
+hidbpfdir = get_option('hidbpfdir')
+if hidbpfdir == ''
+  hidbpfdir = prefix / 'lib' / 'firmware' / 'hid' / 'bpf'
 endif
 
 initddir = get_option('initddir')
@@ -205,7 +205,7 @@ summary({
   'init': get_option('init'),
   'udev': udevdir,
   'systemd units': unitdir,
-  'firmware': firmwaredir,
+  'HID-BPF': hidbpfdir,
   'autostart': autostartdir,
   'licences': install_licences ? licensedir : 'not installed',
   'cargo offline': offline,
