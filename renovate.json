@@ -83,6 +83,23 @@
       ],
       "automerge": false,
       "groupName": "container images"
+    },
+    {
+      "description": "The tag of a package build image is the distribution release that the job builds for, and the job is named after it: Renovate updates only its digest by itself. A new tag (a new release) is only listed on the Dependency Dashboard, as a sign to add an entry of its own to the matrix; the old release stays until its support ends.",
+      "matchFileNames": [
+        "dev/containers/*.Dockerfile",
+        ".github/workflows/packages.yml"
+      ],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch",
+        "replacement"
+      ],
+      "dependencyDashboardApproval": true
     }
   ]
 }
