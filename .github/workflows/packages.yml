@@ -13,10 +13,19 @@
 # dev/containers/ run the same scripts, for local builds.
 #
 # By hand ("Run workflow"), and in release.yml after the release pull
-# request: a failed build stops the publication.
+# request: a failed build stops the publication. Also on a pull request that
+# changes a recipe, a script of the images or this file, as Renovate's
+# updates of the base images: a release that stops building shows there, not
+# only in the next release. A pull request from a fork that needs new images
+# fails in the job tools: its token cannot push them.
 name: packages
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/packages.yml"
+      - "dev/containers/**"
+      - "packaging/**"
   workflow_call:
     inputs:
       archive:
