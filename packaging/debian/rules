@@ -41,6 +41,11 @@ override_dh_strip:
 override_dh_dwz:
 	dh_dwz -X.bpf.o
 
+# xz, as Debian: Ubuntu 26.10 compresses with zstd by default, which lintian
+# of the Debian profile refuses.
+override_dh_builddeb:
+	dh_builddeb -- -Zxz
+
 # vendor/ holds the crates as published, among them files that dh_clean takes
 # for editor leftovers (Cargo.toml.orig), and cargo wants them: cargo checks
 # every file of a crate against its checksum list. The build is out of tree,
