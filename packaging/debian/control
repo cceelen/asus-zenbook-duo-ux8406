@@ -108,7 +108,7 @@ Architecture: amd64
 Depends: kwin-wayland (>= 4:6.0~), plasma-workspace (>= 4:6.4), kglobalacceld,
          qml6-module-qtquick, qml6-module-qtquick-layouts,
          qml6-module-org-kde-kirigami, plasma-desktoptheme,
-         qml6-module-org-kde-plasma-workspace | plasma-workspace (<< 4:6.7~),
+         ${plasma:Workspace},
          iio-sensor-proxy, ${shlibs:Depends}, ${misc:Depends}
 Description: turns the built-in screens with the laptop in KDE Plasma
  With the laptop on its left or right side, or upside down, both built-in
