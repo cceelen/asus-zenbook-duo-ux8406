@@ -74,7 +74,7 @@ bpf_object = custom_target(
   ],
   build_by_default: true,
   install: true,
-  install_dir: firmwaredir / 'hid' / 'bpf',
+  install_dir: hidbpfdir,
   install_mode: 'rw-r--r--',
 )
 
