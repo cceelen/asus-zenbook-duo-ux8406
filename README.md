@@ -83,10 +83,12 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
 | openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅ ²   | ✅       | 🛠️ ²     | 🛠️           | 🛠️ ²          |
 | openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ² ³ | ✅ ³     | 🛠️ ²     | 🛠️           | 🛠️ ²          |
 | openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ❌ ⁹   | ✅       | ❌ ⁹     | 🛠️           | ❌ ⁹          |
+| openSUSE Leap 16.1   | 🛠️ ⁷  | 🛠️ ⁷          | ❌ ⁴     | ❌ ⁹   | 🛠️ ⁷     | ❌ ⁹     | 🛠️           | ❌ ⁹          |
 | Debian 13            | ✅    | ✅            | ❌ ⁴     | ❌ ⁹   | ✅       | ❌ ⁹     | ❌ ⁸         | ❌ ⁹          |
 | Debian testing       | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
 | Debian unstable      | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
 | Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
+| Ubuntu 26.10         | 🛠️ ⁷  | 🛠️ ⁷          | 🛠️ ⁷     | 🛠️ ⁷   | 🛠️ ⁷     | 🛠️       | 🛠️           | 🛠️            |
 | Alpine               | 🛠️ ⁵  | 🛠️ ⁵          | ❌ ⁴     | ❌ ⁹   | 🛠️ ⁵     | ❌ ⁹     | 🛠️           | ❌ ⁹          |
 | Nix                  | ✅ ⁶  | ✅ ⁶          | ❌ ⁴     | ❌ ⁹   | ✅ ⁶     | ❌ ⁹     | 🛠️           | ❌ ⁹          |
 
@@ -104,14 +106,15 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
 6. In the flake of this repository, with the binary cache
    `asus-zenbook-duo-ux8406.cachix.org`. The container builds each package of
    the flake. The NixOS modules are not tested.
-7. Not published yet: the Copr project builds for Fedora 45 from the next
-   release on. The packages install in a clean container.
+7. Not published yet: the Copr project builds for Fedora 45, and the OBS project
+   for Leap 16.1 and Ubuntu 26.10, from the next release on. The packages
+   install in a clean container.
 8. Plasma 6.3 is too old: the applet needs the D-Bus types of Plasma 6.4.
 9. The package needs the keyboard package, which delivers its keys, and that
-   needs [udev-hid-bpf]. Not built for Leap 16.0, Alpine and Nix; built for
-   Debian 13 (the Debian recipe is one for all releases) but not installable.
-   Keys and KDE keys also give each touchscreen and pen its panel: there, that
-   is not available either.
+   needs [udev-hid-bpf]. Not built for Leap, Alpine and Nix; built for Debian 13
+   (the Debian recipe is one for all releases) but not installable. Keys and KDE
+   keys also give each touchscreen and pen its panel: there, that is not
+   available either.
 
 🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
 keyboard ids and dock port can be different. A result from your hardware adds a
@@ -163,8 +166,8 @@ The packages:
 The commands below use this list. Keys, KDE keys and KDE shortcuts require the
 keyboard package and bring it with them; the commands also name it where the
 distribution has udev-hid-bpf (refer to [Compatibility](#compatibility)). On
-Leap 16.0, Debian 13 and Alpine, which have no udev-hid-bpf, use the lists
-without them, below.
+Leap, Debian 13 and Alpine, which have no udev-hid-bpf, use the lists without
+them, below.
 
 ```sh
 pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen gnome-shell-extension-asus-zenbook-duo-ux8406-keys gnome-shell-extension-builtin-screen-rotation"
@@ -176,9 +179,9 @@ For KDE Plasma, use this list in its place:
 pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts"
 ```
 
-On Leap 16.0, Debian 13 and Alpine (footnote 9 of
-[Compatibility](#compatibility)), and on Tumbleweed and Slowroll without the
-repository `home:xanders` (footnote 2), use one of these lists:
+On Leap, Debian 13 and Alpine (footnote 9 of [Compatibility](#compatibility)),
+and on Tumbleweed and Slowroll without the repository `home:xanders` (footnote
+2), use one of these lists:
 
 ```sh
 # GNOME: without Keys
@@ -217,6 +220,7 @@ tells you, then use the last two commands.
 | Tumbleweed   | `openSUSE_Tumbleweed` |
 | Slowroll     | `openSUSE_Slowroll`   |
 | Leap 16.0    | `16.0`                |
+| Leap 16.1    | `16.1`                |
 
 ```sh
 dist=openSUSE_Tumbleweed
@@ -227,7 +231,7 @@ sudo zypper install $pkgs
 Keys, KDE keys and KDE shortcuts need udev-hid-bpf, which Tumbleweed and
 Slowroll do not have (footnote 2 of [Compatibility](#compatibility)). Add the
 repository `home:xanders` first, which this project does not maintain, or use
-the lists without them (above). Leap 16.0 does not have these packages.
+the lists without them (above). Leap does not have these packages.
 
 ```sh
 sudo zypper addrepo --refresh https://download.opensuse.org/repositories/home:/xanders/$dist/home:xanders.repo
@@ -241,6 +245,7 @@ sudo zypper addrepo --refresh https://download.opensuse.org/repositories/home:/x
 | Debian testing  | `Debian_Testing`  |
 | Debian unstable | `Debian_Unstable` |
 | Ubuntu 26.04    | `xUbuntu_26.04`   |
+| Ubuntu 26.10    | `xUbuntu_26.10`   |
 
 ```sh
 dist=Debian_13
