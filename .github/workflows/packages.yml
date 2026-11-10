@@ -132,8 +132,8 @@ jobs:
           # No udev-hid-bpf in Tumbleweed, Leap, Debian 13 and Alpine.
           - release: tumbleweed
             family: opensuse
-            base: "registry.opensuse.org/opensuse/bci/rust:latest@sha256:7e70663ff9b3ba67f6bbd9bdb58bd806cde17d62817e938cf1de5603ad8d1b9e"
-            install: "registry.opensuse.org/opensuse/tumbleweed:latest@sha256:d0cf65ea39d8d869d8499a4a21b55e359de15114d639c4fad32dc7c144ce2899"
+            base: "registry.opensuse.org/opensuse/bci/rust:latest@sha256:707614e56c51cc6dc54c5dc1c6d932bc97cc76f605f763953786cfd073310984"
+            install: "registry.opensuse.org/opensuse/tumbleweed:latest@sha256:28dc49bdc6463892bc6346d08f7972eb71b090d8752b05ae827d0d07f2e84660"
           # unbuilt: packages that the recipe must not build for the release.
           - release: leap-16.0
             family: opensuse
