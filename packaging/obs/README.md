@@ -78,7 +78,7 @@ repository. The project definition (Repositories, or the page `/meta`):
   cannot install them (Debian 13; Tumbleweed and Slowroll without
   `home:xanders`). Leap does not build these four. The
   [compatibility table](../../README.md#compatibility) names these distributions
-  (footnotes 2, 4 and 9).
+  (footnotes 2, 4 and 8).
 
 ## Setup
 
