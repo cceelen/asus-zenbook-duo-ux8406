@@ -13,10 +13,19 @@
 # dev/containers/ run the same scripts, for local builds.
 #
 # By hand ("Run workflow"), and in release.yml after the release pull
-# request: a failed build stops the publication.
+# request: a failed build stops the publication. Also on a pull request that
+# changes a recipe, a script of the images or this file, as Renovate's
+# updates of the base images: a release that stops building shows there, not
+# only in the next release. A pull request from a fork that needs new images
+# fails in the job tools: its token cannot push them.
 name: packages
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/packages.yml"
+      - "dev/containers/**"
+      - "packaging/**"
   workflow_call:
     inputs:
       archive:
@@ -130,17 +139,22 @@ jobs:
             keyboard: "yes"
             gnome: "yes"
             kde: "yes"
-          # No udev-hid-bpf in Tumbleweed, Leap 16.0, Debian 13 and Alpine.
+          # No udev-hid-bpf in Tumbleweed, Leap, Debian 13 and Alpine.
           - release: tumbleweed
             family: opensuse
-            base: "registry.opensuse.org/opensuse/bci/rust:latest@sha256:7e70663ff9b3ba67f6bbd9bdb58bd806cde17d62817e938cf1de5603ad8d1b9e"
-            install: "registry.opensuse.org/opensuse/tumbleweed:latest@sha256:d0cf65ea39d8d869d8499a4a21b55e359de15114d639c4fad32dc7c144ce2899"
+            base: "registry.opensuse.org/opensuse/bci/rust:latest@sha256:707614e56c51cc6dc54c5dc1c6d932bc97cc76f605f763953786cfd073310984"
+            install: "registry.opensuse.org/opensuse/tumbleweed:latest@sha256:28dc49bdc6463892bc6346d08f7972eb71b090d8752b05ae827d0d07f2e84660"
           # unbuilt: packages that the recipe must not build for the release.
           - release: leap-16.0
             family: opensuse
             unbuilt: asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys
             base: &leap-16 "registry.opensuse.org/opensuse/leap:16.0@sha256:2f388e98be71bd6f5ccb75d3ee8fabfe857442bebdfa40a99a779b93c8b533af"
             install: *leap-16
+          - release: leap-16.1
+            family: opensuse
+            unbuilt: asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys
+            base: &leap-161 "registry.opensuse.org/opensuse/leap:16.1@sha256:65a21515d62c7af67808e7aef29e0bcfdb609d95f9fe811fad7649d56c4b3dfa"
+            install: *leap-161
           - release: debian-13
             family: debian
             base: &debian-13 "docker.io/library/debian:trixie@sha256:9c6e381421d0f48d1b8133e573f33c185ee16cbf505eda9c4a8a4791b25ea8a6"
@@ -160,6 +174,12 @@ jobs:
             family: debian
             base: &ubuntu-2604 "docker.io/library/ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c"
             install: *ubuntu-2604
+            keyboard: "yes"
+            kde: "yes"
+          - release: ubuntu-26.10
+            family: debian
+            base: &ubuntu-2610 "docker.io/library/ubuntu:26.10@sha256:262df65c0ec6bf8d9dcc87454f4330a05fae4b97825f45854af3b136666584c2"
+            install: *ubuntu-2610
             keyboard: "yes"
             kde: "yes"
           - release: arch

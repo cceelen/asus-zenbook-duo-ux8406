@@ -33,6 +33,10 @@ repository. The project definition (Repositories, or the page `/meta`):
     <path project="Ubuntu:26.04" repository="universe"/>
     <arch>x86_64</arch>
   </repository>
+  <repository name="xUbuntu_26.10">
+    <path project="Ubuntu:26.10" repository="universe"/>
+    <arch>x86_64</arch>
+  </repository>
   <repository name="openSUSE_Tumbleweed">
     <path project="openSUSE:Factory" repository="snapshot"/>
     <arch>x86_64</arch>
@@ -43,6 +47,10 @@ repository. The project definition (Repositories, or the page `/meta`):
   </repository>
   <repository name="16.0">
     <path project="openSUSE:Leap:16.0" repository="standard"/>
+    <arch>x86_64</arch>
+  </repository>
+  <repository name="16.1">
+    <path project="openSUSE:Leap:16.1" repository="standard"/>
     <arch>x86_64</arch>
   </repository>
   <repository name="Debian_Unstable">
@@ -68,7 +76,7 @@ repository. The project definition (Repositories, or the page `/meta`):
 - Where a distribution has no `udev-hid-bpf`, the keyboard package and the
   packages that require it (GNOME Keys, KDE keys, KDE shortcuts) build, but you
   cannot install them (Debian 13; Tumbleweed and Slowroll without
-  `home:xanders`). Leap 16.0 does not build these four. The
+  `home:xanders`). Leap does not build these four. The
   [compatibility table](../../README.md#compatibility) names these distributions
   (footnotes 2, 4 and 9).
 

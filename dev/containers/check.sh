@@ -103,6 +103,16 @@ if [ "${KDE:-no}" = yes ]; then
     /etc/xdg/autostart/plasma-builtin-screen-rotation.desktop
   test -f /usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/metadata.json
   test -f /usr/share/plasma/plasmoids/io.github.cceelen.builtin-screen-rotation/contents/ui/main.qml
+  # Each QML module that the applet imports comes with the dependencies.
+  for m in QtQuick QtQuick/Layouts org/kde/kirigami org/kde/plasma/components \
+      org/kde/plasma/core org/kde/plasma/plasmoid org/kde/plasma/workspace/dbus; do
+    found=no
+    for f in /usr/lib64/qt6/qml/"$m"/qmldir /usr/lib/qt6/qml/"$m"/qmldir \
+        /usr/lib/*-linux-gnu/qt6/qml/"$m"/qmldir; do
+      if [ -f "$f" ]; then found=yes; fi
+    done
+    if [ "$found" = no ]; then echo "QML module of the applet missing: $m"; exit 1; fi
+  done
   echo "KDE Plasma files in place"
 else
   echo "KDE Plasma packages not installed here"

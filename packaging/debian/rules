@@ -41,6 +41,25 @@ override_dh_strip:
 override_dh_dwz:
 	dh_dwz -X.bpf.o
 
+# The QML modules of plasma-workspace, which the applet of
+# plasma-builtin-screen-rotation imports: Debian moved them into
+# qml6-module-org-kde-plasma-workspace in 4:6.6.3-3, Ubuntu keeps them in
+# plasma-workspace (26.10: 4:6.7.5-0ubuntu1). There, the package comes first,
+# for the day Ubuntu also moves them.
+ifeq ($(shell dpkg-vendor --derives-from Ubuntu && echo yes),yes)
+PLASMA_WORKSPACE = qml6-module-org-kde-plasma-workspace | plasma-workspace
+else
+PLASMA_WORKSPACE = qml6-module-org-kde-plasma-workspace | plasma-workspace (<< 4:6.6.3-3~)
+endif
+
+override_dh_gencontrol:
+	dh_gencontrol -- "-Vplasma:Workspace=$(PLASMA_WORKSPACE)"
+
+# xz, as Debian: Ubuntu 26.10 compresses with zstd by default, which lintian
+# of the Debian profile refuses.
+override_dh_builddeb:
+	dh_builddeb -- -Zxz
+
 # vendor/ holds the crates as published, among them files that dh_clean takes
 # for editor leftovers (Cargo.toml.orig), and cargo wants them: cargo checks
 # every file of a crate against its checksum list. The build is out of tree,
