@@ -75,22 +75,22 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
 
 | Distribution         | Guard | Second screen | Keyboard | Keys   | Rotation | KDE keys | KDE rotation | KDE shortcuts |
 | -------------------- | ----- | ------------- | -------- | ------ | -------- | -------- | ------------ | ------------- |
-| Fedora 45            | 🛠️ ⁷  | 🛠️ ⁷          | 🛠️ ⁷     | 🛠️ ⁷   | 🛠️ ⁷     | 🛠️       | 🛠️           | 🛠️            |
+| Fedora 45            | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
 | Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖  | ✅ 🤖    | 🛠️       | 🛠️           | 🛠️            |
 | Fedora 43            | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
 | RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹   | ✅ ¹     | 🛠️       | 🛠️           | 🛠️            |
 | Arch                 | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
 | openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅ ²   | ✅       | 🛠️ ²     | 🛠️           | 🛠️ ²          |
 | openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ² ³ | ✅ ³     | 🛠️ ²     | 🛠️           | 🛠️ ²          |
-| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ❌ ⁹   | ✅       | ❌ ⁹     | 🛠️           | ❌ ⁹          |
-| openSUSE Leap 16.1   | 🛠️ ⁷  | 🛠️ ⁷          | ❌ ⁴     | ❌ ⁹   | 🛠️ ⁷     | ❌ ⁹     | 🛠️           | ❌ ⁹          |
-| Debian 13            | ✅    | ✅            | ❌ ⁴     | ❌ ⁹   | ✅       | ❌ ⁹     | ❌ ⁸         | ❌ ⁹          |
+| openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ❌ ⁸   | ✅       | ❌ ⁸     | 🛠️           | ❌ ⁸          |
+| openSUSE Leap 16.1   | ✅    | ✅            | ❌ ⁴     | ❌ ⁸   | ✅       | ❌ ⁸     | 🛠️           | ❌ ⁸          |
+| Debian 13            | ✅    | ✅            | ❌ ⁴     | ❌ ⁸   | ✅       | ❌ ⁸     | ❌ ⁷         | ❌ ⁸          |
 | Debian testing       | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
 | Debian unstable      | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
 | Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
-| Ubuntu 26.10         | 🛠️ ⁷  | 🛠️ ⁷          | 🛠️ ⁷     | 🛠️ ⁷   | 🛠️ ⁷     | 🛠️       | 🛠️           | 🛠️            |
-| Alpine               | 🛠️ ⁵  | 🛠️ ⁵          | ❌ ⁴     | ❌ ⁹   | 🛠️ ⁵     | ❌ ⁹     | 🛠️           | ❌ ⁹          |
-| Nix                  | ✅ ⁶  | ✅ ⁶          | ❌ ⁴     | ❌ ⁹   | ✅ ⁶     | ❌ ⁹     | 🛠️           | ❌ ⁹          |
+| Ubuntu 26.10         | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
+| Alpine               | 🛠️ ⁵  | 🛠️ ⁵          | ❌ ⁴     | ❌ ⁸   | 🛠️ ⁵     | ❌ ⁸     | 🛠️           | ❌ ⁸          |
+| Nix                  | ✅ ⁶  | ✅ ⁶          | ❌ ⁴     | ❌ ⁸   | ✅ ⁶     | ❌ ⁸     | 🛠️           | ❌ ⁸          |
 
 1. Built for RHEL 10 with EPEL 10. Installed in AlmaLinux 10 and Rocky Linux 10
    containers, not on RHEL.
@@ -106,11 +106,8 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
 6. In the flake of this repository, with the binary cache
    `asus-zenbook-duo-ux8406.cachix.org`. The container builds each package of
    the flake. The NixOS modules are not tested.
-7. Not published yet: the Copr project builds for Fedora 45, and the OBS project
-   for Leap 16.1 and Ubuntu 26.10, from the next release on. The packages
-   install in a clean container.
-8. Plasma 6.3 is too old: the applet needs the D-Bus types of Plasma 6.4.
-9. The package needs the keyboard package, which delivers its keys, and that
+7. Plasma 6.3 is too old: the applet needs the D-Bus types of Plasma 6.4.
+8. The package needs the keyboard package, which delivers its keys, and that
    needs [udev-hid-bpf]. Not built for Leap, Alpine and Nix; built for Debian 13
    (the Debian recipe is one for all releases) but not installable. Keys and KDE
    keys also give each touchscreen and pen its panel: there, that is not
@@ -179,7 +176,7 @@ For KDE Plasma, use this list in its place:
 pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen asus-zenbook-duo-ux8406-kde-keys plasma-builtin-screen-rotation asus-zenbook-duo-ux8406-kde-shortcuts"
 ```
 
-On Leap, Debian 13 and Alpine (footnote 9 of [Compatibility](#compatibility)),
+On Leap, Debian 13 and Alpine (footnote 8 of [Compatibility](#compatibility)),
 and on Tumbleweed and Slowroll without the repository `home:xanders` (footnote
 2), use one of these lists:
 
@@ -192,7 +189,7 @@ pkgs="asus-zenbook-duo-ux8406-tcc-guard asus-zenbook-duo-ux8406-second-screen pl
 
 ### Fedora and RHEL 10
 
-Fedora 43, Fedora 44, Fedora 45 (from the next release) and Rawhide:
+Fedora 43, Fedora 44, Fedora 45 and Rawhide:
 
 ```sh
 sudo dnf copr enable packit/cceelen-asus-zenbook-duo-ux8406-releases
@@ -287,7 +284,7 @@ sudo apk add $pkgs asus-zenbook-duo-ux8406-tcc-guard-openrc
 ### NixOS
 
 The flake of this repository has the packages and two NixOS modules. Keys, KDE
-keys and KDE shortcuts are not in it (footnote 9 of
+keys and KDE shortcuts are not in it (footnote 8 of
 [Compatibility](#compatibility)). Add the flake as an input of your system
 flake, then:
 
