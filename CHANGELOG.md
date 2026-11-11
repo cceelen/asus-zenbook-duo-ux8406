@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.8.1](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.8.0...v0.8.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **debian:** compress the packages with xz on each release ([b615c1d](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/b615c1de7dff12a827e685c46b2316f3113eefec))
+* **debian:** find the Plasma QML modules on Ubuntu ([80465f9](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/80465f9f9131ace55aeafcee919175913f34910b))
+* **debian:** install the keyboard program where udev-hid-bpf finds it ([da83552](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/da835527ff6c32b2671ae76c17cfb8cb9cf413fa))
+* **renovate:** keep new distribution releases out of the branch of the digests ([c02a501](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/c02a5013ee8ebb2692764e25c0807a5c65509603))
+
 ## [0.8.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.7.0...v0.8.0) (2026-11-06)
 
 
