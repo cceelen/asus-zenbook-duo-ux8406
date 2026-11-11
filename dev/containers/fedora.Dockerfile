@@ -8,7 +8,7 @@
 
 # The base image, pinned by digest. Renovate updates the tag and the digest;
 # packages.yml pins its own images for the CI builds.
-FROM registry.fedoraproject.org/fedora:44@sha256:cb3bd21415bd82a2fae1a9379f3f972fa8e78d460c9f86101274d13230dd6fd6 AS base
+FROM registry.fedoraproject.org/fedora:44@sha256:f08613fffc95f5c85c019b2f4ac9e9fb9bb84b9cfd59275671b84169567b157e AS base
 
 FROM base AS tools
 COPY dev/containers/build-deps.sh /tmp/

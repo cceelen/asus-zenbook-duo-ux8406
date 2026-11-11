@@ -11,7 +11,7 @@
 # on is stated in the build log below.
 
 # The base image, pinned by digest. Renovate updates the tag and the digest.
-FROM docker.io/nixos/nix:latest@sha256:f159a58f390677f41e8e900a74b6e2f9c7f27b364122ae6acf7a652ce6c551c0
+FROM docker.io/nixos/nix:latest@sha256:b49cb33f3a7e5cf3933ad8774529de0e3807ec5cf54987aa7ccdfb49f2fc55ed
 COPY . /build
 WORKDIR /build
 # path: so that Nix sees every file of the tree, tracked by git or not.

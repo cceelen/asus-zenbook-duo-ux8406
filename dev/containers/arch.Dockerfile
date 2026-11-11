@@ -8,7 +8,7 @@
 
 # The base image, pinned by digest. Renovate updates the tag and the digest;
 # packages.yml pins its own images for the CI builds.
-FROM docker.io/library/archlinux:latest@sha256:e82623936fa1a69700b48e98b058df6eaab18b737c27473a7234a40fdecb9413 AS base
+FROM docker.io/library/archlinux:latest@sha256:d4594bb2300cba11f41c2f27923eb56f63d9988909c402f9c95517d1e362c899 AS base
 
 FROM base AS tools
 COPY dev/containers/build-deps.sh /tmp/
