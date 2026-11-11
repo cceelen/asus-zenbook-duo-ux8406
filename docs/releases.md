@@ -107,8 +107,11 @@ The attestations do not cover the packages from COPR, OBS and Alpine.
 ## Keep the tree current
 
 - Renovate (`renovate.json`) opens pull requests for GitHub Actions, crates, the
-  Nix flake and the container base images. It does not change `rust-version`:
-  1.85 is the Rust of Debian 13.
+  Nix flake and the digests of the container base images. A new release of a
+  distribution (a new tag of a base image of the package builds) is only listed
+  on its Dependency Dashboard: add it to the matrix of `packages.yml` by hand,
+  and keep the old release until its support ends. Renovate does not change
+  `rust-version`: 1.85 is the Rust of Debian 13.
 - `ci.yml` runs each week on `main` too, for the RustSec advisories and the
   lints of a new stable Rust that appear without a commit. `watch.yml` lists the
   distributions that package `udev-hid-bpf` each week. When a distribution
