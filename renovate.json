@@ -71,7 +71,7 @@
       "minimumReleaseAge": "3 days"
     },
     {
-      "description": "The base images of the package builds, of the local containers and of the container of the aports job, pinned by digest: the updates of tags and digests together in one pull request.",
+      "description": "The base images of the package builds, of the local containers and of the container of the aports job, pinned by digest: their updates together in one pull request.",
       "matchFileNames": [
         "dev/containers/*.Dockerfile",
         ".github/workflows/aports.yml",
@@ -85,7 +85,7 @@
       "groupName": "container images"
     },
     {
-      "description": "The tag of a package build image is the distribution release that the job builds for, and the job is named after it: Renovate updates only its digest by itself. A new tag (a new release) is only listed on the Dependency Dashboard, as a sign to add an entry of its own to the matrix; the old release stays until its support ends.",
+      "description": "The tag of a package build image is the distribution release that the job builds for, and the job is named after it: Renovate updates only its digest by itself. A new tag (a new release) is only listed on the Dependency Dashboard, as a sign to add an entry of its own to the matrix; the old release stays until its support ends. The group of their own keeps them out of the branch of the digests: Renovate takes an update in a branch that is already there as approved.",
       "matchFileNames": [
         "dev/containers/*.Dockerfile",
         ".github/workflows/packages.yml"
@@ -99,6 +99,7 @@
         "patch",
         "replacement"
       ],
+      "groupName": "distribution releases",
       "dependencyDashboardApproval": true
     }
   ]

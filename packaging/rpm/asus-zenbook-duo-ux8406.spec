@@ -234,7 +234,7 @@ the user, to give KWin's setting back.
 %meson \
     -Dudevdir=%{udevdir} \
     -Dsystemdsystemunitdir=%{_unitdir} \
-    -Dfirmwaredir=%{_prefix}/lib/firmware \
+    -Dhidbpfdir=%{_prefix}/lib/firmware/hid/bpf \
     -Dlicensedir=%{_defaultlicensedir} \
     %{keyboard_options}
 %meson_build
