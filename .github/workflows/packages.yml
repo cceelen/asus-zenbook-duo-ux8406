@@ -89,8 +89,9 @@ jobs:
       # that one (Arch base-devel, the Rust image of openSUSE BCI). install:
       # the plain image for the install job. keyboard: the release has
       # udev-hid-bpf. gnome, kde: the desktop packages are installed too.
-      # The images are pinned by digest; Renovate updates the tags and the
-      # digests (renovate.json, custom manager).
+      # The images are pinned by digest; Renovate updates the digests
+      # (renovate.json, custom manager). A new release is only listed on its
+      # Dependency Dashboard: it gets an entry of its own here, by hand.
       matrix:
         include: &releases
           - release: fedora-43
