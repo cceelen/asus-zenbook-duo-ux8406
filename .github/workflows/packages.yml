@@ -104,21 +104,21 @@ jobs:
         include: &releases
           - release: fedora-43
             family: fedora
-            base: &fedora-43 "registry.fedoraproject.org/fedora:43@sha256:fd366128c971adc611ca245a9d6424c8bba490bd137799fca352ffc7353a99cd"
+            base: &fedora-43 "registry.fedoraproject.org/fedora:43@sha256:3e6c63e25ef5eaf8fee24882c5698e34a4f2d87f3f4c542d9d42e24aab636816"
             install: *fedora-43
             keyboard: "yes"
             gnome: "yes"
             kde: "yes"
           - release: fedora-44
             family: fedora
-            base: &fedora-44 "registry.fedoraproject.org/fedora:44@sha256:b3e011d47e686a89781495c9a87bc80349af742965e5d51e79cd51711982e4a2"
+            base: &fedora-44 "registry.fedoraproject.org/fedora:44@sha256:f08613fffc95f5c85c019b2f4ac9e9fb9bb84b9cfd59275671b84169567b157e"
             install: *fedora-44
             keyboard: "yes"
             gnome: "yes"
             kde: "yes"
           - release: fedora-45
             family: fedora
-            base: &fedora-45 "registry.fedoraproject.org/fedora:45@sha256:5ad386251aa5d0111754dff91a930acc1a928afe7bafc46762024e096ab9bbb0"
+            base: &fedora-45 "registry.fedoraproject.org/fedora:45@sha256:b68e9c913030593d87875f7b6441b3d8a909aa434579a10dc7dea255a8d7d894"
             install: *fedora-45
             keyboard: "yes"
             gnome: "yes"
@@ -147,7 +147,7 @@ jobs:
           - release: leap-16.0
             family: opensuse
             unbuilt: asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys
-            base: &leap-16 "registry.opensuse.org/opensuse/leap:16.0@sha256:2f388e98be71bd6f5ccb75d3ee8fabfe857442bebdfa40a99a779b93c8b533af"
+            base: &leap-16 "registry.opensuse.org/opensuse/leap:16.1@sha256:65a21515d62c7af67808e7aef29e0bcfdb609d95f9fe811fad7649d56c4b3dfa"
             install: *leap-16
           - release: leap-16.1
             family: opensuse
@@ -171,7 +171,7 @@ jobs:
             keyboard: "yes"
           - release: ubuntu-26.04
             family: debian
-            base: &ubuntu-2604 "docker.io/library/ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c"
+            base: &ubuntu-2604 "docker.io/library/ubuntu:26.10@sha256:262df65c0ec6bf8d9dcc87454f4330a05fae4b97825f45854af3b136666584c2"
             install: *ubuntu-2604
             keyboard: "yes"
             kde: "yes"
@@ -183,8 +183,8 @@ jobs:
             kde: "yes"
           - release: arch
             family: arch
-            base: "docker.io/library/archlinux:base-devel@sha256:2de80105abb49f813a85393c6758a4334deb6bcec4a2411bd2f059c0bee6ee4c"
-            install: "docker.io/library/archlinux:latest@sha256:b1c2fe6e717bfd5673af8fc217e1e1c3ce0dcbb1d53c3414c8425e7ce79fc6d9"
+            base: "docker.io/library/archlinux:base-devel@sha256:fa2d4ce3310ddd90a4208e5168be8ad367da5129af1245f38fd2d803bcbe3239"
+            install: "docker.io/library/archlinux:latest@sha256:d4594bb2300cba11f41c2f27923eb56f63d9988909c402f9c95517d1e362c899"
             keyboard: "yes"
             gnome: "yes"
             kde: "yes"
