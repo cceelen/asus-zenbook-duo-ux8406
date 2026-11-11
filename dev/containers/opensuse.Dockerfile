@@ -9,7 +9,7 @@
 
 # The base image, pinned by digest. Renovate updates the tag and the digest;
 # packages.yml pins its own images for the CI builds.
-FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:1cf7a3b7b68f0027e88fb5b5a4b4a0282fb8c18d0e2ece77342248e8244d3e2e AS base
+FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:28dc49bdc6463892bc6346d08f7972eb71b090d8752b05ae827d0d07f2e84660 AS base
 
 FROM base AS tools
 COPY dev/containers/build-deps.sh /tmp/
