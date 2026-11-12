@@ -169,6 +169,7 @@ jobs:
             kde: "yes"
           - release: debian-unstable
             family: debian
+            experimental: true
             base: &debian-unstable "docker.io/library/debian:unstable@sha256:873bf43b48d52ba792b98de93232153e59d4946b93cbd89d91cffef0df4ce823"
             install: *debian-unstable
             keyboard: "yes"
