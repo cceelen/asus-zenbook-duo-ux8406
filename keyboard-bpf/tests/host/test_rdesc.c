@@ -98,6 +98,7 @@ static void device_table() {
       {kBusUsb, kGroupGeneric, 0x0b05, 0x1bf2},
       {kBusBluetooth, kGroupGeneric, 0x0b05, 0x1bf3},
       {kBusUsb, kGroupGeneric, 0x0b05, 0x1b2c},
+      {kBusBluetooth, kGroupGeneric, 0x0b05, 0x1b2d},
   };
 
   CHECK_BYTES(hid_bpf_config_devices, want, sizeof(want));

@@ -14,14 +14,20 @@ It has two parts:
 For the installation and the distributions, refer to the
 [README](../README.md#compatibility).
 
-| Keyboard | Bus       | Id          | State      |
-| -------- | --------- | ----------- | ---------- |
-| UX8406CA | USB       | `0b05:1bf2` | tested     |
-| UX8406CA | Bluetooth | `0b05:1bf3` | tested     |
-| UX8406MA | USB       | `0b05:1b2c` | not tested |
+| Keyboard | Bus       | Id          | State        |
+| -------- | --------- | ----------- | ------------ |
+| UX8406CA | USB       | `0b05:1bf2` | tested       |
+| UX8406CA | Bluetooth | `0b05:1bf3` | tested       |
+| UX8406MA | USB       | `0b05:1b2c` | tested ¹     |
+| UX8406MA | Bluetooth | `0b05:1b2d` | not tested ² |
+
+¹ By a user, on Kubuntu 26.04
+([issue 36](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/36)).
+
+² Its report descriptor, from the same user, is that of the UX8406CA keyboard.
 
 The program attaches only if the report descriptor of the keyboard is that of
-the UX8406CA keyboard.
+the UX8406CA keyboard. On the UX8406MA, both are the same as on the UX8406CA.
 
 ## What it does
 

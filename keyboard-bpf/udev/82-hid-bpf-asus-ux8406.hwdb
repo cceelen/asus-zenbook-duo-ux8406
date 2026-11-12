@@ -13,8 +13,12 @@ hid-bpf:hid:b0005g0001v00000B05p00001BF3
   HID_BPF_ZENBOOK_DUO_000=0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o
   .HID_BPF=1
 
-# USB, UX8406MA. Not tested on that model: the program attaches only if the
-# keyboard's report descriptor is that of the UX8406CA keyboard.
+# UX8406MA, USB and Bluetooth: the report descriptors are those of the
+# UX8406CA keyboard (issue 36). The program attaches only if they are.
 hid-bpf:hid:b0003g0001v00000B05p00001B2C
+  HID_BPF_ZENBOOK_DUO_000=0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o
+  .HID_BPF=1
+
+hid-bpf:hid:b0005g0001v00000B05p00001B2D
   HID_BPF_ZENBOOK_DUO_000=0010-ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.o
   .HID_BPF=1

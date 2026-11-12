@@ -12,8 +12,9 @@
 # it is removed (udev runs the commands of an event in the order of the rules).
 
 SUBSYSTEM!="hid", GOTO="asus_ux8406_keyboard_state_end"
-# USB (0b05:1bf2, or 0b05:1b2c of the UX8406MA) and Bluetooth (0b05:1bf3).
-KERNEL!="0003:0B05:1BF2.*|0005:0B05:1BF3.*|0003:0B05:1B2C.*", GOTO="asus_ux8406_keyboard_state_end"
+# USB (0b05:1bf2, or 0b05:1b2c of the UX8406MA) and Bluetooth (0b05:1bf3, or
+# 0b05:1b2d of the UX8406MA).
+KERNEL!="0003:0B05:1BF2.*|0005:0B05:1BF3.*|0003:0B05:1B2C.*|0005:0B05:1B2D.*", GOTO="asus_ux8406_keyboard_state_end"
 
 # A connection starts: what the other connection has, if it is still there,
 # else what was written down when the last one ended.

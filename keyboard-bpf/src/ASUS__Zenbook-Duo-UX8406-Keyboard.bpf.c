@@ -60,6 +60,7 @@ enum {
   kPidKeyboardBt = 0x1BF3,  /* UX8406CA */
   /* UX8406MA; attaches only if its report descriptor is the same */
   kPidKeyboardUsbMa = 0x1B2C,
+  kPidKeyboardBtMa = 0x1B2D,
 };
 
 // The loader looks for this section, the union is global and writable.
@@ -67,7 +68,9 @@ enum {
 HID_BPF_CONFIG(
     HID_DEVICE(BUS_USB, HID_GROUP_GENERIC, kVidAsustek, kPidKeyboardUsb),
     HID_DEVICE(BUS_BLUETOOTH, HID_GROUP_GENERIC, kVidAsustek, kPidKeyboardBt),
-    HID_DEVICE(BUS_USB, HID_GROUP_GENERIC, kVidAsustek, kPidKeyboardUsbMa), );
+    HID_DEVICE(BUS_USB, HID_GROUP_GENERIC, kVidAsustek, kPidKeyboardUsbMa),
+    HID_DEVICE(BUS_BLUETOOTH, HID_GROUP_GENERIC, kVidAsustek,
+               kPidKeyboardBtMa), );
 
 enum {
   kHotkeyReportId = 0x5a,
