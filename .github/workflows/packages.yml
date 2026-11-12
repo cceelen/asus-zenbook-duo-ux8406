@@ -95,10 +95,12 @@ jobs:
       fail-fast: false
       # The distribution releases, all at the same time. base: the image for
       # the build tools; where the distribution keeps one with them, it is
-      # that one (Arch base-devel, the Rust image of openSUSE BCI). install:
+      # that one (Arch base-devel). install:
       # the plain image for the install job. keyboard: the release has
       # udev-hid-bpf. gnome, kde: the desktop packages are installed too.
-      # The images are pinned by digest; Renovate updates the digests
+      # Tumbleweed comes from Docker Hub: the openSUSE registry deletes the
+      # old digests of its rolling images within days. The images are pinned
+      # by digest; Renovate updates the digests
       # (renovate.json, custom manager). A new release is only listed on its
       # Dependency Dashboard: it gets an entry of its own here, by hand.
       matrix:
@@ -142,8 +144,8 @@ jobs:
           # No udev-hid-bpf in Tumbleweed, Leap, Debian 13 and Alpine.
           - release: tumbleweed
             family: opensuse
-            base: "registry.opensuse.org/opensuse/bci/rust:latest@sha256:707614e56c51cc6dc54c5dc1c6d932bc97cc76f605f763953786cfd073310984"
-            install: "registry.opensuse.org/opensuse/tumbleweed:latest@sha256:28dc49bdc6463892bc6346d08f7972eb71b090d8752b05ae827d0d07f2e84660"
+            base: &tumbleweed "docker.io/opensuse/tumbleweed:latest@sha256:9f4c5b5b7989d296a7df5c41128ffd86800b76a6a4a039f6e343397f1daace68"
+            install: *tumbleweed
           # unbuilt: packages that the recipe must not build for the release.
           - release: leap-16.0
             family: opensuse

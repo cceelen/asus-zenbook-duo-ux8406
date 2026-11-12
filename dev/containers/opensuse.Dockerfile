@@ -7,9 +7,10 @@
 #   docker build -f dev/containers/opensuse.Dockerfile --target packages \
 #     --output dist/opensuse .
 
-# The base image, pinned by digest. Renovate updates the tag and the digest;
-# packages.yml pins its own images for the CI builds.
-FROM registry.opensuse.org/opensuse/tumbleweed:latest@sha256:28dc49bdc6463892bc6346d08f7972eb71b090d8752b05ae827d0d07f2e84660 AS base
+# The base image, pinned by digest, from Docker Hub: the openSUSE registry
+# deletes the old digests of its rolling images within days. Renovate updates
+# the digest; packages.yml pins its own images for the CI builds.
+FROM docker.io/opensuse/tumbleweed:latest@sha256:9f4c5b5b7989d296a7df5c41128ffd86800b76a6a4a039f6e343397f1daace68 AS base
 
 FROM base AS tools
 COPY dev/containers/build-deps.sh /tmp/
