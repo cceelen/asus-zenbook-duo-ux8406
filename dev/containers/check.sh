@@ -65,7 +65,7 @@ echo "installed files verified"
 asus-ux8406-tcc-guard --version
 if [ "${KEYBOARD:-no}" = yes ]; then
   udev-hid-bpf --version
-  udev-hid-bpf inspect "$BPF" | grep -c '"pid"' | grep -qx 3
+  udev-hid-bpf inspect "$BPF" | grep -c '"pid"' | grep -qx 4
   # The directory is the one that the udev-hid-bpf of the distribution
   # loads programs from.
   udev-hid-bpf list-bpf-programs | grep -qxF " $BPF"

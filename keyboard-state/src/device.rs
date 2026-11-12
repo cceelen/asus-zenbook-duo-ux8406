@@ -6,9 +6,14 @@ use std::str::FromStr;
 use crate::Error;
 
 /// Bus, vendor and product of the keyboard's connections, as they start the
-/// kernel's name of a HID device: USB and Bluetooth of the UX8406CA, and USB
-/// of the UX8406MA.
-const CONNECTIONS: [&str; 3] = ["0003:0B05:1BF2.", "0005:0B05:1BF3.", "0003:0B05:1B2C."];
+/// kernel's name of a HID device: USB and Bluetooth of the UX8406CA and of the
+/// UX8406MA.
+const CONNECTIONS: [&str; 4] = [
+    "0003:0B05:1BF2.",
+    "0005:0B05:1BF3.",
+    "0003:0B05:1B2C.",
+    "0005:0B05:1B2D.",
+];
 /// The kernel numbers HID devices with four hexadecimal digits, and with more
 /// once those are used up.
 const INSTANCE_DIGITS: std::ops::RangeInclusive<usize> = 4..=8;
