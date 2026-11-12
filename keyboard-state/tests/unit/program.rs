@@ -62,7 +62,7 @@ fn loaded_for() -> Vec<String> {
 fn the_rule_and_this_crate_know_every_device_the_program_is_loaded_for() {
     let devices = loaded_for();
 
-    assert_eq!(devices.len(), 3);
+    assert_eq!(devices.len(), 4);
     for device in devices {
         assert!(
             RULES.contains(&format!("{device}*")),

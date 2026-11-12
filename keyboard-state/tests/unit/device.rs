@@ -9,6 +9,7 @@ use crate::common::{BLUETOOTH, USB};
 #[case::usb(USB)]
 #[case::bluetooth(BLUETOOTH)]
 #[case::usb_of_the_ux8406ma("0003:0B05:1B2C.0001")]
+#[case::bluetooth_of_the_ux8406ma("0005:0B05:1B2D.0016")]
 #[case::after_many_connections("0003:0B05:1BF2.0001F3A0")]
 fn a_device_of_the_keyboard_is_taken(#[case] name: &str) {
     let device: Device = name.parse().unwrap();
@@ -44,6 +45,7 @@ fn the_pins_are_in_a_directory_named_after_the_device() {
 #[rstest]
 #[case::usb("0003_0B05_1BF2_005D", Some(USB))]
 #[case::bluetooth("0005_0B05_1BF3_0060", Some(BLUETOOTH))]
+#[case::bluetooth_of_the_ux8406ma("0005_0B05_1B2D_0016", Some("0005:0B05:1B2D.0016"))]
 #[case::another_device("0003_056A_0357_0007", None)]
 #[case::too_few_parts("0003_0B05_1BF2", None)]
 #[case::too_many_parts("0003_0B05_1BF2_005D_1", None)]

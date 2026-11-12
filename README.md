@@ -113,9 +113,11 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
    keys also give each touchscreen and pen its panel: there, that is not
    available either.
 
-🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. The UX8406MA is not tested; its
-keyboard ids and dock port can be different. A result from your hardware adds a
-test mark: refer to [CONTRIBUTING.md](CONTRIBUTING.md#report-your-results).
+🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. On a UX8406MA, a user tested the
+keyboard on the dock and the cable (Kubuntu 26.04,
+[issue 36](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/36)); the
+other parts are not tested there. A result from your hardware adds a test mark:
+refer to [CONTRIBUTING.md](CONTRIBUTING.md#report-your-results).
 
 Requirements:
 
