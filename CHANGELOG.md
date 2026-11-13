@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.8.1...v0.9.0) (2026-11-13)
+
+
+### Features
+
+* **keyboard:** operate the function row of the UX8406MA keyboard over Bluetooth ([5f2480a](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/5f2480a418dd19bdfe4d53c0fd593ccdd75cb9bd))
+* **keyboard:** switch the backlight off while the laptop sleeps ([26aa1a3](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/26aa1a3536441ff52a0fc316b89d77c2fab6ad1f))
+
 ## [0.8.1](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.8.0...v0.8.1) (2026-11-11)
 
 
