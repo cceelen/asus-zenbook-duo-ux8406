@@ -77,6 +77,7 @@ fn array(value_size: u32) -> MapData {
             max_entries: 1,
             ..bpf_map_def::default()
         },
+        inner_def: None,
         section_index: 0,
         section_kind: EbpfSectionKind::Maps,
         symbol_index: None,
