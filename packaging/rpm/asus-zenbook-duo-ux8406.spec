@@ -361,6 +361,7 @@ fi
 %dir %{_prefix}/lib/firmware/hid
 %dir %{_prefix}/lib/firmware/hid/bpf
 %dir %{udevdir}/hwdb.d
+%dir %{_systemd_util_dir}/system-sleep
 %endif
 
 %files -n gnome-shell-extension-asus-zenbook-duo-ux8406-keys
