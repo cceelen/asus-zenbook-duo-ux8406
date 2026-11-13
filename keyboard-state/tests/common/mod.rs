@@ -5,6 +5,7 @@
     reason = "each test program uses a different part of the shared helpers"
 )]
 
+use std::cell::RefCell;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -12,7 +13,7 @@ use assert_cmd::Command;
 use assert_fs::TempDir;
 use asus_ux8406_keyboard_state::pins::STATE_MAP;
 use asus_ux8406_keyboard_state::state::MapValue;
-use asus_ux8406_keyboard_state::{Bpffs, Device, Error, MapReader};
+use asus_ux8406_keyboard_state::{Bpffs, Device, Error, MapReader, ReportSender};
 use rstest::fixture;
 
 /// The keyboard's HID device with the program, on the dock.
@@ -53,6 +54,34 @@ impl Tree {
     /// The state file. It is not there until something writes it.
     pub fn state_file(&self) -> PathBuf {
         self.dir.path().join("state")
+    }
+
+    /// The directory that stands in for `/sys`.
+    pub fn sysfs_root(&self) -> PathBuf {
+        self.dir.path().join("sys")
+    }
+
+    /// The directory that stands in for `/dev`.
+    pub fn dev_root(&self) -> PathBuf {
+        self.dir.path().join("dev")
+    }
+
+    /// Give the HID device `name` the hidraw node `node`, as the kernel does
+    /// in sysfs. The node in the `/dev` stand-in is not made.
+    pub fn hidraw(&self, name: &str, node: &str) {
+        let path = self
+            .sysfs_root()
+            .join("bus/hid/devices")
+            .join(name)
+            .join("hidraw")
+            .join(node);
+
+        fs::create_dir_all(path).unwrap();
+    }
+
+    /// The node in the `/dev` stand-in for the hidraw node `node`.
+    pub fn dev_node(&self, node: &str) -> PathBuf {
+        self.dev_root().join(node)
     }
 
     /// Where udev-hid-bpf would pin the state map of the HID device `name`.
@@ -102,7 +131,11 @@ impl Tree {
             .arg("-b")
             .arg(self.bpffs_root())
             .arg("-s")
-            .arg(self.state_file());
+            .arg(self.state_file())
+            .arg("-y")
+            .arg(self.sysfs_root())
+            .arg("-d")
+            .arg(self.dev_root());
         command
     }
 }
@@ -129,5 +162,27 @@ impl MapReader for FileMaps {
         bytes
             .try_into()
             .map_err(|_| failed("not the size of a state"))
+    }
+}
+
+/// Keeps the reports that it is asked to send, and fails for the nodes that
+/// it is told to.
+#[derive(Default)]
+pub struct FakeSender {
+    /// The nodes and reports, in the order of the calls.
+    pub sent: RefCell<Vec<(PathBuf, Vec<u8>)>>,
+    /// The nodes for which sending fails.
+    pub failing: Vec<PathBuf>,
+}
+
+impl ReportSender for FakeSender {
+    fn send(&self, hidraw: &Path, report: &[u8]) -> Result<(), String> {
+        if self.failing.iter().any(|node| node == hidraw) {
+            return Err("the node refused".to_owned());
+        }
+        self.sent
+            .borrow_mut()
+            .push((hidraw.to_path_buf(), report.to_vec()));
+        Ok(())
     }
 }

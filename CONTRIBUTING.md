@@ -156,13 +156,16 @@ cargo test --locked -p asus-ux8406-kde-common -p asus-ux8406-kde-keys -p asus-ux
 cargo llvm-cov report --ignore-filename-regex '/tests/|kde-fakes/|kde-common/src/protocol\.rs' --fail-under-regions 100
 ```
 
-Without the next step, three lines of `keyboard-state/src/pins.rs` are not run:
-the test `tests/root` makes a BPF array map, pins it on the BPF file system
+Without the next step, three lines of `keyboard-state/src/pins.rs` and the send
+of a report in `keyboard-state/src/sleep.rs` are not run: the test `tests/root`
+makes a BPF array map, pins it on the BPF file system
 (`/sys/fs/bpf/asus-ux8406-test-<pid>-<test>/`, removed at the end) and reads it
-with the program's reader. That needs root. As an ordinary user the test says
-why it does nothing and passes. CI runs it with `sudo`. To run it here, in the
-same shell, before the report: build as the user, then run only the binary as
-root. Its coverage data goes to the same directory as that of the other tests.
+with the program's reader. It also makes a virtual HID device with `/dev/uhid`
+and sends a report to its hidraw node. That needs root. As an ordinary user the
+test says why it does nothing and passes. CI runs it with `sudo`. To run it
+here, in the same shell, before the report: build as the user, then run only the
+binary as root. Its coverage data goes to the same directory as that of the
+other tests.
 
 ```sh
 bin=$(cargo test --locked -p asus-ux8406-keyboard-state --test root --no-run \

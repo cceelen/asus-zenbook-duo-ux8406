@@ -9,7 +9,8 @@ export CARGO_HOME = $(CURDIR)/debian/cargo_home
 %:
 	dh $@ --buildsystem=meson
 
-# The unit goes where dh_installsystemd looks for it, the helper into
+# The unit goes where dh_installsystemd looks for it, the sleep hook into
+# /usr/lib/systemd/system-sleep, the helper into
 # /usr/libexec (the udev rule names it by that path), and the guard's example
 # configuration is moved into its package's documentation directory by
 # asus-zenbook-duo-ux8406-tcc-guard.install. -Dlicensedir has Meson install
@@ -24,6 +25,7 @@ override_dh_auto_configure:
 	    -Dlicensedir=share/licenses \
 	    -Dudevdir=/usr/lib/udev \
 	    -Dsystemdsystemunitdir=/usr/lib/systemd/system \
+	    -Dsystemdsleepdir=/usr/lib/systemd/system-sleep \
 	    -Dhidbpfdir=/usr/lib/x86_64-linux-gnu/bpf
 
 override_dh_auto_install:

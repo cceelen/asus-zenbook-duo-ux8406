@@ -65,6 +65,12 @@ if unitdir == ''
   unitdir = systemd.found() ? systemd.get_variable('systemdsystemunitdir') : prefix / 'lib' / 'systemd' / 'system'
 endif
 
+sleepdir = get_option('systemdsleepdir')
+if sleepdir == ''
+  systemd = dependency('systemd', required: false)
+  sleepdir = systemd.found() ? systemd.get_variable('systemdsleepdir') : prefix / 'lib' / 'systemd' / 'system-sleep'
+endif
+
 hidbpfdir = get_option('hidbpfdir')
 if hidbpfdir == ''
   hidbpfdir = prefix / 'lib' / 'firmware' / 'hid' / 'bpf'
@@ -205,6 +211,7 @@ summary({
   'init': get_option('init'),
   'udev': udevdir,
   'systemd units': unitdir,
+  'systemd sleep hooks': sleepdir,
   'HID-BPF': hidbpfdir,
   'autostart': autostartdir,
   'licences': install_licences ? licensedir : 'not installed',

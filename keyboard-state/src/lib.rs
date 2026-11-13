@@ -13,21 +13,26 @@
 //! connection of the keyboard that is still there, else those in the file.
 //! udev runs the one when a HID device of the keyboard goes and the other
 //! when one comes.
+//!
+//! [`sleep()`] switches the backlight off before the laptop sleeps, and back
+//! to the level of the map after it. A hook of systemd runs it.
 
 pub mod cli;
 pub mod device;
 mod error;
 pub mod pins;
+pub mod sleep;
 pub mod state;
 
 use std::fs;
 use std::io::{self, Write};
 use std::path::Path;
 
-pub use cli::{Action, Cli};
+pub use cli::{Cli, Command};
 pub use device::Device;
 pub use error::Error;
 pub use pins::{Bpffs, MapReader, PinnedMap};
+pub use sleep::{HidrawSender, Phase, ReportSender, sleep};
 pub use state::State;
 use tempfile::NamedTempFile;
 

@@ -85,13 +85,14 @@ package_asus-zenbook-duo-ux8406-keyboard-bpf() {
   pkgdesc="HID-BPF program for the hotkeys of the Zenbook Duo UX8406 keyboard"
   license=('GPL-2.0-only AND MIT')
   # systemd: udev runs the helper. namcap does not see that.
-  depends=(glibc libgcc_s.so systemd udev-hid-bpf)
+  depends=(glibc libgcc_s.so systemd udev-hid-bpf bash)
   # The HID-BPF object is not a host binary. Cargo strips the helper.
   options=(!strip !debug)
 
   _take usr/lib/firmware usr/lib/udev/hwdb.d \
         usr/lib/asus-ux8406-keyboard-state \
         usr/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules \
+        usr/lib/systemd/system-sleep/asus-ux8406-keyboard-state \
         usr/share/licenses/asus-zenbook-duo-ux8406-keyboard-bpf
 }
 

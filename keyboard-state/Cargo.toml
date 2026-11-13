@@ -12,6 +12,9 @@ publish = false
 # when rust-version is 1.87.
 aya = { version = ">=0.13.1, <0.14", default-features = false }
 clap = { version = "4", features = ["derive"] }
+# Sends the feature report that sets the backlight, over hidraw. Pure Rust: no
+# libudev and no libusb to link.
+hidapi = { version = "2.6", default-features = false, features = ["linux-native-basic-udev"] }
 tempfile = "3"
 thiserror = "2"
 

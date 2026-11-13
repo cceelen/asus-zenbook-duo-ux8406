@@ -39,19 +39,30 @@ impl Bpffs {
     /// The pins of the state maps of the keyboard's other devices.
     #[must_use]
     pub fn maps_of_others(&self, device: &Device) -> Vec<PathBuf> {
-        let mut maps: Vec<PathBuf> = directories(&self.root.join("hid"))
-            .filter(|directory| {
-                directory
+        self.keyboards()
+            .into_iter()
+            .filter(|(other, _)| other != device)
+            .map(|(_, map)| map)
+            .collect()
+    }
+
+    /// The HID devices of the keyboard that have the program, each with the
+    /// pin of its state map, in the order of the pins.
+    #[must_use]
+    pub fn keyboards(&self) -> Vec<(Device, PathBuf)> {
+        let mut keyboards: Vec<(Device, PathBuf)> = directories(&self.root.join("hid"))
+            .filter_map(|directory| {
+                let device = directory
                     .file_name()
                     .and_then(|name| name.to_str())
-                    .and_then(Device::from_pin_name)
-                    .is_some_and(|other| other != *device)
+                    .and_then(Device::from_pin_name)?;
+
+                Some((device, state_map_in(&directory)?))
             })
-            .filter_map(|directory| state_map_in(&directory))
             .collect();
 
-        maps.sort();
-        maps
+        keyboards.sort_by(|(_, first), (_, second)| first.cmp(second));
+        keyboards
     }
 }
 

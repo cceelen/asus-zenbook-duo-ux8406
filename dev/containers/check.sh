@@ -76,6 +76,10 @@ if [ "${KEYBOARD:-no}" = yes ]; then
   grep -c "\"${HELPER%/*}/asus-ux8406-keyboard-state " \
     /usr/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules | grep -qx 2
   "${HELPER%/*}/asus-ux8406-keyboard-state" load 0003:0B05:1BF2.0001
+  # The system-sleep hook that calls the helper.
+  test -x /usr/lib/systemd/system-sleep/asus-ux8406-keyboard-state
+  grep -qx "exec ${HELPER%/*}/asus-ux8406-keyboard-state sleep \"\$@\"" \
+    /usr/lib/systemd/system-sleep/asus-ux8406-keyboard-state
   echo "keyboard state helper in place"
 else
   echo "keyboard package not installed: no udev-hid-bpf here"
@@ -125,6 +129,7 @@ fi
 remove
 for f in "$HELPER" "${HELPER%/*}/asus-ux8406-keyboard-state" \
     /usr/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules \
+    /usr/lib/systemd/system-sleep/asus-ux8406-keyboard-state \
     /usr/bin/asus-ux8406-tcc-guard /usr/sbin/asus-ux8406-tcc-guard \
     /usr/lib/systemd/system/asus-ux8406-tcc-guard.service /etc/init.d/asus-ux8406-tcc-guard \
     /usr/lib/udev/rules.d/90-asus-ux8406-second-screen.rules \

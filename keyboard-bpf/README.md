@@ -9,7 +9,8 @@ It has two parts:
 - A HID-BPF program, and the hwdb entry with which udev-hid-bpf loads it when
   the keyboard connects. This document.
 - A [helper](../keyboard-state/README.md) that keeps the keyboard light and the
-  mode of the function row from one connection to the next.
+  mode of the function row from one connection to the next, and switches the
+  light off while the laptop sleeps.
 
 For the installation and the distributions, refer to the
 [README](../README.md#compatibility).

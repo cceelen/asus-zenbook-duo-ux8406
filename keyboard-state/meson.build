@@ -1,5 +1,6 @@
 # asus-ux8406-keyboard-state: the helper that carries the keyboard's backlight
-# and function row mode from one connection to the next, and its udev rule.
+# and function row mode from one connection to the next, its udev rule and its
+# system-sleep hook.
 # Part of the keyboard package, next to the HID-BPF program.
 
 # Cargo knows what has to be rebuilt, so it is asked every time.
@@ -22,6 +23,21 @@ configure_file(
   install: true,
   install_dir: udevdir / 'rules.d',
   install_mode: 'rw-r--r--',
+)
+
+# The hook has systemd run the helper before and after a sleep, with the words
+# that systemd gives it. The hook names the helper by its full path. Its name
+# in the build tree is not that of the helper, which is built there too.
+sleep_hook = configure_file(
+  input: 'systemd' / 'asus-ux8406-keyboard-state.sleep.in',
+  output: 'asus-ux8406-keyboard-state.sleep',
+  configuration: paths,
+)
+install_data(
+  sleep_hook,
+  install_dir: sleepdir,
+  install_mode: 'rwxr-xr-x',
+  rename: 'asus-ux8406-keyboard-state',
 )
 
 # The copyright and permission notices of the crates in the program, from

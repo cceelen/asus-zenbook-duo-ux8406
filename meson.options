@@ -26,6 +26,8 @@ option('udevdir', type: 'string', value: '',
        description: 'udev directory (rules.d, hwdb.d) [pkg-config udev, or PREFIX/lib/udev]')
 option('systemdsystemunitdir', type: 'string', value: '',
        description: 'systemd system units [pkg-config systemd, or PREFIX/lib/systemd/system]')
+option('systemdsleepdir', type: 'string', value: '',
+       description: 'systemd system-sleep hooks [pkg-config systemd, or PREFIX/lib/systemd/system-sleep]')
 option('hidbpfdir', type: 'string', value: '',
        description: 'directory that udev-hid-bpf loads programs from [PREFIX/lib/firmware/hid/bpf]')
 option('initddir', type: 'string', value: '/etc/init.d',
