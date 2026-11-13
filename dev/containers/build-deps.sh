@@ -32,11 +32,21 @@ case "${1:?which distribution}" in
     useradd -m builder
     ;;
   debian)
+    # Debian 13 has Rust 1.85; trixie-backports has the Rust that the build
+    # needs. Only cargo and rustc come from there.
+    if grep -qx 'VERSION_CODENAME=trixie' /etc/os-release; then
+      echo 'deb http://deb.debian.org/debian trixie-backports main' \
+        > /etc/apt/sources.list.d/trixie-backports.list
+    fi
     retry apt-get update -q
     retry apt-get install -qy --no-install-recommends build-essential debhelper \
       fakeroot meson ninja-build pkgconf systemd-dev udev \
       cargo rustc clang libbpf-dev linux-libc-dev python3 libglib2.0-bin \
       nodejs lintian
+    if [ -e /etc/apt/sources.list.d/trixie-backports.list ]; then
+      retry apt-get install -qy --no-install-recommends -t trixie-backports \
+        cargo rustc
+    fi
     useradd -m builder
     ;;
   arch)

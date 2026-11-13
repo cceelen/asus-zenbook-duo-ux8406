@@ -62,7 +62,7 @@ repository. The project definition (Repositories, or the page `/meta`):
     <arch>x86_64</arch>
   </repository>
   <repository name="Debian_13">
-    <path project="Debian:13" repository="standard"/>
+    <path project="Debian:13" repository="backports"/>
     <arch>x86_64</arch>
   </repository>
   <repository name="Arch">
@@ -72,7 +72,7 @@ repository. The project definition (Repositories, or the page `/meta`):
 </project>
 ```
 
-- Ubuntu 24.04 is not a target: its Rust is 1.75 and 1.85 is necessary.
+- Ubuntu 24.04 is not a target: its Rust is 1.75 and 1.89 is necessary.
 - Where a distribution has no `udev-hid-bpf`, the keyboard package and the
   packages that require it (GNOME Keys, KDE keys, KDE shortcuts) build, but you
   cannot install them (Debian 13; Tumbleweed and Slowroll without

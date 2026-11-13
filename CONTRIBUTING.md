@@ -68,7 +68,7 @@ kscreen-doctor -o
 
 ## Build and test
 
-Tools: `meson` 1.1 or later, `cargo` (Rust 1.85 or later), `clang`, the libbpf
+Tools: `meson` 1.1 or later, `cargo` (Rust 1.89 or later), `clang`, the libbpf
 headers, the kernel headers, `glib-compile-schemas`, `python3`, `node`, and
 `dbus-daemon` (the tests of the KDE programs start a private bus).
 

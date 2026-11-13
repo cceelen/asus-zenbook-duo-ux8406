@@ -81,7 +81,7 @@ jobs:
                   the distributions out of step with meson.build.
                5. Compatibility: Linux 6.11 and the BPF verifier, the match on the
                   UX8406 (on other machines the programs must do nothing), GNOME
-                  Shell 45 to 51, KDE Plasma 6, Rust 1.85, the distributions in README.md.
+                  Shell 45 to 51, KDE Plasma 6, Rust 1.89, the distributions in README.md.
                6. Bugs: wrong logic, error paths, edge cases, panics (release builds
                   abort on panic), an extension whose disable() does not undo enable().
                7. Tests: reliability (no dependence on timing, order, root, hardware,
