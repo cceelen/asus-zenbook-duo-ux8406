@@ -8,9 +8,9 @@ description = "Backlight and function row of the ASUS Zenbook Duo UX8406 keyboar
 publish = false
 
 [dependencies]
-# Version 0.14 needs Rust 1.87, and Debian 13 has 1.85. Remove the upper limit
-# when rust-version is 1.87.
-aya = { version = ">=0.13.1, <0.14", default-features = false }
+# Version 0.15 needs Rust 1.98, and Debian 13 (backports) has 1.96. Remove the
+# upper limit when rust-version is 1.98.
+aya = { version = "0.14", default-features = false }
 clap = { version = "4", features = ["derive"] }
 # Sends the feature report that sets the backlight, over hidraw. Pure Rust: no
 # libudev and no libusb to link.
@@ -20,11 +20,7 @@ thiserror = "2"
 
 [dev-dependencies]
 # The root test makes a BPF map: aya takes the description of one from here.
-aya-obj = { version = "0.2.1", features = ["std"] }
-# Not used directly: assert_fs brings it in. Version 0.4.30 needs Rust 1.88 but
-# does not declare it, and Debian 13 has 1.85. Later versions declare it, and
-# cargo does not select them. Remove this line when rust-version is 1.88.
-ignore = ">=0.4.25, <0.4.30"
+aya-obj = "0.3"
 assert_cmd = "2"
 assert_fs = "1"
 predicates = "3"
