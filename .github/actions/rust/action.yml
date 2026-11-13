@@ -7,7 +7,7 @@ description: Install a Rust toolchain with the runner's rustup and cache the bui
 
 inputs:
   toolchain:
-    description: The toolchain, for example stable, nightly or 1.85.
+    description: The toolchain, for example stable, nightly or 1.89.
     default: stable
   components:
     description: Components, separated by commas.

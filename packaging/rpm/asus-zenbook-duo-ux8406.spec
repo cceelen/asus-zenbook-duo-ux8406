@@ -15,7 +15,7 @@ Source0:        %{url}/releases/download/v%{version}/%{name}-%{version}.tar.gz
 ExclusiveArch:  x86_64
 
 BuildRequires:  meson >= 1.1
-BuildRequires:  cargo
+BuildRequires:  cargo >= 1.89
 BuildRequires:  clang
 BuildRequires:  libbpf-devel
 BuildRequires:  nodejs

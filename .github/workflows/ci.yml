@@ -130,7 +130,7 @@ jobs:
           version: v0.18.0
       - uses: ./.github/actions/rust
         with:
-          toolchain: "1.85"
+          toolchain: "1.89"
       - run: cargo check --locked --workspace --all-targets
       - run: cargo check --locked -p asus-ux8406-tcc-guard --all-targets --features failpoints
 

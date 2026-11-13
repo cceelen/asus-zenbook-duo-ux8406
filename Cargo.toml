@@ -10,7 +10,7 @@ edition = "2024"
 license = "MIT"
 # The oldest compiler of the distributions built for (Debian 13). Cargo
 # keeps the crates in Cargo.lock to versions that build with it.
-rust-version = "1.85"
+rust-version = "1.89"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
