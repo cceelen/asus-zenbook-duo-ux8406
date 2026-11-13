@@ -5,7 +5,9 @@ use std::path::{Path, PathBuf};
 
 use thiserror::Error as ThisError;
 
-/// Why the state of the keyboard was not saved or loaded.
+use crate::Device;
+
+/// Why the state of the keyboard was not saved, loaded or set.
 #[derive(Debug, ThisError)]
 pub enum Error {
     /// The name is not that of a HID device of the keyboard.
@@ -19,6 +21,17 @@ pub enum Error {
     Map {
         /// The pin of the map.
         path: PathBuf,
+        /// What the system said.
+        reason: String,
+    },
+    /// A HID device with the program has no hidraw node.
+    #[error("{0}: no hidraw node")]
+    NoHidraw(Device),
+    /// A report could not be sent to a HID device.
+    #[error("{device}: {reason}")]
+    Send {
+        /// The HID device.
+        device: Device,
         /// What the system said.
         reason: String,
     },

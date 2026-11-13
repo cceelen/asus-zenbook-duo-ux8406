@@ -3,6 +3,10 @@
 //! none of them reports a name that the others do not know.
 
 use asus_ux8406_keyboard_state::pins::STATE_MAP;
+use asus_ux8406_keyboard_state::sleep::{
+    BACKLIGHT_COMMAND, BACKLIGHT_PARAMETER_1, BACKLIGHT_PARAMETER_2, LEVEL_INDEX, REPORT_ID,
+    REPORT_SIZE,
+};
 use asus_ux8406_keyboard_state::state::{
     BACKLIGHT_PROPERTY, FN_LOCK_PROPERTY, MAX_BACKLIGHT, MAX_FN_LOCK,
 };
@@ -13,6 +17,8 @@ const PROGRAM: &str =
     include_str!("../../../keyboard-bpf/src/ASUS__Zenbook-Duo-UX8406-Keyboard.bpf.c");
 /// The udev rule, before the build fills in the helper's directory.
 const RULES: &str = include_str!("../../udev/80-asus-ux8406-keyboard-state.rules.in");
+/// The hook of systemd, before the build fills in the helper's directory.
+const HOOK: &str = include_str!("../../systemd/asus-ux8406-keyboard-state.sleep.in");
 /// The hwdb entries that have udev-hid-bpf load the program.
 const HWDB: &str = include_str!("../../../keyboard-bpf/udev/82-hid-bpf-asus-ux8406.hwdb");
 
@@ -83,4 +89,38 @@ fn the_rule_and_this_crate_know_every_device_the_program_is_loaded_for() {
 #[case::save("ACTION==\"remove\", RUN+=\"@LIBEXECDIR@/asus-ux8406-keyboard-state save %k\"")]
 fn the_rule_runs_the_program_with_the_name_of_the_device(#[case] rule: &str) {
     assert!(RULES.lines().any(|line| line == rule));
+}
+
+#[rstest]
+#[case::report_id("kHotkeyReportId", usize::from(REPORT_ID))]
+#[case::command("kBacklightCommand", usize::from(BACKLIGHT_COMMAND))]
+#[case::first_parameter("kBacklightParameter1", usize::from(BACKLIGHT_PARAMETER_1))]
+#[case::second_parameter("kBacklightParameter2", usize::from(BACKLIGHT_PARAMETER_2))]
+#[case::place_of_the_level("kBacklightLevelIndex", LEVEL_INDEX)]
+#[case::size("kFeatureReportSize", REPORT_SIZE)]
+fn the_report_is_that_of_the_program(#[case] name: &str, #[case] value: usize) {
+    let hexadecimal = format!("{name} = {value:#x},");
+    let decimal = format!("{name} = {value},");
+    let program = program();
+
+    assert!(
+        program.contains(&hexadecimal) || program.contains(&decimal),
+        "{name} = {value} in the program"
+    );
+}
+
+#[test]
+fn the_program_fills_the_report_in_the_order_of_this_crate() {
+    assert!(program().contains(
+        "kHotkeyReportId, kBacklightCommand, kBacklightParameter1, kBacklightParameter2, kBacklightOff,"
+    ));
+}
+
+#[test]
+fn the_hook_runs_the_helper_with_the_words_of_systemd() {
+    assert!(
+        HOOK.lines()
+            .any(|line| line == "exec @LIBEXECDIR@/asus-ux8406-keyboard-state sleep \"$@\"")
+    );
+    assert!(HOOK.starts_with("#!/bin/sh\n"));
 }

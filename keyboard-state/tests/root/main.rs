@@ -4,6 +4,8 @@
 //! they do nothing, and pass. Run them as root (refer to CONTRIBUTING.md) so
 //! that they count.
 
+mod uhid;
+
 use std::fs;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};

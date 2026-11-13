@@ -14,6 +14,7 @@ ls -l "$root"/second-screen/libexec/asus-ux8406-second-screen "$root"/second-scr
   "$root"/keyboard-bpf/lib/udev/hwdb.d/82-hid-bpf-asus-ux8406.hwdb \
   "$root"/keyboard-bpf/libexec/asus-ux8406-keyboard-state \
   "$root"/keyboard-bpf/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules \
+  "$root"/keyboard-bpf/lib/systemd/system-sleep/asus-ux8406-keyboard-state \
   "$root"/gnome-rotation/share/gnome-shell/extensions/builtin-screen-rotation@cceelen.github.io/extension.js \
   "$root"/kde-rotation/bin/plasma-builtin-screen-rotation \
   "$root"/kde-rotation/etc/xdg/autostart/plasma-builtin-screen-rotation.desktop \
@@ -24,6 +25,9 @@ grep -c "RUN+=\"$(readlink "$root/second-screen")/libexec/asus-ux8406-second-scr
 grep -c "\"$(readlink "$root/keyboard-bpf")/libexec/asus-ux8406-keyboard-state " \
   "$root"/keyboard-bpf/lib/udev/rules.d/80-asus-ux8406-keyboard-state.rules | grep -qx 2
 "$root"/keyboard-bpf/libexec/asus-ux8406-keyboard-state --version
+test -x "$root"/keyboard-bpf/lib/systemd/system-sleep/asus-ux8406-keyboard-state
+grep -qx "exec $(readlink "$root/keyboard-bpf")/libexec/asus-ux8406-keyboard-state sleep \"\$@\"" \
+  "$root"/keyboard-bpf/lib/systemd/system-sleep/asus-ux8406-keyboard-state
 ls -l "$root"/tcc-guard/bin/asus-ux8406-tcc-guard "$root"/tcc-guard/lib/systemd/system/asus-ux8406-tcc-guard.service \
   "$root"/tcc-guard/share/doc/asus-ux8406-tcc-guard/asus-ux8406-tcc-guard.toml.example
 grep -q "ExecStart=$(readlink "$root/tcc-guard")/bin/asus-ux8406-tcc-guard$" \

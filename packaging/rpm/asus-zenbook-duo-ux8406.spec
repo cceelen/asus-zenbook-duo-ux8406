@@ -234,6 +234,7 @@ the user, to give KWin's setting back.
 %meson \
     -Dudevdir=%{udevdir} \
     -Dsystemdsystemunitdir=%{_unitdir} \
+    -Dsystemdsleepdir=%{_systemd_util_dir}/system-sleep \
     -Dhidbpfdir=%{_prefix}/lib/firmware/hid/bpf \
     -Dlicensedir=%{_defaultlicensedir} \
     %{keyboard_options}
@@ -353,6 +354,7 @@ fi
 %{_udevhwdbdir}/82-hid-bpf-asus-ux8406.hwdb
 %{_libexecdir}/asus-ux8406-keyboard-state
 %{_udevrulesdir}/80-asus-ux8406-keyboard-state.rules
+%{_systemd_util_dir}/system-sleep/asus-ux8406-keyboard-state
 # openSUSE checks that every directory of a package has an owner; no package
 # there owns these.
 %if 0%{?suse_version}

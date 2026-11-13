@@ -6,4 +6,5 @@ mod common;
 mod load;
 mod refusal;
 mod save;
+mod sleep;
 mod usage;

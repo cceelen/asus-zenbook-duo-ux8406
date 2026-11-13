@@ -1,0 +1,7 @@
+#!/bin/sh
+# ASUS Zenbook Duo UX8406 detachable keyboard: backlight off while the laptop
+# sleeps, and back to its level when the laptop wakes.
+#
+# systemd runs this with "pre" or "post" and the kind of sleep (suspend,
+# hibernate, hybrid-sleep or suspend-then-hibernate). The helper does the work.
+exec @LIBEXECDIR@/asus-ux8406-keyboard-state sleep "$@"

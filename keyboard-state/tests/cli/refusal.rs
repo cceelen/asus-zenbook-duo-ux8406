@@ -15,6 +15,10 @@ use asus_ux8406_keyboard_state::cli::USAGE;
 #[case::a_path_for_a_device(&["load", "../../../etc/passwd"])]
 #[case::two_devices(&["save", USB, BLUETOOTH])]
 #[case::unknown_option(&["--force", "save", USB])]
+#[case::no_phase(&["sleep"])]
+#[case::unknown_phase(&["sleep", "now"])]
+#[case::unknown_kind(&["sleep", "pre", "reboot"])]
+#[case::two_kinds(&["sleep", "post", "suspend", "hibernate"])]
 fn the_usage_is_the_reply_and_nothing_is_done(tree: Tree, #[case] arguments: &[&str]) {
     tree.write_state(BRIGHT_HOTKEYS);
 

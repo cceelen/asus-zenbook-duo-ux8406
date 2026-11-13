@@ -17,6 +17,10 @@ asus-zenbook-duo-ux8406-tcc-guard W: Dependency included, but may not be needed 
 gnome-shell-extension-asus-zenbook-duo-ux8406-keys W: Dependency included, but may not be needed ('gnome-shell')
 gnome-shell-extension-builtin-screen-rotation W: Dependency included, but may not be needed ('gnome-shell')
 gnome-shell-extension-builtin-screen-rotation W: Dependency included, but may not be needed ('iio-sensor-proxy')
+# The system-sleep hook is a shell script (#!/bin/sh). namcap does not find
+# the package of /bin/sh, so it names sh and does not see bash in use.
+asus-zenbook-duo-ux8406-keyboard-bpf W: Referenced library 'sh' is an uninstalled dependency (needed in files ['usr/lib/systemd/system-sleep/asus-ux8406-keyboard-state'])
+asus-zenbook-duo-ux8406-keyboard-bpf W: Dependency included, but may not be needed ('bash')
 # plasma-desktop has the emoji selector.
 asus-zenbook-duo-ux8406-kde-shortcuts W: Dependency included, but may not be needed ('plasma-desktop')
 # KWin runs the script.

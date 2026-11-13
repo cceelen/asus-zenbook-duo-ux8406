@@ -76,6 +76,7 @@ let
           "--sbindir=bin"
           "-Dudevdir=${placeholder "out"}/lib/udev"
           "-Dsystemdsystemunitdir=${placeholder "out"}/lib/systemd/system"
+          "-Dsystemdsleepdir=${placeholder "out"}/lib/systemd/system-sleep"
           "-Dhidbpfdir=${placeholder "out"}/lib/firmware/hid/bpf"
           # Nix has no convention for licence files; they go below
           # share/licenses/<package>/.
@@ -186,8 +187,9 @@ in
   };
 
   # The HID-BPF object and its hwdb entry, for udev-hid-bpf to load, and the
-  # helper that keeps the keyboard's state, with its udev rule. Add it to
-  # services.udev.packages.
+  # helper that keeps the keyboard's state, with its udev rule and its
+  # system-sleep hook. Add it to services.udev.packages; the hook is in
+  # lib/systemd/system-sleep.
   keyboard-bpf = mkPart {
     enable = [ "keyboard" ];
     attrs = rustInputs // {
