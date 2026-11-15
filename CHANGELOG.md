@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.9.1](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.9.0...v0.9.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **deps:** update aya and ignore after the move to Rust 1.89 ([c9e221a](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/c9e221aeaa85d40eff9d36af4b9d3dca50e173ad))
+* **deps:** update zbus to 5.19 ([d6df559](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/d6df559ca8c92ef309582272b5515ec078e6fa4b))
+* **rpm:** own the directory of the sleep hooks on openSUSE ([4a5ef3e](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/4a5ef3edee3e6ecd93db8a582a9c1df8807df960))
+
 ## [0.9.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.8.1...v0.9.0) (2026-11-13)
 
 
