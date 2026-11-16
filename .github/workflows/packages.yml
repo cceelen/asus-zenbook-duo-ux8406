@@ -107,21 +107,21 @@ jobs:
         include: &releases
           - release: fedora-43
             family: fedora
-            base: &fedora-43 "registry.fedoraproject.org/fedora:43@sha256:cd9d25651b6c27cfc2d65883e1162e42dfd57f53cbdbcdc891fd99cbb38915ed"
+            base: &fedora-43 "registry.fedoraproject.org/fedora:43@sha256:086bb30fc7dd0f84b266b9c93d14298f06e30d04421dcd6813629ea00542fa8a"
             install: *fedora-43
             keyboard: "yes"
             gnome: "yes"
             kde: "yes"
           - release: fedora-44
             family: fedora
-            base: &fedora-44 "registry.fedoraproject.org/fedora:44@sha256:f08613fffc95f5c85c019b2f4ac9e9fb9bb84b9cfd59275671b84169567b157e"
+            base: &fedora-44 "registry.fedoraproject.org/fedora:44@sha256:15bca96361db60e17c52df60efca658f02d7a8df13e6ceaabb47e9a547ec3f5e"
             install: *fedora-44
             keyboard: "yes"
             gnome: "yes"
             kde: "yes"
           - release: fedora-45
             family: fedora
-            base: &fedora-45 "registry.fedoraproject.org/fedora:45@sha256:b68e9c913030593d87875f7b6441b3d8a909aa434579a10dc7dea255a8d7d894"
+            base: &fedora-45 "registry.fedoraproject.org/fedora:45@sha256:b174cd5906c712f59a675cc85ea2ca8ff3bcf3643f1a1f3bc4e14dc28bcf1872"
             install: *fedora-45
             keyboard: "yes"
             gnome: "yes"
@@ -144,7 +144,7 @@ jobs:
           # No udev-hid-bpf in Tumbleweed, Leap, Debian 13 and Alpine.
           - release: tumbleweed
             family: opensuse
-            base: &tumbleweed "docker.io/opensuse/tumbleweed:latest@sha256:9f4c5b5b7989d296a7df5c41128ffd86800b76a6a4a039f6e343397f1daace68"
+            base: &tumbleweed "docker.io/opensuse/tumbleweed:latest@sha256:14d536cfce86a7dbab858a4358f74634cf60a4a944e8e00acc89fbc153077e88"
             install: *tumbleweed
           # unbuilt: packages that the recipe must not build for the release.
           - release: leap-16.0
@@ -155,7 +155,7 @@ jobs:
           - release: leap-16.1
             family: opensuse
             unbuilt: asus-zenbook-duo-ux8406-keyboard-bpf gnome-shell-extension-asus-zenbook-duo-ux8406-keys asus-zenbook-duo-ux8406-kde-shortcuts asus-zenbook-duo-ux8406-kde-keys
-            base: &leap-161 "registry.opensuse.org/opensuse/leap:16.1@sha256:65a21515d62c7af67808e7aef29e0bcfdb609d95f9fe811fad7649d56c4b3dfa"
+            base: &leap-161 "registry.opensuse.org/opensuse/leap:16.1@sha256:40924359ad1e2068f1a44fe77aef773c4222b3121c0e4f5408b922b26aad6dee"
             install: *leap-161
           - release: debian-13
             family: debian
@@ -174,13 +174,13 @@ jobs:
             keyboard: "yes"
           - release: ubuntu-26.04
             family: debian
-            base: &ubuntu-2604 "docker.io/library/ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c"
+            base: &ubuntu-2604 "docker.io/library/ubuntu:26.04@sha256:065aa8626841f16057b78b027b464cd59c4fac36c204c72dcbf48d66f5fa8a96"
             install: *ubuntu-2604
             keyboard: "yes"
             kde: "yes"
           - release: ubuntu-26.10
             family: debian
-            base: &ubuntu-2610 "docker.io/library/ubuntu:26.10@sha256:262df65c0ec6bf8d9dcc87454f4330a05fae4b97825f45854af3b136666584c2"
+            base: &ubuntu-2610 "docker.io/library/ubuntu:26.10@sha256:c4ca31b6e93261c5dd773826f789738a49e414ca04fc094b1ccd0f91e07329a2"
             install: *ubuntu-2610
             keyboard: "yes"
             kde: "yes"
@@ -345,7 +345,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+      - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
       - run: |
           parts="second-screen:asus-zenbook-duo-ux8406-second-screen tcc-guard:asus-zenbook-duo-ux8406-tcc-guard
                  keyboard-bpf:asus-zenbook-duo-ux8406-keyboard-bpf

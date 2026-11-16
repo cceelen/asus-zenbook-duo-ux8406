@@ -10,7 +10,7 @@
 # The base image, pinned by digest, from Docker Hub: the openSUSE registry
 # deletes the old digests of its rolling images within days. Renovate updates
 # the digest; packages.yml pins its own images for the CI builds.
-FROM docker.io/opensuse/tumbleweed:latest@sha256:9f4c5b5b7989d296a7df5c41128ffd86800b76a6a4a039f6e343397f1daace68 AS base
+FROM docker.io/opensuse/tumbleweed:latest@sha256:14d536cfce86a7dbab858a4358f74634cf60a4a944e8e00acc89fbc153077e88 AS base
 
 FROM base AS tools
 COPY dev/containers/build-deps.sh /tmp/
