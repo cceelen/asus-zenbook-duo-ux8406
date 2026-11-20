@@ -108,8 +108,8 @@ static void check_rewritten(__u8 index, __u8 raw) {
   CHECK_BYTES(fake_kernel()->data, want, sizeof(want));
 }
 
-static void backlight_toggles() {
-  const __u8 levels[] = {3, 0, 3};
+static void backlight_steps_through_its_levels() {
+  const __u8 levels[] = {1, 2, 3, 0, 1};
 
   for (size_t i = 0; i < sizeof(levels); i++) {
     CHECK_EQ(fix_event(kReportId, kCodeBacklight), 0);
@@ -165,7 +165,7 @@ static const struct TestCase kCases[] = {
     TEST_CASE(no_state),
     TEST_CASE(other_report_id),
     TEST_CASE(status_report_is_dropped),
-    TEST_CASE(backlight_toggles),
+    TEST_CASE(backlight_steps_through_its_levels),
     TEST_CASE(fn_esc_toggles),
     TEST_CASE(each_hotkey),
     TEST_CASE(unknown_codes_are_no_key),

@@ -32,16 +32,16 @@ the UX8406CA keyboard. On the UX8406MA, both are the same as on the UX8406CA.
 
 ## What it does
 
-| Key                             | Result                                          |
-| ------------------------------- | ----------------------------------------------- |
-| F4                              | keyboard light on and off (the program does it) |
-| F5, F6                          | display brightness down, up                     |
-| F9                              | microphone mute                                 |
-| F11 (emoji)                     | `KEY_PROG1`                                     |
-| F12 (MyASUS)                    | `KEY_F13`                                       |
-| F8 (swap windows)               | `KEY_F19`                                       |
-| Key right of F12 (lower screen) | `KEY_F18`                                       |
-| Fn+Esc                          | switches the row between F1–F12 and the hotkeys |
+| Key                             | Result                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| F4                              | keyboard light: off, then its three levels in turn (the program does it) |
+| F5, F6                          | display brightness down, up                                              |
+| F9                              | microphone mute                                                          |
+| F11 (emoji)                     | `KEY_PROG1`                                                              |
+| F12 (MyASUS)                    | `KEY_F13`                                                                |
+| F8 (swap windows)               | `KEY_F19`                                                                |
+| Key right of F12 (lower screen) | `KEY_F18`                                                                |
+| Fn+Esc                          | switches the row between F1–F12 and the hotkeys                          |
 
 The volume keys and the display switch (F7) operate without this program.
 

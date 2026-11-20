@@ -42,7 +42,7 @@ static void check_request(int index, const __u8* want) {
 }
 
 static void backlight_sends_the_level() {
-  const __u8 want[kFeatureBytes] = {kReportId, 0xba, 0xc5, 0xc4, 3};
+  const __u8 want[kFeatureBytes] = {kReportId, 0xba, 0xc5, 0xc4, 1};
 
   press(kCodeBacklight);
   CHECK_EQ(fake_run_delayed(), 1);
