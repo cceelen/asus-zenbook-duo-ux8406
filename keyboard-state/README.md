@@ -77,6 +77,7 @@ compare the names of the properties, the name of the state and the ids of the
 keyboard with the program and the udev rule.
 
 The read of a state from the kernel has no test: it needs root and a loaded
-program. It was tried on the UX8406CA. Run as root, a test makes a virtual HID
-device with `/dev/uhid`, sends the report to its hidraw node with the real
+program; what is tested on the hardware:
+[Test reports](../README.md#test-reports). Run as root, a test makes a virtual
+HID device with `/dev/uhid`, sends the report to its hidraw node with the real
 sender, and checks the bytes that the device gets.

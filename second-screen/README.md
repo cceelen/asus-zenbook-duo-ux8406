@@ -30,8 +30,8 @@ dock port and when the connector appears, and `brightness` when the backlight of
 the upper screen changes.
 
 On a machine whose DMI product name does not contain `UX8406`, the helper does
-nothing. The dock port is that of the UX8406CA and is not verified on the
-UX8406MA.
+nothing. What is tested on the hardware:
+[Test reports](../README.md#test-reports).
 
 ## Test
 

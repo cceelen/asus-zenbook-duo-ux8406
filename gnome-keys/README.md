@@ -33,7 +33,8 @@ dconf reset -f /org/gnome/desktop/peripherals/touchscreens/
 dconf reset -f /org/gnome/desktop/peripherals/tablets/
 ```
 
-Touch is tested on the UX8406CA. The pens are not tested.
+What is tested on the hardware, also touch and the pen:
+[Test reports](../README.md#test-reports).
 
 ## Use
 
@@ -46,7 +47,7 @@ gnome-extensions enable asus-zenbook-duo-ux8406-keys@cceelen.github.io
 
 On a machine that is not a UX8406, the extension binds no key and sets nothing.
 
-GNOME Shell 45 to 51 is declared. Only GNOME Shell 50 is tested.
+GNOME Shell 45 to 51 is declared.
 
 ## Test
 
