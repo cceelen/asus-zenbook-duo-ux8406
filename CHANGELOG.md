@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.9.1...v0.10.0) (2026-11-20)
+
+
+### Features
+
+* **keyboard:** step the backlight through its three levels ([c049d01](https://github.com/cceelen/asus-zenbook-duo-ux8406/commit/c049d0180637e923e4aaed8ac8a02b5c4329d851))
+
 ## [0.9.1](https://github.com/cceelen/asus-zenbook-duo-ux8406/compare/v0.9.0...v0.9.1) (2026-11-15)
 
 
