@@ -10,8 +10,9 @@ system tray. Before you remove the package, run
 
 This is the KDE counterpart of the
 [GNOME extension](../gnome-rotation/README.md), with the same layouts. It needs
-Plasma 6.4 or later on Wayland and `iio-sensor-proxy`. It is not tested on KDE
-hardware yet: refer to the [test plan](../docs/kde-test-plan.md).
+Plasma 6.4 or later on Wayland and `iio-sensor-proxy`. What is tested on the
+hardware: [Test reports](../README.md#test-reports); the full test:
+[test plan](../docs/kde-test-plan.md).
 
 ## What it does
 

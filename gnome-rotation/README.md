@@ -13,8 +13,9 @@ turns one screen. This extension does it for all built-in screens.
 ## Which machines
 
 Nothing in the extension is specific to the UX8406: it uses the screens that the
-compositor marks as built-in, and takes their order from the layout. Only the
-UX8406CA is tested; a report from another laptop is useful (refer to
+compositor marks as built-in, and takes their order from the layout. For what is
+tested, refer to [Test reports](../README.md#test-reports); a report from
+another laptop is useful (refer to
 [CONTRIBUTING.md](../CONTRIBUTING.md#report-your-results)).
 
 The extension takes each built-in screen as mounted upright in the machine. Some
@@ -23,9 +24,9 @@ then reports a panel orientation). On such a machine the extension turns the
 picture wrongly. The compositor (mutter) knows the panel orientation, but up to
 GNOME 51 it gives it neither to extensions nor over D-Bus (`GetCurrentState`).
 
-It needs GNOME Shell 45 to 51 (only 50 is tested). For the sensor it needs
-`iio-sensor-proxy`, which gives the orientation; the turn by hand does not need
-it. On a machine without a built-in screen, the extension does nothing.
+It needs GNOME Shell 45 to 51. For the sensor it needs `iio-sensor-proxy`, which
+gives the orientation; the turn by hand does not need it. On a machine without a
+built-in screen, the extension does nothing.
 
 ## What it does
 

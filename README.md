@@ -10,8 +10,8 @@
 operate correctly with Linux: no power-off with the lid closed, a lower screen
 that follows the keyboard and the brightness, a function row with all its keys,
 touch on the two screens, and screen rotation. They install from the package
-manager of your distribution. They are tested on a UX8406CA with Fedora 44; the
-UX8406MA and KDE Plasma are not tested.**
+manager of your distribution. Few setups are tested on the hardware: refer to
+[Test reports](#test-reports).**
 
 I own a UX8406CA. The community solutions that I tried gave mixed results and
 needed manual installation. The power-off problem stayed for months. These
@@ -62,7 +62,8 @@ No fix in this project:
   known
   ([issue 32](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/32)).
 
-Not examined: fan profiles, pens, beam-forming microphones, camera.
+Not examined: fan profiles, the calibration of the pen's pressure, beam-forming
+microphones, camera.
 
 ## Compatibility
 
@@ -71,24 +72,23 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
 | ✅     | A published package. It installs in a clean container.   |
 | 🛠️     | No published package. The package builds from this tree. |
 | ❌     | Not available.                                           |
-| 🤖     | Tested on the hardware.                                  |
 
 | Distribution         | Guard | Second screen | Keyboard | Keys   | Rotation | KDE keys | KDE rotation | KDE shortcuts |
 | -------------------- | ----- | ------------- | -------- | ------ | -------- | -------- | ------------ | ------------- |
-| Fedora 45            | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
-| Fedora 44            | ✅ 🤖 | ✅ 🤖         | ✅ 🤖    | ✅ 🤖  | ✅ 🤖    | 🛠️       | 🛠️           | 🛠️            |
-| Fedora 43            | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
-| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹   | ✅ ¹     | 🛠️       | 🛠️           | 🛠️            |
-| Arch                 | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
+| Fedora 45            | ✅    | ✅            | ✅       | ✅     | ✅       | ✅       | ✅           | ✅            |
+| Fedora 44            | ✅    | ✅            | ✅       | ✅     | ✅       | ✅       | ✅           | ✅            |
+| Fedora 43            | ✅    | ✅            | ✅       | ✅     | ✅       | ✅       | ✅           | ✅            |
+| RHEL 10 and rebuilds | ✅ ¹  | ✅ ¹          | ✅ ¹     | ✅ ¹   | ✅ ¹     | ✅ ¹     | ✅ ¹         | ✅ ¹          |
+| Arch                 | ✅    | ✅            | ✅       | ✅     | ✅       | ✅       | ✅           | ✅            |
 | openSUSE Tumbleweed  | ✅    | ✅            | ✅ ²     | ✅ ²   | ✅       | 🛠️ ²     | 🛠️           | 🛠️ ²          |
 | openSUSE Slowroll    | ✅ ³  | ✅ ³          | ✅ ² ³   | ✅ ² ³ | ✅ ³     | 🛠️ ²     | 🛠️           | 🛠️ ²          |
 | openSUSE Leap 16.0   | ✅    | ✅            | ❌ ⁴     | ❌ ⁸   | ✅       | ❌ ⁸     | 🛠️           | ❌ ⁸          |
 | openSUSE Leap 16.1   | ✅    | ✅            | ❌ ⁴     | ❌ ⁸   | ✅       | ❌ ⁸     | 🛠️           | ❌ ⁸          |
 | Debian 13            | ✅    | ✅            | ❌ ⁴     | ❌ ⁸   | ✅       | ❌ ⁸     | ❌ ⁷         | ❌ ⁸          |
-| Debian testing       | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
+| Debian testing       | ✅    | ✅            | ✅       | ✅     | ✅       | ✅       | ✅           | ✅            |
 | Debian unstable      | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
-| Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
-| Ubuntu 26.10         | ✅    | ✅            | ✅       | ✅     | ✅       | 🛠️       | 🛠️           | 🛠️            |
+| Ubuntu 26.04         | ✅    | ✅            | ✅       | ✅     | ✅       | ✅       | ✅           | ✅            |
+| Ubuntu 26.10         | ✅    | ✅            | ✅       | ✅     | ✅       | ✅       | ✅           | ✅            |
 | Alpine               | 🛠️ ⁵  | 🛠️ ⁵          | ❌ ⁴     | ❌ ⁸   | 🛠️ ⁵     | ❌ ⁸     | 🛠️           | ❌ ⁸          |
 | Nix                  | ✅ ⁶  | ✅ ⁶          | ❌ ⁴     | ❌ ⁸   | ✅ ⁶     | ❌ ⁸     | 🛠️           | ❌ ⁸          |
 
@@ -113,11 +113,7 @@ Not examined: fan profiles, pens, beam-forming microphones, camera.
    keys also give each touchscreen and pen its panel: there, that is not
    available either.
 
-🤖: UX8406CA, Fedora 44, Linux 7.2, GNOME 50. On a UX8406MA, a user tested the
-keyboard on the dock and the cable (Kubuntu 26.04,
-[issue 36](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/36)); the
-other parts are not tested there. A result from your hardware adds a test mark:
-refer to [CONTRIBUTING.md](CONTRIBUTING.md#report-your-results).
+What is tested on the hardware: refer to [Test reports](#test-reports).
 
 Requirements:
 
@@ -134,6 +130,22 @@ Requirements:
 | KDE shortcuts    | Plasma 6                                                         |
 
 Ubuntu 24.04 is not supported: its Rust is too old.
+
+## Test reports
+
+The reports of tests on the hardware, and their source. The other combinations
+of model, distribution and desktop are not tested. A report from your hardware
+adds a row: refer to [CONTRIBUTING.md](CONTRIBUTING.md#report-your-results).
+
+| Model    | Distribution and desktop                 | Packages                                                | Result                                                                                     | Source                                                                                                       |
+| -------- | ---------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| UX8406CA | Fedora 44, GNOME 50, Linux 7.2           | Guard, Second screen, Keyboard, Keys, Rotation          | operate                                                                                    | my test                                                                                                      |
+| UX8406CA | Fedora 45, GNOME 51, Linux 7.2           | Guard, Second screen, Keyboard, Keys, Rotation (0.9)    | operate; also touch, and the ASUS Pen 2.0 (pressure, tilt, buttons, eraser) on both panels | my test, 2026-11-20                                                                                          |
+| UX8406MA | Kubuntu 26.04 (Ubuntu 26.04), KDE Plasma | Keyboard and KDE keys on the dock and the cable (0.8.1) | the keys operate                                                                           | [issue 36](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/36)                                     |
+| UX8406MA | Kubuntu 26.04 (Ubuntu 26.04), KDE Plasma | Keyboard and KDE keys over Bluetooth (0.9)              | the keys operate                                                                           | [issue 36](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/36)                                     |
+| UX8406MA | Kubuntu 26.04 (Ubuntu 26.04), KDE Plasma | KDE rotation (0.8)                                      | the rotation operates                                                                      | [issue 36](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/36)                                     |
+| UX8406MA | Kubuntu 26.04 (Ubuntu 26.04), KDE Plasma | Second screen (0.5.0)                                   | the lower screen is off with the keyboard on it                                            | [issue 36](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/36#issuecomment-6589669128), 2026-11-02 |
+| UX8406MA | Kubuntu 26.04 (Ubuntu 26.04), KDE Plasma | Guard (0.5.0)                                           | starts and is armed; the warning of the EC did not come                                    | [issue 36](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/36#issuecomment-6589669128), 2026-11-02 |
 
 ## Installation
 
@@ -366,6 +378,11 @@ Lower screen:
 - Windows from the lower screen stay on the upper screen when the lower screen
   comes back
   ([issue 37](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/37)).
+
+Pen:
+
+- The battery of the ASUS Pen 2.0 shows 1 %, also when it is charged. The touch
+  controllers send that value; the pen operates.
 
 Each part README gives the limits of its part.
 

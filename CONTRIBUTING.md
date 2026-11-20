@@ -2,9 +2,9 @@
 
 **You can help in three ways: tell which functions operate on your hardware,
 report a problem, or send a change. All three go through
-[GitHub](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues). Only Fedora
-44 on a UX8406CA is tested on the hardware, so a report from another
-distribution or model is the contribution that helps most.**
+[GitHub](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues). Few setups
+are tested on the hardware ([Test reports](README.md#test-reports)), so a report
+from another distribution or model is the contribution that helps most.**
 
 | You want to                         | Go to                                       |
 | ----------------------------------- | ------------------------------------------- |

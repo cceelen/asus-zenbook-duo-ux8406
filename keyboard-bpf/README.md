@@ -15,17 +15,14 @@ It has two parts:
 For the installation and the distributions, refer to the
 [README](../README.md#compatibility).
 
-| Keyboard | Bus       | Id          | State        |
-| -------- | --------- | ----------- | ------------ |
-| UX8406CA | USB       | `0b05:1bf2` | tested       |
-| UX8406CA | Bluetooth | `0b05:1bf3` | tested       |
-| UX8406MA | USB       | `0b05:1b2c` | tested ¹     |
-| UX8406MA | Bluetooth | `0b05:1b2d` | not tested ² |
+| Keyboard | Bus       | Id          |
+| -------- | --------- | ----------- |
+| UX8406CA | USB       | `0b05:1bf2` |
+| UX8406CA | Bluetooth | `0b05:1bf3` |
+| UX8406MA | USB       | `0b05:1b2c` |
+| UX8406MA | Bluetooth | `0b05:1b2d` |
 
-¹ By a user, on Kubuntu 26.04
-([issue 36](https://github.com/cceelen/asus-zenbook-duo-ux8406/issues/36)).
-
-² Its report descriptor, from the same user, is that of the UX8406CA keyboard.
+What is tested on the hardware: [Test reports](../README.md#test-reports).
 
 The program attaches only if the report descriptor of the keyboard is that of
 the UX8406CA keyboard. On the UX8406MA, both are the same as on the UX8406CA.
@@ -68,7 +65,8 @@ The comment at the top of the source gives the protocol of the keyboard.
 - Linux with HID-BPF (`CONFIG_HID_BPF`) and BTF, [udev-hid-bpf] and udev.
 - Linux 6.11 or later by design. Kernels before 7.0 have the kfunc
   `bpf_wq_set_callback` as `bpf_wq_set_callback_impl`; `include/wq_compat.h`
-  uses the one that is there. Only Linux 7.2 is tested.
+  uses the one that is there. The kernels that are tested:
+  [Test reports](../README.md#test-reports).
 - To build: clang with the BPF target, the libbpf headers and the kernel headers
   of Linux 6.10 or later.
 
