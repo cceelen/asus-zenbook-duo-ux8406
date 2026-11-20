@@ -19,9 +19,9 @@
  *    usages, and its collection as a Consumer Control, which on USB is what
  *    makes the interface an input device at all;
  *  - replaces the vendor code by the index of the matching usage;
- *  - switches the backlight on and off itself when its key is pressed, as
- *    the keyboard does nothing on that key and there is no LED device to
- *    hand it to;
+ *  - steps the backlight itself through off and its three levels when its
+ *    key is pressed, as the keyboard does nothing on that key and there is
+ *    no LED device to hand it to;
  *  - switches the function row between hotkeys and F1 to F12 on Fn+Esc. The
  *    keyboard does that by itself only until the host has sent it a command
  *    (such as the one for the backlight); from then on it merely reports the
@@ -414,7 +414,8 @@ int BPF_PROG(zenbook_duo_kbd_fix_event, struct hid_bpf_ctx* hctx) {
   }
 
   if (data[1] == kCodeBacklight) {
-    state->backlight = state->backlight ? kBacklightOff : kBacklightOn;
+    state->backlight =
+        state->backlight >= kBacklightOn ? kBacklightOff : state->backlight + 1;
     HID_BPF_ASYNC_DELAYED_CALL(set_backlight, hctx, 10);
   }
 
