@@ -72,7 +72,8 @@ repository. The project definition (Repositories, or the page `/meta`):
 </project>
 ```
 
-- Ubuntu 24.04 is not a target: its Rust is 1.75 and 1.89 is necessary.
+- Ubuntu 24.04 is not a target: it has no `udev-hid-bpf`, its `linux-libc-dev`
+  is 6.8 (the keyboard program needs 6.10), and its Plasma is 5.27.
 - Where a distribution has no `udev-hid-bpf`, the keyboard package and the
   packages that require it (GNOME Keys, KDE keys, KDE shortcuts) build, but you
   cannot install them (Debian 13; Tumbleweed and Slowroll without

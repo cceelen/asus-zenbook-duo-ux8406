@@ -129,7 +129,9 @@ Requirements:
 | KDE rotation     | Plasma 6.4 or later, iio-sensor-proxy; a laptop of any model     |
 | KDE shortcuts    | Plasma 6                                                         |
 
-Ubuntu 24.04 is not supported: its Rust is too old.
+Ubuntu 24.04 is not supported. It has no udev-hid-bpf, and its kernel headers
+(6.8, also with the newer kernels of its point releases) are too old to build
+the keyboard program. Its Plasma 5.27 is too old for KDE rotation.
 
 ## Test reports
 
