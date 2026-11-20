@@ -33,6 +33,7 @@ pub const OTHER_MODEL: &str = "ASUS Zenbook 14 UX3405MA_UX3405MA\n";
 pub const DOCKED_KEYBOARD_PRODUCT: &str = "devices/pci0000:00/0000:00:14.0/usb3/3-6/idProduct";
 /// The product name of the other UX8406.
 pub const SISTER_MODEL: &str = "ASUS Zenbook Duo UX8406MA_UX8406MA\n";
+pub const NEXT_MODEL: &str = "ASUS Zenbook Duo UX8407AA_UX8407AA\n";
 /// The upper panel's backlight.
 pub const UPPER_BRIGHTNESS: &str =
     "devices/pci0000:00/0000:00:02.0/drm/card1/card1-eDP-1/intel_backlight/brightness";

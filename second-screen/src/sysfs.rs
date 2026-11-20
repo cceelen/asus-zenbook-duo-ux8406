@@ -8,8 +8,7 @@ use std::path::{Path, PathBuf};
 use crate::dock::{self, Panel, UsbId};
 use crate::error::Error;
 
-/// What the product name of a supported machine contains: every UX8406.
-pub(crate) const MODEL: &str = "UX8406";
+pub(crate) const MODELS: [&str; 2] = ["UX8406", "UX8407"];
 /// No attribute read here is longer than this many bytes.
 pub const ATTRIBUTE_LIMIT: usize = 96;
 
@@ -71,7 +70,7 @@ impl Sysfs {
     #[must_use]
     pub fn is_supported_model(&self) -> bool {
         read_attribute(&self.root.join("class/dmi/id/product_name"))
-            .is_some_and(|name| name.contains(MODEL))
+            .is_some_and(|name| MODELS.iter().any(|model| name.contains(model)))
     }
 
     /// Whether the keyboard lies on the lower panel right now.

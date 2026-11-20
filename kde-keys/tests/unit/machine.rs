@@ -15,6 +15,16 @@ fn the_ux8406ca_is_the_model() {
 }
 
 #[test]
+fn the_ux8407_is_a_model() {
+    let root = TempDir::new().expect("directory");
+
+    root.child("class/dmi/id/product_name")
+        .write_str("ASUS Zenbook Duo UX8407AA_UX8407AA\n")
+        .expect("product name");
+    assert!(is_model(root.path()));
+}
+
+#[test]
 fn another_model_or_no_product_name_is_not() {
     let root = TempDir::new().expect("directory");
 

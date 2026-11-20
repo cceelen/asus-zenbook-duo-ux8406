@@ -84,8 +84,8 @@ screen at that time, and the program gives it its panel.
   `EnabledByDefault`. To switch it off: System Settings, Window Management, KWin
   Scripts.
 
-On a machine whose DMI product name does not contain `UX8406`, the program logs
-one line and ends.
+On a machine whose DMI product name does not contain `UX8406` or `UX8407`, the
+program logs one line and ends.
 
 ## Test
 

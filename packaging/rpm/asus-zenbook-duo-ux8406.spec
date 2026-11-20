@@ -93,7 +93,7 @@ the brightness of the upper one, which is the only one desktops set. udev
 rules run the helper when the keyboard arrives on or leaves its dock port and
 when the upper panel's brightness changes.
 
-Does nothing on any other model.
+Does nothing on a model that it does not know.
 
 %package -n asus-zenbook-duo-ux8406-tcc-guard
 Summary:        CPU thermal-offset guard for the ASUS Zenbook Duo UX8406
@@ -183,7 +183,8 @@ The key right of F12 switches the lower screen on and off, and F8 swaps the
 windows of the two screens (a KWin script). Each touchscreen and pen gets its
 panel. The keyboard delivers the keys with
 asus-zenbook-duo-ux8406-keyboard-bpf. For Plasma 6 on Wayland. Active after
-the next login. Does nothing on any other model.
+the next login. Does nothing on a model that it does not
+know.
 %endif
 
 %package -n plasma-builtin-screen-rotation

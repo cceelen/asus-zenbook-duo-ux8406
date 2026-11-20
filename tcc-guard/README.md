@@ -32,7 +32,11 @@ value in `/run/asus-ux8406-tcc-guard`, so that after a kill the next start or
 each stop.
 
 On a machine whose product name does not contain `UX8406`, the service logs one
-line and ends. The setting `model` changes that.
+line and ends. The setting `model` changes that. The UX8407 is not in the
+default: the guard writes the offset on the warning text and at the temperatures
+that were measured on the UX8406CA, and the EC of the UX8407 is not examined. To
+try the guard there, set `model = "UX8407"` in
+`/etc/asus-ux8406-tcc-guard.toml`.
 
 ## Use
 

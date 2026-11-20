@@ -11,7 +11,7 @@ use crate::dock::Panel;
 #[derive(Debug, ThisError)]
 pub enum Error {
     /// The machine is not the model whose port and connector are known.
-    #[error("this is not a Zenbook Duo {}; nothing done", crate::sysfs::MODEL)]
+    #[error("this is not a Zenbook Duo {}; nothing done", crate::sysfs::MODELS.join(" or "))]
     UnsupportedModel,
     /// There is no connector for the lower panel.
     #[error("no lower panel connector")]

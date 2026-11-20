@@ -1,5 +1,3 @@
-//! A machine that is not a UX8406.
-
 use rstest::rstest;
 
 use crate::common::{LOWER_BRIGHTNESS, LOWER_STATUS, Sys, UNTOUCHED, docked};

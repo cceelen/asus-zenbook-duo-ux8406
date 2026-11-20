@@ -9,4 +9,5 @@ mod cli;
 mod dock;
 mod error;
 mod panel;
+mod rules;
 mod sysfs;

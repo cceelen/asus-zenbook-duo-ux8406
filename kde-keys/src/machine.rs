@@ -5,16 +5,14 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-/// What the product name of a supported machine contains: every UX8406.
-pub const MODEL: &str = "UX8406";
+pub(crate) const MODELS: [&str; 2] = ["UX8406", "UX8407"];
 
-/// Whether the machine is a Zenbook Duo UX8406. A product name that is not
-/// there or not readable is no match: the program then does nothing, and says
-/// so.
+/// A product name that is not there or not readable is no match: the program
+/// then does nothing, and says so.
 #[must_use]
 pub fn is_model(root: &Path) -> bool {
     fs::read_to_string(root.join("class/dmi/id/product_name"))
-        .is_ok_and(|name| name.contains(MODEL))
+        .is_ok_and(|name| MODELS.iter().any(|model| name.contains(model)))
 }
 
 /// The names in a directory, sorted.

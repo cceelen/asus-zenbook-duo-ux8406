@@ -39,7 +39,10 @@ fn on_another_model_it_does_nothing() {
     let (code, log) = run(command);
 
     assert_eq!(code, Some(0));
-    assert!(said(&log, "this is not a Zenbook Duo UX8406"), "{log:?}");
+    assert!(
+        said(&log, "this is not a Zenbook Duo UX8406 or UX8407"),
+        "{log:?}"
+    );
 }
 
 #[test]

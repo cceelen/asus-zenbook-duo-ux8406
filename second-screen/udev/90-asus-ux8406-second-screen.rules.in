@@ -3,10 +3,9 @@
 # upper panel.
 #
 # asus-ux8406-second-screen looks at the keyboard's dock port and at the upper panel's
-# backlight itself and sets the lower panel to match; the rules only say when
-# to look, and only on this model.
+# backlight itself and sets the lower panel to match.
 
-ATTR{[dmi/id]product_name}!="*UX8406*", GOTO="asus_ux8406_second_screen_end"
+ATTR{[dmi/id]product_name}!="*UX8406*|*UX8407*", GOTO="asus_ux8406_second_screen_end"
 
 # The keyboard (0b05:1bf2, or 0b05:1b2c of the UX8406MA) arrives on, or leaves, the dock port: port 6 of the
 # root hub of the USB controller 0000:00:14.0. On the cable it is on another

@@ -29,8 +29,8 @@ The udev rules in `udev/` run `dock` when the keyboard arrives on or leaves the
 dock port and when the connector appears, and `brightness` when the backlight of
 the upper screen changes.
 
-On a machine whose DMI product name does not contain `UX8406`, the helper does
-nothing. What is tested on the hardware:
+On a machine whose DMI product name does not contain `UX8406` or `UX8407`, the
+helper does nothing. What is tested on the hardware:
 [Test reports](../README.md#test-reports).
 
 ## Test

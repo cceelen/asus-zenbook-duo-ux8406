@@ -38,7 +38,7 @@ fn a_busy_device_counts_as_taken_over() {
 fn the_other_errors_say_what_is_missing() {
     assert_eq!(
         Error::UnsupportedModel.to_string(),
-        "this is not a Zenbook Duo UX8406; nothing done"
+        "this is not a Zenbook Duo UX8406 or UX8407; nothing done"
     );
     assert_eq!(Error::NoLowerPanel.to_string(), "no lower panel connector");
     assert!(Error::NoLowerPanel.source().is_none());
