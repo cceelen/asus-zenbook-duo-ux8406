@@ -98,7 +98,7 @@ checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
 
 [[package]]
 name = "asus-ux8406-kde-common"
-version = "0.9.1"
+version = "0.10.0"
 dependencies = [
  "asus-ux8406-kde-fakes",
  "bitflags",
@@ -118,7 +118,7 @@ dependencies = [
 
 [[package]]
 name = "asus-ux8406-kde-fakes"
-version = "0.9.1"
+version = "0.10.0"
 dependencies = [
  "async-io",
  "bitflags",
@@ -132,7 +132,7 @@ dependencies = [
 
 [[package]]
 name = "asus-ux8406-kde-keys"
-version = "0.9.1"
+version = "0.10.0"
 dependencies = [
  "assert_fs",
  "asus-ux8406-kde-common",
@@ -148,7 +148,7 @@ dependencies = [
 
 [[package]]
 name = "asus-ux8406-kde-rotation"
-version = "0.9.1"
+version = "0.10.0"
 dependencies = [
  "asus-ux8406-kde-common",
  "asus-ux8406-kde-fakes",
@@ -166,7 +166,7 @@ dependencies = [
 
 [[package]]
 name = "asus-ux8406-keyboard-state"
-version = "0.9.1"
+version = "0.10.0"
 dependencies = [
  "assert_cmd",
  "assert_fs",
@@ -182,7 +182,7 @@ dependencies = [
 
 [[package]]
 name = "asus-ux8406-second-screen"
-version = "0.9.1"
+version = "0.10.0"
 dependencies = [
  "assert_cmd",
  "assert_fs",
@@ -194,7 +194,7 @@ dependencies = [
 
 [[package]]
 name = "asus-ux8406-tcc-guard"
-version = "0.9.1"
+version = "0.10.0"
 dependencies = [
  "assert_cmd",
  "assert_fs",
