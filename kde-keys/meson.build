@@ -14,8 +14,6 @@ asus_ux8406_kde_keys = custom_target(
   install_mode: 'rwxr-xr-x',
 )
 
-# The entry names the program by its full path. Plasma starts it in each
-# session; it does nothing on another model.
 configure_file(
   input: 'autostart' / 'asus-ux8406-kde-keys.desktop.in',
   output: 'asus-ux8406-kde-keys.desktop',

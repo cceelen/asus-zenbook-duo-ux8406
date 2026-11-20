@@ -31,7 +31,7 @@ Description: lower panel of the Zenbook Duo UX8406 off while the keyboard lies o
  set. udev rules run the helper when the keyboard arrives on or leaves its
  dock port and when the upper panel's brightness changes.
  .
- Does nothing on any other model.
+ Does nothing on a model that it does not know.
 
 Package: asus-zenbook-duo-ux8406-tcc-guard
 Architecture: amd64
@@ -101,7 +101,7 @@ Description: KDE Plasma integration for the display keys of the Zenbook Duo UX84
  asus-zenbook-duo-ux8406-keyboard-bpf. For Plasma 6 on Wayland. Active after
  the next login.
  .
- Does nothing on any other model.
+ Does nothing on a model that it does not know.
 
 Package: plasma-builtin-screen-rotation
 Architecture: amd64

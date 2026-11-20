@@ -25,11 +25,11 @@ The packages: [keys](../kde-keys/README.md),
 1. Without a seat KWin binds no key; the script loads, and a call over D-Bus
    stands in for the key.
 2. The keys program works only with the connectors `eDP-1` and `eDP-2` and on a
-   UX8406 (DMI). In a VM the outputs are `Virtual-1`, `Virtual-2` and the DMI
-   name is another one, so the keys program ends at once. The rotation program
-   takes `eDP`, `LVDS` and `DSI` as built-in; a VM has none of them, so it shows
-   no control. A VM tests the packages, the script, the applet and KWin's
-   behaviour, not the layouts of the panels.
+   UX8406 or UX8407 (DMI). In a VM the outputs are `Virtual-1`, `Virtual-2` and
+   the DMI name is another one, so the keys program ends at once. The rotation
+   program takes `eDP`, `LVDS` and `DSI` as built-in; a VM has none of them, so
+   it shows no control. A VM tests the packages, the script, the applet and
+   KWin's behaviour, not the layouts of the panels.
 3. python-dbusmock has a template for iio-sensor-proxy; the orientation is then
    set by hand.
 4. A live session keeps its home in RAM: log out and in, but do not restart. The

@@ -50,7 +50,7 @@ pub struct Outcome {
 ///
 /// # Errors
 ///
-/// [`Error::UnsupportedModel`] on any machine but a UX8406,
+/// [`Error::UnsupportedModel`] if [`Sysfs::is_supported_model`] is false,
 /// [`Error::NoLowerPanel`] if the connector is missing, and [`Error::Io`]
 /// if it cannot be found or written. Nothing is written in the first two
 /// cases.
@@ -130,7 +130,7 @@ pub fn tolerate_taken_over(result: Result<Brightness, Error>) -> Result<Option<B
 ///
 /// # Errors
 ///
-/// [`Error::UnsupportedModel`] on any machine but a UX8406,
+/// [`Error::UnsupportedModel`] if [`Sysfs::is_supported_model`] is false,
 /// [`Error::NoBacklight`] if a panel has no backlight device,
 /// [`Error::BadBrightness`] if a brightness cannot be read or is off its
 /// scale, and [`Error::Io`] if the lower panel's cannot be written.

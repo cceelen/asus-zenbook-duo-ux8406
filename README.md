@@ -117,17 +117,18 @@ What is tested on the hardware: refer to [Test reports](#test-reports).
 
 Requirements:
 
-| Part             | Requirement                                                      |
-| ---------------- | ---------------------------------------------------------------- |
-| All but Rotation | A Zenbook Duo UX8406. On other machines the programs do nothing. |
-| Guard            | systemd or OpenRC                                                |
-| Second screen    | udev                                                             |
-| Keyboard         | Linux 6.11 or later with HID-BPF and BTF, and [udev-hid-bpf]     |
-| Keys             | GNOME Shell 45 or later                                          |
-| Rotation         | GNOME Shell 45 or later, iio-sensor-proxy; a laptop of any model |
-| KDE keys         | Plasma 6 on Wayland                                              |
-| KDE rotation     | Plasma 6.4 or later, iio-sensor-proxy; a laptop of any model     |
-| KDE shortcuts    | Plasma 6                                                         |
+| Part          | Models                                     | Needs                                                    |
+| ------------- | ------------------------------------------ | -------------------------------------------------------- |
+| Guard         | UX8406; UX8407 with the setting `model`    | systemd or OpenRC                                        |
+| Second screen | UX8406, UX8407                             | udev                                                     |
+| Keyboard      | the keyboards of the UX8406CA and UX8406MA | Linux 6.11 or later with HID-BPF and BTF, [udev-hid-bpf] |
+| Keys          | UX8406                                     | GNOME Shell 45 or later                                  |
+| Rotation      | any laptop                                 | GNOME Shell 45 or later, iio-sensor-proxy                |
+| KDE keys      | UX8406, UX8407                             | Plasma 6 on Wayland                                      |
+| KDE rotation  | any laptop                                 | Plasma 6.4 or later, iio-sensor-proxy                    |
+| KDE shortcuts | any laptop; the keys come from Keyboard    | Plasma 6                                                 |
+
+On other models the programs do nothing.
 
 Ubuntu 24.04 is not supported: its Rust is too old.
 

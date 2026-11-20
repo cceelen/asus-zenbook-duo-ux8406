@@ -3,8 +3,8 @@
 use rstest::rstest;
 
 use crate::common::{
-    DOCKED_KEYBOARD_PRODUCT, LOWER_BRIGHTNESS, LOWER_STATUS, PRODUCT_NAME, SISTER_MODEL, Sys,
-    docked,
+    DOCKED_KEYBOARD_PRODUCT, LOWER_BRIGHTNESS, LOWER_STATUS, NEXT_MODEL, PRODUCT_NAME,
+    SISTER_MODEL, Sys, docked,
 };
 
 #[rstest]
@@ -29,6 +29,15 @@ fn undocking_brings_the_panel_back_at_the_upper_brightness(docked: Sys) {
 fn the_other_ux8406_and_its_keyboard_count_too(docked: Sys) {
     docked.write(PRODUCT_NAME, SISTER_MODEL);
     docked.write(DOCKED_KEYBOARD_PRODUCT, "1b2c\n");
+
+    docked.program().arg("dock").assert().success();
+
+    assert_eq!(docked.read(LOWER_STATUS), "off");
+}
+
+#[rstest]
+fn the_ux8407_counts_too(docked: Sys) {
+    docked.write(PRODUCT_NAME, NEXT_MODEL);
 
     docked.program().arg("dock").assert().success();
 

@@ -9,8 +9,8 @@ use asus_ux8406_second_screen::{Detection, Error, Panel};
 use rstest::rstest;
 
 use crate::common::{
-    LOWER_STATUS, Sys, UNTOUCHED, UPPER_BRIGHTNESS, docked, empty, panels_only, screenpad_only,
-    upper_panel_only,
+    LOWER_STATUS, NEXT_MODEL, PRODUCT_NAME, Sys, UNTOUCHED, UPPER_BRIGHTNESS, docked, empty,
+    panels_only, screenpad_only, upper_panel_only,
 };
 
 #[test]
@@ -28,6 +28,13 @@ fn the_model_is_read_from_the_product_name(panels_only: Sys, docked: Sys, empty:
     assert!(panels_only.sysfs().is_supported_model());
     assert!(!docked.sysfs().is_supported_model());
     assert!(!empty.sysfs().is_supported_model());
+}
+
+#[rstest]
+fn the_ux8407_is_a_supported_model(docked: Sys) {
+    docked.write(PRODUCT_NAME, NEXT_MODEL);
+
+    assert!(docked.sysfs().is_supported_model());
 }
 
 #[rstest]

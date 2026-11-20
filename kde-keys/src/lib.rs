@@ -5,7 +5,7 @@
 //! It is a client of KWin's output management on Wayland (refer to
 //! [`asus_ux8406_kde_common::output`]) and of KWin's input devices on D-Bus
 //! ([`input`]), and it offers [`service::NAME`] on the session bus, which
-//! the KWin script calls. On any other model it does nothing.
+//! the KWin script calls.
 
 pub mod cli;
 pub mod input;
@@ -45,7 +45,7 @@ pub fn run(cli: &Cli) -> Result<(), Error> {
     if !machine::is_model(&cli.root) {
         info!(
             "this is not a Zenbook Duo {}: nothing to do",
-            machine::MODEL
+            machine::MODELS.join(" or ")
         );
         return Ok(());
     }

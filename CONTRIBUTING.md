@@ -27,9 +27,29 @@ Open an issue, also when all functions operate. Include:
   brightness), special function keys (dock, cable, Bluetooth), guard, screen
   rotation.
 
-The packages are developed on a UX8406CA. For a UX8406MA or another sub-model,
-also report the USB and Bluetooth ids of the keyboard (`udevadm info`), the USB
-port of the docked keyboard, and the size of the keyboard's report descriptors.
+The packages are developed on a UX8406CA. For a UX8406MA, a UX8407 or another
+sub-model, also report:
+
+- The USB and Bluetooth ids of the keyboard:
+  `ls /sys/bus/hid/devices/ | grep -i 0b05`.
+
+- The report descriptors of the keyboard, on the dock and over Bluetooth:
+
+  ```sh
+  for d in /sys/bus/hid/devices/*:0B05:*; do
+    echo "$d $(cat $d/modalias) $(wc -c < $d/report_descriptor) bytes"
+    xxd -p -c 256 $d/report_descriptor
+  done
+  ```
+
+- The USB port of the docked keyboard: `lsusb -t`.
+
+- The touch controllers: `ls /sys/bus/i2c/devices/`.
+
+- Under load: whether `journalctl -k` shows `asus_wmi: Unknown key code 0x6d`.
+
+On a UX8407 the guard needs a setting: refer to the
+[guard README](tcc-guard/README.md).
 
 The rotation extension is not specific to the UX8406: a report from another
 laptop, with one or two built-in screens, is useful too.
