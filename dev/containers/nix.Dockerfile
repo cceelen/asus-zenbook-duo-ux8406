@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+# syntax=docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
 # Nix: build the packages of the flake. Nix builds into its store, so there
 # are no package files to take out; the image keeps the results as links:
 # /second-screen, /tcc-guard, /keyboard-bpf, /gnome-rotation and /kde-rotation.
@@ -11,7 +11,7 @@
 # on is stated in the build log below.
 
 # The base image, pinned by digest. Renovate updates the tag and the digest.
-FROM docker.io/nixos/nix:latest@sha256:b49cb33f3a7e5cf3933ad8774529de0e3807ec5cf54987aa7ccdfb49f2fc55ed
+FROM docker.io/nixos/nix:latest@sha256:746280551ddc1c72177d1a597c05eacac86dfaa18d5d649bf86411278bcd5470
 COPY . /build
 WORKDIR /build
 # path: so that Nix sees every file of the tree, tracked by git or not.

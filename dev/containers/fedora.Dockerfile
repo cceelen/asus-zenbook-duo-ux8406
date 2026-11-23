@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+# syntax=docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
 # Fedora: build the rpms, then install them on a clean system. The stages run
 # the scripts of this directory, as .github/workflows/packages.yml does.
 #
@@ -8,7 +8,7 @@
 
 # The base image, pinned by digest. Renovate updates the tag and the digest;
 # packages.yml pins its own images for the CI builds.
-FROM registry.fedoraproject.org/fedora:44@sha256:f08613fffc95f5c85c019b2f4ac9e9fb9bb84b9cfd59275671b84169567b157e AS base
+FROM registry.fedoraproject.org/fedora:44@sha256:aca68c361f2a89de8a64e8d91a47494f37fad05f88c2f503cdd8a284a74c70ac AS base
 
 FROM base AS tools
 COPY dev/containers/build-deps.sh /tmp/

@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+# syntax=docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
 # openSUSE Tumbleweed: build the rpms, then install them on a clean system.
 # The stages run the scripts of this directory, as
 # .github/workflows/packages.yml does.
@@ -10,7 +10,7 @@
 # The base image, pinned by digest, from Docker Hub: the openSUSE registry
 # deletes the old digests of its rolling images within days. Renovate updates
 # the digest; packages.yml pins its own images for the CI builds.
-FROM docker.io/opensuse/tumbleweed:latest@sha256:9f4c5b5b7989d296a7df5c41128ffd86800b76a6a4a039f6e343397f1daace68 AS base
+FROM docker.io/opensuse/tumbleweed:latest@sha256:3e4ba7f382638c643eb5805d959637d9a59ede4f640fe9407106493fc6ac9ede AS base
 
 FROM base AS tools
 COPY dev/containers/build-deps.sh /tmp/
