@@ -275,6 +275,13 @@ impl Outputs {
             .filter_map(|device| device.described().map(|(info, name)| (device, info, name)))
     }
 
+    /// The output with this connector, with what it said.
+    fn named(&self, connector: &str) -> Option<(&Device, Info)> {
+        self.described()
+            .find(|(_, _, name)| name == connector)
+            .map(|(device, info, _)| (device, info))
+    }
+
     /// The outputs as plain data: the monitors that are on, in the order in
     /// which KWin announced them. An output that shows another one
     /// (replication) is in the monitor of that one. The primary output is
@@ -340,14 +347,12 @@ impl Outputs {
     /// to its last `done`; none if there is no such output.
     #[must_use]
     pub fn panel(&self, connector: &str) -> Option<Panel> {
-        self.described()
-            .find(|(_, _, name)| name == connector)
-            .map(|(_, info, _)| Panel {
-                enabled: info.enabled,
-                level: info
-                    .brightness
-                    .filter(|_| info.capabilities & BRIGHTNESS_CAPABILITY != 0),
-            })
+        self.named(connector).map(|(_, info)| Panel {
+            enabled: info.enabled,
+            level: info
+                .brightness
+                .filter(|_| info.capabilities & BRIGHTNESS_CAPABILITY != 0),
+        })
     }
 
     fn configuration(&mut self, qh: &QueueHandle<Self>) -> (KdeOutputConfigurationV2, u64) {
@@ -440,10 +445,7 @@ impl Outputs {
             return None;
         }
 
-        let device = self
-            .described()
-            .find(|(_, _, name)| name == connector)
-            .map(|(device, _, _)| device.proxy.clone())?;
+        let device = self.named(connector)?.0.proxy.clone();
         let (configuration, number) = self.configuration(qh);
 
         configuration.set_brightness(&device, level);

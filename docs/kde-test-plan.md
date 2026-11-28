@@ -96,8 +96,8 @@ panels (note 2).
 
 ## Checks
 
-Items 1 and 2 are for the outputs, 3 to 10 for the keys, 11 for the shortcuts,
-and 12 to 17 for the rotation.
+Items 1 and 2 are for the outputs, 3 to 10 and 18 for the keys, 11 for the
+shortcuts, and 12 to 17 for the rotation.
 
 01. `plasmashell --version`, `echo $XDG_SESSION_TYPE` (`wayland`).
 
@@ -172,20 +172,30 @@ and 12 to 17 for the rotation.
     and no overlap (KWin may round the logical size other than
     `round(pixels / scale)`).
 
+18. Brightness of the lower screen, with both screens on: change the brightness
+    of the upper screen with the keys or in the panel: the lower screen follows.
+    Change the lower screen alone in the panel: it goes back to the value of the
+    upper screen. Put the keyboard on the lower screen and take it off, and
+    suspend and resume: the two screens have the same brightness again.
+    `kscreen-doctor -j`: both built-in panels have the capability `brightness`.
+    Watch `journalctl --user -b -g asus-ux8406-kde-keys` and the second-screen
+    helper (`udevadm monitor`): the value does not jump between the two.
+
 ## Points that only a KDE session can settle
 
-| Point                                                                        | Check                   |
-| ---------------------------------------------------------------------------- | ----------------------- |
-| `registerShortcut` takes `Launch (9)` as the key of XF86Launch9              | 4, 5                    |
-| A user binding stays after an update of the script                           | 4                       |
-| KWin takes `enable 0` for an internal panel on 6.6 (no `disable` capability) | 5                       |
-| The saved layout after the second-screen helper takes `eDP-2` away and back  | 7                       |
-| `sendClientToScreen` keeps tiles and size; property names of 6.6             | 8                       |
-| Names of the ELAN devices in KWin; the pen is a device of its own            | 3, 9                    |
-| A touchscreen without its screen is mapped to the upper one                  | 10                      |
-| KWin takes both panels turned in one configuration; no move of other outputs | 13                      |
-| The policy `never` stops KWin's own claim on the accelerometer               | 12, 13                  |
-| The QML module `org.kde.plasma.workspace.dbus` and its property map in 6.4   | 14                      |
-| The autostart entry gets `WAYLAND_DISPLAY`, and runs after KWin              | 3, 12                   |
-| The rounding of logical sizes at fractional scales                           | 17                      |
-| Whether the UX8406 has a tablet-mode switch (only for KWin's own rotation)   | `libinput list-devices` |
+| Point                                                                                               | Check                   |
+| --------------------------------------------------------------------------------------------------- | ----------------------- |
+| `registerShortcut` takes `Launch (9)` as the key of XF86Launch9                                     | 4, 5                    |
+| A user binding stays after an update of the script                                                  | 4                       |
+| KWin takes `enable 0` for an internal panel on 6.6 (no `disable` capability)                        | 5                       |
+| The saved layout after the second-screen helper takes `eDP-2` away and back                         | 7                       |
+| `sendClientToScreen` keeps tiles and size; property names of 6.6                                    | 8                       |
+| Names of the ELAN devices in KWin; the pen is a device of its own                                   | 3, 9                    |
+| A touchscreen without its screen is mapped to the upper one                                         | 10                      |
+| KWin takes both panels turned in one configuration; no move of other outputs                        | 13                      |
+| The policy `never` stops KWin's own claim on the accelerometer                                      | 12, 13                  |
+| The QML module `org.kde.plasma.workspace.dbus` and its property map in 6.4                          | 14                      |
+| KWin reports the brightness capability for both panels; the udev helper does not fight KWin's value | 18                      |
+| The autostart entry gets `WAYLAND_DISPLAY`, and runs after KWin                                     | 3, 12                   |
+| The rounding of logical sizes at fractional scales                                                  | 17                      |
+| Whether the UX8406 has a tablet-mode switch (only for KWin's own rotation)                          | `libinput list-devices` |

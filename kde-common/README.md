@@ -4,15 +4,16 @@
 extensions in Rust, checked against the same cases, and the client of KWin's
 output management. It is part of the programs and installs nothing.**
 
-| Module     | What it has                                                                 | GNOME file it comes from               |
-| ---------- | --------------------------------------------------------------------------- | -------------------------------------- |
-| `geometry` | the layout as plain data; sizes, valid layouts, moves                       | `gnome-common/state.js`                |
-| `layout`   | the lower screen out of the layout and back                                 | `gnome-keys/extension/layout.js`       |
-| `rotation` | the layout for an orientation of the laptop; the control of the applet      | `gnome-rotation/extension/rotation.js` |
-| `touch`    | the touch controllers of the machine and their panels                       | `gnome-keys/extension/touch.js`        |
-| `output`   | KWin's outputs on Wayland: what they are, and layouts and policies to apply | (KDE only)                             |
-| `daemon`   | the event loop and the log of the two programs                              | (KDE only)                             |
-| `protocol` | the Wayland code, made from the XML files in `protocols/`                   | (KDE only)                             |
+| Module       | What it has                                                                             | GNOME file it comes from               |
+| ------------ | --------------------------------------------------------------------------------------- | -------------------------------------- |
+| `geometry`   | the layout as plain data; sizes, valid layouts, moves                                   | `gnome-common/state.js`                |
+| `layout`     | the lower screen out of the layout and back                                             | `gnome-keys/extension/layout.js`       |
+| `rotation`   | the layout for an orientation of the laptop; the control of the applet                  | `gnome-rotation/extension/rotation.js` |
+| `brightness` | which brightness the lower screen gets                                                  | (KDE only)                             |
+| `touch`      | the touch controllers of the machine and their panels                                   | `gnome-keys/extension/touch.js`        |
+| `output`     | KWin's outputs on Wayland: what they are, and layouts, policies and brightness to apply | (KDE only)                             |
+| `daemon`     | the event loop and the log of the two programs                                          | (KDE only)                             |
+| `protocol`   | the Wayland code, made from the XML files in `protocols/`                               | (KDE only)                             |
 
 The GNOME extensions keep their JavaScript. Where the two cannot be the same
 (the mutter D-Bus data, the GNOME Shell objects), each desktop has its own code;
@@ -59,8 +60,8 @@ meson test -C build --suite asus-ux8406-kde-common
 - `tests/outputs/`: the output client against the fake KWin of `kde-fakes/`, in
   the forms of KWin 6.6 (a global for each screen), 6.8 (the registry) and an
   old KWin without the auto-rotate policy: what KWin describes, the requests of
-  a layout, refusals, policies, screens that come and go, and the end of the
-  connection.
+  a layout, refusals, policies, brightness, screens that come and go, and the
+  end of the connection.
 - `tests/event_loop/`: the event loop with a handler that writes down what it
   gets: commands, a time to wake up, changes of the outputs, the end of KWin.
 

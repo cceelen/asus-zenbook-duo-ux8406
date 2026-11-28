@@ -1,13 +1,27 @@
 //! The lower screen has the brightness of the upper screen.
 
+use asus_ux8406_kde_fakes::input::Device;
 use asus_ux8406_kde_fakes::{Compositor, Output};
 
 use crate::{LOWER, Session, UPPER, panels, touch};
 
 fn lower_follows(compositor: &Compositor, level: u32) {
     compositor.wait_for("the lower brightness", |c| {
-        c.output(LOWER).brightness == level
+        c.outputs()
+            .iter()
+            .any(|output| output.name == LOWER && output.brightness == level)
     });
+}
+
+/// The requests that set the brightness of the lower screen once.
+fn follow_requests(level: u32) -> Vec<String> {
+    vec![format!("{LOWER} brightness {level}"), "apply".to_owned()]
+}
+
+/// Take the lower screen away and put this one in its place.
+fn replace_lower(compositor: &Compositor, lower: Output) {
+    compositor.unplug(LOWER);
+    compositor.plug(lower);
 }
 
 #[test]
@@ -38,14 +52,46 @@ fn the_lower_screen_follows_the_upper_screen() {
 #[test]
 fn equal_screens_get_no_request() {
     let session = Session::new(panels(), Some(touch()));
-    let _program = session.start();
+    let program = session.start();
+    let compositor = &session.compositor;
 
-    session.compositor.set_brightness(UPPER, 5000);
-    session.compositor.set_brightness(LOWER, 5000);
-    session
-        .compositor
-        .wait_for("the brightness", |c| c.output(LOWER).brightness == 5000);
-    assert_eq!(session.compositor.requests(), Vec::<String>::new());
+    compositor.set_brightness(UPPER, 5000);
+    compositor.set_brightness(LOWER, 5000);
+    compositor.set_brightness(UPPER, 2000);
+    lower_follows(compositor, 2000);
+    program.wait_log("eDP-2: brightness 2000, as eDP-1");
+    assert_eq!(compositor.requests(), follow_requests(2000));
+}
+
+#[test]
+fn the_lower_screen_that_differs_at_the_start_follows() {
+    let session = Session::new(
+        vec![
+            Output {
+                brightness: 3000,
+                priority: 1,
+                ..Output::panel(UPPER, 0, 0)
+            },
+            Output::panel(LOWER, 0, 1440),
+        ],
+        Some(touch()),
+    );
+    let program = session.start();
+
+    lower_follows(&session.compositor, 3000);
+    program.wait_log("eDP-2: brightness 3000, as eDP-1");
+    assert_eq!(session.compositor.requests(), follow_requests(3000));
+}
+
+#[test]
+fn a_lower_screen_that_alone_changes_is_set_back() {
+    let session = Session::new(panels(), Some(touch()));
+    let program = session.start();
+
+    session.compositor.set_brightness(LOWER, 8000);
+    lower_follows(&session.compositor, 5000);
+    program.wait_log("eDP-2: brightness 5000, as eDP-1");
+    assert_eq!(session.compositor.requests(), follow_requests(5000));
 }
 
 #[test]
@@ -57,11 +103,7 @@ fn a_lower_screen_that_comes_gets_the_brightness_of_the_upper_screen() {
         brightness: 9000,
         ..Output::panel(LOWER, 0, 1440)
     });
-    session.compositor.wait_for("the lower brightness", |c| {
-        c.outputs()
-            .iter()
-            .any(|output| output.name == LOWER && output.brightness == 5000)
-    });
+    lower_follows(&session.compositor, 5000);
     program.wait_log("eDP-2: brightness 5000, as eDP-1");
 }
 
@@ -94,14 +136,14 @@ fn a_lower_screen_that_is_off_is_left_alone() {
         ],
         Some(touch()),
     );
-    let _program = session.start();
+    let program = session.start();
+    let compositor = &session.compositor;
 
-    session.compositor.set_brightness(UPPER, 2000);
-    session
-        .compositor
-        .wait_for("the brightness", |c| c.output(UPPER).brightness == 2000);
-    assert_eq!(session.compositor.requests(), Vec::<String>::new());
-    assert_eq!(session.compositor.output(LOWER).brightness, 5000);
+    compositor.set_brightness(UPPER, 2000);
+    replace_lower(compositor, Output::panel(LOWER, 0, 1440));
+    lower_follows(compositor, 2000);
+    program.wait_log("eDP-2: brightness 2000, as eDP-1");
+    assert_eq!(compositor.requests(), follow_requests(2000));
 }
 
 #[test]
@@ -116,45 +158,41 @@ fn a_lower_screen_without_the_capability_is_left_alone() {
         ],
         Some(touch()),
     );
-    let _program = session.start();
-
-    session.compositor.set_brightness(UPPER, 2000);
-    session
-        .compositor
-        .wait_for("the brightness", |c| c.output(UPPER).brightness == 2000);
-    assert_eq!(session.compositor.requests(), Vec::<String>::new());
-}
-
-#[test]
-fn a_brightness_that_kwin_refuses_is_logged() {
-    let session = Session::new(panels(), Some(touch()));
     let program = session.start();
+    let compositor = &session.compositor;
 
-    session.compositor.refuse_next("no");
-    session.compositor.set_brightness(UPPER, 2000);
-    program.wait_log("KWin did not take the brightness: no");
-    assert_eq!(
-        session.compositor.requests(),
-        [format!("{LOWER} brightness 2000"), "apply".to_owned()]
-    );
+    compositor.set_brightness(UPPER, 2000);
+    replace_lower(compositor, Output::panel(LOWER, 0, 1440));
+    lower_follows(compositor, 2000);
+    program.wait_log("eDP-2: brightness 2000, as eDP-1");
+    assert_eq!(compositor.requests(), follow_requests(2000));
 }
 
 #[test]
-fn no_second_request_waits_for_the_answer() {
+fn a_brightness_that_kwin_refuses_is_logged_and_not_sent_again() {
     let session = Session::new(panels(), Some(touch()));
     let program = session.start();
     let compositor = &session.compositor;
 
-    compositor.ignore_next_apply();
+    compositor.refuse_next("no");
     compositor.set_brightness(UPPER, 2000);
-    program.wait_log("eDP-2: brightness 2000, as eDP-1");
-    compositor.set_brightness(UPPER, 3000);
-    compositor.wait_for("the upper brightness", |c| {
-        c.output(UPPER).brightness == 3000
+    program.wait_log("KWin did not take the brightness: no");
+
+    // The program handles a later command only after the answer, and a
+    // second request would have left before it.
+    session.input().add(Device::pen("event20", 0x4448));
+    program.wait_for("the pen on its panel", || {
+        session.input().output_name("event20") == LOWER
     });
-    program.wait_for("the program has read it", || {
-        compositor.requests() == [format!("{LOWER} brightness 2000"), "apply".to_owned()]
-    });
+    assert_eq!(compositor.requests(), follow_requests(2000));
+
+    // The next change of the outputs is the next try.
+    compositor.plug(Output::monitor("DP-1", 1920, 1080, 2304, 0));
+    lower_follows(compositor, 2000);
+    assert_eq!(
+        compositor.requests(),
+        [follow_requests(2000), follow_requests(2000)].concat()
+    );
 }
 
 #[test]
@@ -173,4 +211,8 @@ fn a_change_while_kwin_holds_the_answer_is_not_lost() {
     compositor.answer_held();
     lower_follows(compositor, 3000);
     program.wait_log("eDP-2: brightness 3000, as eDP-1");
+    assert_eq!(
+        compositor.requests(),
+        [follow_requests(2000), follow_requests(3000)].concat()
+    );
 }

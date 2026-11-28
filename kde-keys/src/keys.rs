@@ -84,12 +84,13 @@ impl Keys {
 
     /// Give the lower panel the brightness of the upper panel, where they
     /// differ and KWin has not got a change of it already.
-    fn follow_brightness(&mut self, session: &mut Session) {
+    pub fn follow_brightness(&mut self, session: &mut Session) {
         let level = follow(session.outputs.panel(UPPER), session.outputs.panel(LOWER));
 
         if let (Some(level), None) = (level, self.brightness) {
-            self.brightness = session.set_brightness(LOWER, level);
-            info!("{LOWER}: brightness {level}, as {UPPER}");
+            self.brightness = session
+                .set_brightness(LOWER, level)
+                .inspect(|_| info!("{LOWER}: brightness {level}, as {UPPER}"));
         }
     }
 
