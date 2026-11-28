@@ -15,6 +15,13 @@ keyboard package.**
 The package [asus-zenbook-duo-ux8406-keyboard-bpf](../keyboard-bpf/README.md) is
 necessary: it makes the keyboard send these keys, as `XF86Launch9` and `F19`.
 
+## Brightness
+
+The extension keeps the brightness of the lower screen equal to that of the
+upper screen, through GNOME Shell. It sets the lower screen when the upper
+screen changes and when a monitor comes back. It does nothing on a GNOME Shell
+that cannot read the brightness of a monitor.
+
 ## Touch
 
 Without a setting, GNOME gives the two touchscreens to the upper screen: the two
@@ -55,9 +62,9 @@ GNOME Shell 45 to 51 is declared.
 meson test -C build --suite gnome-keys
 ```
 
-`layout.js` and `touch.js` have the logic and no GNOME imports; `display.js`
-calls `org.gnome.Mutter.DisplayConfig`. For the files that the two extensions
-share, and for an installation from the tree, refer to
+The logic is in the modules without GNOME imports, which the tests load;
+`display.js` calls `org.gnome.Mutter.DisplayConfig`. For the files that the two
+extensions share, and for an installation from the tree, refer to
 [CONTRIBUTING.md](../CONTRIBUTING.md#an-extension-without-a-package).
 
 `tests/verify.js` is a manual check in a GNOME session. It asks Mutter to verify

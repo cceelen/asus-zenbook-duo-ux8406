@@ -10,6 +10,9 @@
 // The keyboard delivers these keys only with asus-zenbook-duo-ux8406-keyboard-bpf, as F18
 // (XF86Launch9) and F19. On any other model the extension binds nothing.
 //
+// It keeps the brightness of the lower panel equal to that of the upper panel,
+// through the compositor: refer to brightness.js.
+//
 // It also tells the compositor which panel each touchscreen and pen belongs
 // to, where the user has set nothing: refer to touch.js.
 import Gio from 'gi://Gio';
@@ -19,6 +22,7 @@ import Shell from 'gi://Shell';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+import {lowerBrightness} from './brightness.js';
 import {applyLayout, currentState} from './display.js';
 import {toggle} from './layout.js';
 import {find} from './state.js';
@@ -80,6 +84,23 @@ function monitorAt({x, y}) {
     return -1;
 }
 
+/** The backlight of the monitor with this connector; null if there is none. */
+function backlightOf(manager, connector) {
+    const monitor = manager.get_monitors().find((m) => m.get_connector() === connector);
+
+    return monitor?.get_backlight?.() ?? null;
+}
+
+/** {value, min, max} of a backlight, as brightness.js takes it. */
+function rangeOf(backlight) {
+    if (!backlight) return null;
+    return {
+        value: backlight.brightness,
+        min: backlight.brightness_min,
+        max: backlight.brightness_max,
+    };
+}
+
 /** Move a window to another monitor, to the same place on it. */
 function moveTo(window, target) {
     const display = global.display;
@@ -122,6 +143,18 @@ export default class ZenbookDuoKeys extends Extension {
             this._assignTouch(),
         );
         this._assignTouch();
+
+        this._backlightHandlers = [];
+        this._brightnessManager = null;
+        const manager = global.backend.get_monitor_manager?.();
+
+        if (typeof manager?.get_monitors === 'function') {
+            this._brightnessManager = manager;
+            this._brightnessMonitors = manager.connect('monitors-changed', () =>
+                this._watchBrightness(),
+            );
+            this._watchBrightness();
+        }
     }
 
     disable() {
@@ -131,9 +164,46 @@ export default class ZenbookDuoKeys extends Extension {
         this._bound = false;
         if (this._monitorsChanged) Main.layoutManager.disconnect(this._monitorsChanged);
         this._monitorsChanged = 0;
+        this._unwatchBrightness();
+        if (this._brightnessMonitors) this._brightnessManager.disconnect(this._brightnessMonitors);
+        this._brightnessMonitors = 0;
+        this._brightnessManager = null;
         this._controllers = null;
         this._settings = null;
         this._saved = null;
+    }
+
+    /**
+     * Follow the brightness of the upper panel, and set the lower panel at
+     * once. The lower panel is not followed: a set that does not change the
+     * value is not made, so a change that comes back ends there.
+     */
+    _watchBrightness() {
+        this._unwatchBrightness();
+
+        const upper = backlightOf(this._brightnessManager, UPPER);
+
+        if (!upper) return;
+        this._backlightHandlers.push([
+            upper,
+            upper.connect('notify::brightness', () => this._syncBrightness()),
+        ]);
+        this._syncBrightness();
+    }
+
+    _unwatchBrightness() {
+        for (const [backlight, id] of this._backlightHandlers ?? []) backlight.disconnect(id);
+        this._backlightHandlers = [];
+    }
+
+    _syncBrightness() {
+        const lower = backlightOf(this._brightnessManager, LOWER);
+        const value = lowerBrightness(
+            rangeOf(backlightOf(this._brightnessManager, UPPER)),
+            rangeOf(lower),
+        );
+
+        if (value !== null) lower.set_brightness(value);
     }
 
     _bind(key, action) {
