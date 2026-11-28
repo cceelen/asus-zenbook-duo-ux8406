@@ -73,6 +73,9 @@ screen at that time, and the program gives it its panel.
   GNOME extension in Rust. The program keeps the layout from before the key
   switched the screen off, for the session, and puts it back at the next press.
   Without it, the lower screen goes below the upper screen.
+- KWin keeps a brightness for each screen and puts it back when a screen
+  returns. The program gives the lower screen the brightness of the upper
+  screen, when the upper one changes and when the lower one comes or returns.
 - The touch devices are KWin's objects `/org/kde/KWin/InputDevice/eventN` on the
   session bus.
 - An XDG autostart entry (`/etc/xdg/autostart/asus-ux8406-kde-keys.desktop`,

@@ -18,6 +18,7 @@ use wayland_client::globals::{BindError, GlobalError, GlobalListContents, regist
 use wayland_client::protocol::wl_registry::{self, WlRegistry};
 use wayland_client::{Connection, Dispatch, EventQueue, Proxy, QueueHandle};
 
+use crate::brightness::Panel;
 use crate::geometry::{Monitor, Size, State};
 use crate::protocol::device::kde_output_device_mode_v2::{self, KdeOutputDeviceModeV2};
 use crate::protocol::device::kde_output_device_registry_v2::{self, KdeOutputDeviceRegistryV2};
@@ -34,8 +35,12 @@ const REGISTRY_VERSION: u32 = 21;
 const MANAGEMENT_VERSION: u32 = 22;
 /// The first version of the configuration that sets the auto-rotate policy.
 const POLICY_VERSION: u32 = 5;
+/// The first version of the configuration that sets the brightness.
+const BRIGHTNESS_VERSION: u32 = 9;
 /// The first version of a mode that has the request `release`.
 const MODE_RELEASE_VERSION: u32 = 26;
+/// The flag of the capability `brightness` of an output.
+const BRIGHTNESS_CAPABILITY: u32 = 0x80;
 /// The name of the global of one output, as KWin 6.6 has it.
 const DEVICE_GLOBAL: &str = "kde_output_device_v2";
 
@@ -148,6 +153,8 @@ struct Info {
     policy: Option<Policy>,
     replication_source: String,
     priority: u32,
+    capabilities: u32,
+    brightness: Option<u32>,
 }
 
 /// What the events of one output built up: the user data of its proxy.
@@ -329,6 +336,20 @@ impl Outputs {
             .collect()
     }
 
+    /// The brightness of the output with this connector, as KWin told it up
+    /// to its last `done`; none if there is no such output.
+    #[must_use]
+    pub fn panel(&self, connector: &str) -> Option<Panel> {
+        self.described()
+            .find(|(_, _, name)| name == connector)
+            .map(|(_, info, _)| Panel {
+                enabled: info.enabled,
+                level: info
+                    .brightness
+                    .filter(|_| info.capabilities & BRIGHTNESS_CAPABILITY != 0),
+            })
+    }
+
     fn configuration(&mut self, qh: &QueueHandle<Self>) -> (KdeOutputConfigurationV2, u64) {
         self.next += 1;
         (
@@ -402,6 +423,30 @@ impl Outputs {
                 configuration.set_auto_rotate_policy(&device.proxy, policy.to_configuration());
             }
         }
+        configuration.apply();
+        Some(number)
+    }
+
+    /// Set the brightness of the output with this connector, from 0 to
+    /// 10000. `None` where there is no such output, or the configuration of
+    /// KWin cannot set the brightness.
+    pub fn set_brightness(
+        &mut self,
+        qh: &QueueHandle<Self>,
+        connector: &str,
+        level: u32,
+    ) -> Option<u64> {
+        if self.management.version() < BRIGHTNESS_VERSION {
+            return None;
+        }
+
+        let device = self
+            .described()
+            .find(|(_, _, name)| name == connector)
+            .map(|(device, _, _)| device.proxy.clone())?;
+        let (configuration, number) = self.configuration(qh);
+
+        configuration.set_brightness(&device, level);
         configuration.apply();
         Some(number)
     }
@@ -544,6 +589,13 @@ impl Session {
         self.outputs.set_policies(&qh, policies)
     }
 
+    /// Set the brightness of an output; refer to [`Outputs::set_brightness`].
+    pub fn set_brightness(&mut self, connector: &str, level: u32) -> Option<u64> {
+        let qh = self.queue.handle();
+
+        self.outputs.set_brightness(&qh, connector, level)
+    }
+
     /// What came from KWin since the last call.
     pub fn take_events(&mut self) -> Vec<Event> {
         std::mem::take(&mut self.outputs.events)
@@ -676,6 +728,8 @@ impl Dispatch<KdeOutputDeviceV2, Arc<DeviceData>> for Outputs {
             }
             E::ReplicationSource { source } => info.replication_source = source,
             E::Priority { priority } => info.priority = priority,
+            E::Capabilities { flags } => info.capabilities = flags.into(),
+            E::Brightness { brightness } => info.brightness = Some(brightness),
             E::Done => {
                 *lock(&data.done) = Some(info.clone());
                 outputs.changed();

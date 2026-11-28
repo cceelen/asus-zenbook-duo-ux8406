@@ -2,6 +2,7 @@
 
 use std::time::Instant;
 
+use asus_ux8406_kde_common::brightness::follow;
 use asus_ux8406_kde_common::daemon::Handler;
 use asus_ux8406_kde_common::geometry::{Monitor, State};
 use asus_ux8406_kde_common::layout::{Toggle, toggle};
@@ -27,6 +28,9 @@ pub struct Keys {
     /// The configurations that KWin has not answered yet, each with the
     /// layout to remember once KWin took it.
     pending: Vec<(u64, Option<Vec<Monitor>>)>,
+    /// The configuration that sets the brightness of the lower panel, as
+    /// long as KWin has not answered it.
+    brightness: Option<u64>,
 }
 
 impl Keys {
@@ -39,6 +43,7 @@ impl Keys {
             controllers,
             saved: None,
             pending: Vec::new(),
+            brightness: None,
         }
     }
 
@@ -77,7 +82,28 @@ impl Keys {
         }
     }
 
-    fn answered(&mut self, number: u64, refusal: Option<&str>) {
+    /// Give the lower panel the brightness of the upper panel, where they
+    /// differ and KWin has not got a change of it already.
+    fn follow_brightness(&mut self, session: &mut Session) {
+        let level = follow(session.outputs.panel(UPPER), session.outputs.panel(LOWER));
+
+        if let (Some(level), None) = (level, self.brightness) {
+            self.brightness = session.set_brightness(LOWER, level);
+            info!("{LOWER}: brightness {level}, as {UPPER}");
+        }
+    }
+
+    /// Whether this answer was that to the brightness configuration, and KWin
+    /// took it.
+    fn answered(&mut self, number: u64, refusal: Option<&str>) -> bool {
+        if self.brightness == Some(number) {
+            self.brightness = None;
+            if let Some(reason) = refusal {
+                warn!("KWin did not take the brightness: {reason}");
+                return false;
+            }
+            return true;
+        }
         let (answered, pending) = std::mem::take(&mut self.pending)
             .into_iter()
             .partition::<Vec<_>, _>(|(pending, _)| *pending == number);
@@ -89,6 +115,7 @@ impl Keys {
                 Some(reason) => warn!("KWin did not take the layout: {reason}"),
             }
         }
+        false
     }
 }
 
@@ -96,12 +123,20 @@ impl Handler for Keys {
     type Command = Command;
 
     fn outputs(&mut self, session: &mut Session, events: Vec<Event>) {
+        let mut look = false;
+
         for event in events {
-            match event {
-                Event::Changed => self.assign(&session.outputs.state()),
+            look |= match event {
+                Event::Changed => {
+                    self.assign(&session.outputs.state());
+                    true
+                }
                 Event::Applied(number) => self.answered(number, None),
                 Event::Failed(number, reason) => self.answered(number, Some(&reason)),
-            }
+            };
+        }
+        if look {
+            self.follow_brightness(session);
         }
     }
 
