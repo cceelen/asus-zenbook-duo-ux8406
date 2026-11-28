@@ -3,6 +3,7 @@
 //! program, in parallel threads; each test has a compositor of its own.
 
 mod apply;
+mod brightness;
 mod connection;
 mod description;
 mod hotplug;

@@ -73,6 +73,10 @@ screen at that time, and the program gives it its panel.
   GNOME extension in Rust. The program keeps the layout from before the key
   switched the screen off, for the session, and puts it back at the next press.
   Without it, the lower screen goes below the upper screen.
+- The program gives the lower screen the brightness of the upper screen through
+  KWin: at the start, when the upper screen changes, and when the lower screen
+  comes or returns. A change of the lower screen alone is set back. Why:
+  [second-screen helper](../second-screen/README.md).
 - The touch devices are KWin's objects `/org/kde/KWin/InputDevice/eventN` on the
   session bus.
 - An XDG autostart entry (`/etc/xdg/autostart/asus-ux8406-kde-keys.desktop`,
@@ -97,10 +101,11 @@ meson test -C build --suite asus-ux8406-kde-keys
 - `cargo test` runs the program against a fake KWin: a Wayland server with the
   two protocols, and KWin's input devices on a private bus that the test starts
   (`dbus-daemon`). The tests examine the key (off, on, the remembered layout,
-  the keyboard on the screen, a refusal of KWin), the touch devices (each panel,
-  a device with a screen, a new device, devices that fail), and the ends
-  (another model, no Wayland, not KWin, no bus, a second instance, the end of
-  KWin). The fakes are in `kde-fakes/`.
+  the keyboard on the screen, a refusal of KWin), the brightness of the lower
+  screen (at the start, a change, a screen that returns, refusals), the touch
+  devices (each panel, a device with a screen, a new device, devices that fail),
+  and the ends (another model, no Wayland, not KWin, no bus, a second instance,
+  the end of KWin). The fakes are in `kde-fakes/`.
 - `script` runs the KWin script in node, in a stand-in for KWin's scripting API:
   the two shortcuts, the D-Bus call, and which windows move.
 - `package` compares the metadata of the script with the install directory.

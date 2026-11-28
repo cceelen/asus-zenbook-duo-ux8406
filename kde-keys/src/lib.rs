@@ -58,7 +58,7 @@ pub fn run(cli: &Cli) -> Result<(), Error> {
             Vec::new()
         }
     };
-    let session = Session::connect()?;
+    let mut session = Session::connect()?;
     let (sender, commands) = calloop::channel::channel();
     let added = sender.clone();
     let bus = service::serve(sender).and_then(|bus| {
@@ -68,9 +68,10 @@ pub fn run(cli: &Cli) -> Result<(), Error> {
         })
         .map(|()| bus)
     })?;
-    let keys = Keys::new(bus, controllers);
+    let mut keys = Keys::new(bus, controllers);
 
     keys.assign(&session.outputs.state());
+    keys.follow_brightness(&mut session);
     daemon::run(session, keys, commands)?;
     Ok(())
 }

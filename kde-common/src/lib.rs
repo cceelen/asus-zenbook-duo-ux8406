@@ -6,6 +6,7 @@
 //! `gnome-rotation/extension/`) in Rust, on plain data. Both are checked
 //! against the same cases, in `gnome-common/tests/vectors/`.
 
+pub mod brightness;
 pub mod daemon;
 pub mod geometry;
 pub mod hold;

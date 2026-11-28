@@ -94,6 +94,10 @@ pub struct Output {
     pub replication_source: String,
     /// Whether it tells a current mode, or only the one it prefers.
     pub has_current_mode: bool,
+    /// Its brightness, from 0 to 10000.
+    pub brightness: u32,
+    /// Whether it has the capability to set the brightness.
+    pub can_set_brightness: bool,
 }
 
 impl Output {
@@ -115,6 +119,8 @@ impl Output {
             priority: 2,
             replication_source: String::new(),
             has_current_mode: true,
+            brightness: 5000,
+            can_set_brightness: true,
         }
     }
 
@@ -137,10 +143,24 @@ enum Command {
     Unplug(String),
     SetPolicy(String, u32),
     SetTransform(String, u32),
+    SetBrightness(String, u32),
+    AnswerHeld,
     Resize(String, i32, i32),
     AddGlobal,
     Finish,
     Kick,
+}
+
+/// What the fake does with the next `apply`.
+#[derive(Clone, Copy, Default, PartialEq, Eq)]
+enum NextApply {
+    /// Carry it out and answer it.
+    #[default]
+    Answer,
+    /// Neither carry it out nor answer it, as a compositor that is slow.
+    Ignore,
+    /// Keep it until [`Compositor::answer_held`].
+    Hold,
 }
 
 /// What the test and the server thread share.
@@ -153,8 +173,8 @@ struct World {
     clients: usize,
     /// How many times a client released a mode.
     mode_releases: usize,
-    /// Do not answer the next `apply`, as a compositor that is slow.
-    ignore_apply: bool,
+    /// What happens to the next `apply`.
+    next_apply: NextApply,
     /// Stop at the next `apply`, and whether that came.
     stop_on_apply: bool,
     stopped: bool,
@@ -263,7 +283,19 @@ impl Compositor {
     /// Do not answer the next configuration at all, as a compositor that is
     /// slow. Nothing is changed.
     pub fn ignore_next_apply(&self) {
-        lock(&self.world).ignore_apply = true;
+        lock(&self.world).next_apply = NextApply::Ignore;
+    }
+
+    /// Hold the next configuration, unchanged and unanswered, until
+    /// [`Compositor::answer_held`].
+    pub fn hold_next_apply(&self) {
+        lock(&self.world).next_apply = NextApply::Hold;
+    }
+
+    /// Carry out and answer the configuration that [`Compositor::hold_next_apply`]
+    /// held.
+    pub fn answer_held(&self) {
+        lock(&self.world).commands.push(Command::AnswerHeld);
     }
 
     /// Stop the server at the next `apply`, as a compositor that ends while
@@ -297,6 +329,13 @@ impl Compositor {
         lock(&self.world)
             .commands
             .push(Command::SetTransform(name.to_owned(), transform));
+    }
+
+    /// Change the brightness of an output, as a user does with the keys.
+    pub fn set_brightness(&self, name: &str, brightness: u32) {
+        lock(&self.world)
+            .commands
+            .push(Command::SetBrightness(name.to_owned(), brightness));
     }
 
     /// Change the size of the mode of an output, as when the user picks
@@ -386,6 +425,8 @@ struct Server {
     /// The registries that clients bound.
     registries: Vec<KdeOutputDeviceRegistryV2>,
     clients: Vec<Client>,
+    /// The configuration that waits for [`Compositor::answer_held`].
+    held: Option<(KdeOutputConfigurationV2, Vec<(String, Change)>)>,
 }
 
 /// What a configuration collects up to `apply`.
@@ -399,6 +440,7 @@ enum Change {
     Transform(u32),
     Scale(f64),
     Policy(u32),
+    Brightness(u32),
     Mode,
 }
 
@@ -412,6 +454,7 @@ fn serve(style: Style, socket: &ListeningSocket, world: &Arc<Mutex<World>>, stop
         globals: Vec::new(),
         registries: Vec::new(),
         clients: Vec::new(),
+        held: None,
     };
 
     if let Some(version) = style.management() {
@@ -518,6 +561,19 @@ impl Server {
                     }
                 }
                 self.describe_again(&[name]);
+            }
+            Command::SetBrightness(name, brightness) => {
+                for output in &mut lock(&self.world).outputs {
+                    if output.name == name {
+                        output.brightness = brightness;
+                    }
+                }
+                self.describe_again(&[name]);
+            }
+            Command::AnswerHeld => {
+                if let Some((configuration, changes)) = self.held.take() {
+                    self.carry_out(&configuration, changes);
+                }
             }
             Command::Resize(name, width, height) => {
                 for output in &mut lock(&self.world).outputs {
@@ -644,8 +700,14 @@ impl Server {
             world.stopped = true;
             return;
         }
-        if std::mem::take(&mut world.ignore_apply) {
-            return;
+        match std::mem::take(&mut world.next_apply) {
+            NextApply::Answer => {}
+            NextApply::Ignore => return,
+            NextApply::Hold => {
+                drop(world);
+                self.held = Some((configuration.clone(), changes));
+                return;
+            }
         }
         if let Some(reason) = world.refusal.take() {
             drop(world);
@@ -655,7 +717,16 @@ impl Server {
             configuration.failed();
             return;
         }
+        drop(world);
+        self.carry_out(configuration, changes);
+    }
 
+    fn carry_out(
+        &mut self,
+        configuration: &KdeOutputConfigurationV2,
+        changes: Vec<(String, Change)>,
+    ) {
+        let mut world = lock(&self.world);
         let mut names = Vec::new();
 
         for (name, change) in changes {
@@ -666,6 +737,7 @@ impl Server {
                     Change::Transform(transform) => output.transform = transform,
                     Change::Scale(scale) => output.scale = scale,
                     Change::Policy(policy) => output.policy = policy,
+                    Change::Brightness(brightness) => output.brightness = brightness,
                     Change::Mode => {}
                 }
                 names.push(name);
@@ -694,6 +766,16 @@ fn send(device: &KdeOutputDeviceV2, mode: &KdeOutputDeviceModeV2, output: &Outpu
     );
     if output.has_current_mode {
         device.current_mode(mode);
+    }
+    if version >= 9 {
+        device.capabilities(if output.can_set_brightness {
+            kde_output_device_v2::Capability::Brightness
+        } else {
+            kde_output_device_v2::Capability::empty()
+        });
+    }
+    if version >= 8 {
+        device.brightness(output.brightness);
     }
     device.serial_number("0".to_owned());
     device.scale(output.scale);
@@ -807,6 +889,14 @@ impl Dispatch<KdeOutputConfigurationV2, Changes> for Server {
                     format!("policy {policy}"),
                 )
             }
+            R::SetBrightness {
+                outputdevice,
+                brightness,
+            } => (
+                outputdevice,
+                Change::Brightness(brightness),
+                format!("brightness {brightness}"),
+            ),
             _ => return,
         };
         let name = device.data::<String>().cloned().unwrap_or_default();

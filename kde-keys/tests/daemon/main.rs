@@ -2,6 +2,7 @@
 //! devices on D-Bus) on a private bus: one module per topic. Each test runs
 //! the program in a session of its own.
 
+mod brightness;
 mod errors;
 mod lower_screen;
 mod touch;

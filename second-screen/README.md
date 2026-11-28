@@ -19,8 +19,15 @@ For the installation, refer to the [README](../README.md#installation).
 
 `asus-ux8406-second-screen brightness`:
 
-- It copies the brightness of the upper screen to the lower screen. Desktops
-  write only the backlight of the upper screen.
+- It copies the brightness of the upper screen to the lower screen.
+- Each desktop also keeps a brightness of its own for each screen, and puts it
+  back when a screen returns. Thus the two screens can differ after the keyboard
+  leaves the dock or after a resume. The
+  [KDE keys program](../kde-keys/README.md) and the
+  [GNOME extension](../gnome-keys/README.md) keep the lower screen equal to the
+  upper screen through the desktop. The helper still copies the value in sysfs,
+  for the screens outside a desktop session, such as the login screen. With the
+  equal ranges of the two panels, the helper and the desktop set the same value.
 
 `asus-ux8406-second-screen release` gives the lower screen back to the kernel's
 own detection. The packages run it when they are removed.
